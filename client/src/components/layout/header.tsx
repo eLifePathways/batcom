@@ -42,7 +42,7 @@ const Header = () => {
       </div>
       
       {/* Main navigation */}
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="hidden md:block font-montserrat font-bold text-lg text-primary">
             Bat Virus Research Consortium
@@ -75,12 +75,12 @@ const Header = () => {
             </SheetContent>
           </Sheet>
           
-          <nav className="hidden md:flex md:items-center md:space-x-1">
+          <nav className="hidden md:flex md:items-center md:space-x-2">
             {navItems.map((item) => (
               <Link 
                 key={item.path + item.name}
                 href={item.path}
-                className={`font-medium px-3 py-2 text-sm transition duration-200 border-b-2 ${
+                className={`font-medium px-3 py-2 text-sm transition duration-200 border-b-2 mx-1 ${
                   location === item.path
                     ? "text-blue-700 border-blue-600"
                     : "text-primary hover:text-blue-600 border-transparent hover:border-blue-300"
@@ -93,7 +93,7 @@ const Header = () => {
         </div>
       </div>
       
-      <div className="bg-blue-800 h-1 w-full"></div>
+      <div className="bg-blue-800 h-2 w-full mt-2"></div>
     </header>
   );
 };
