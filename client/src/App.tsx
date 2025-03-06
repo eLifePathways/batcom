@@ -14,6 +14,9 @@ import Contact from "@/pages/contact";
 import NotFound from "@/pages/not-found";
 import AdminPage from "@/pages/admin/index";
 import AdminTeam from "@/pages/admin/team";
+import AdminPublications from "@/pages/admin/publications";
+import AdminBackgroundPapers from "@/pages/admin/background-papers";
+import AdminVirusCategories from "@/pages/admin/virus-categories";
 
 function Router() {
   const [location] = useLocation();
@@ -25,7 +28,13 @@ function Router() {
       <Switch>
         <Route path="/admin" component={AdminPage} />
         <Route path="/admin/team" component={AdminTeam} />
-        {/* Add other admin routes as needed */}
+        <Route path="/admin/publications" component={() => <div>Publications Management</div>} />
+        <Route path="/admin/publications/new" component={() => <div>Add New Publication</div>} />
+        <Route path="/admin/background-papers" component={() => <div>Background Papers Management</div>} />
+        <Route path="/admin/background-papers/new" component={() => <div>Add New Background Paper</div>} />
+        <Route path="/admin/virus-categories" component={() => <div>Virus Categories Management</div>} />
+        <Route path="/admin/virus-categories/new" component={() => <div>Add New Virus Category</div>} />
+        <Route path="/admin/settings" component={() => <div>Admin Settings</div>} />
         <Route component={NotFound} />
       </Switch>
     );
