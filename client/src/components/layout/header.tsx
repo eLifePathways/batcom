@@ -21,19 +21,36 @@ const Header = () => {
 
   return (
     <header className="bg-white shadow-md">
-      <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center justify-between mb-4 md:mb-0">
-          <Link href="/" className="flex items-center">
-            <img 
-              src="https://www.jhsph.edu/themes/custom/jhu_symposium/logo.svg" 
-              alt="Johns Hopkins Bloomberg School of Public Health" 
-              className="h-12"
-            />
-            <div className="ml-4 hidden md:block">
-              <div className="text-primary font-montserrat font-semibold">BLOOMBERG SCHOOL</div>
-              <div className="text-primary text-sm">of PUBLIC HEALTH</div>
-            </div>
-          </Link>
+      {/* Top institutional bar */}
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between border-b">
+        <Link href="/" className="flex items-center">
+          <img 
+            src="https://www.jhsph.edu/themes/custom/jhu_symposium/logo.svg" 
+            alt="Johns Hopkins Bloomberg School of Public Health" 
+            className="h-10"
+          />
+          <div className="ml-3 hidden md:block">
+            <div className="text-primary font-montserrat font-semibold text-sm">BLOOMBERG SCHOOL</div>
+            <div className="text-primary text-xs">of PUBLIC HEALTH</div>
+          </div>
+        </Link>
+        
+        <div className="flex items-center">
+          <img 
+            src="https://cdn.pixabay.com/photo/2020/01/28/10/34/bat-4798152_1280.png" 
+            alt="Bat-Com Logo" 
+            className="h-10"
+          />
+          <span className="ml-2 font-montserrat font-semibold text-primary">Bat-Com</span>
+        </div>
+      </div>
+      
+      {/* Main navigation */}
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="hidden md:block font-montserrat font-bold text-lg text-primary">
+            Bat Virus Research Consortium
+          </div>
           
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
@@ -51,7 +68,7 @@ const Header = () => {
                     onClick={closeSheet}
                     className={`text-lg font-medium transition py-2 ${
                       location === item.path
-                        ? "text-blue-600"
+                        ? "text-blue-600 font-semibold"
                         : "text-primary hover:text-blue-500"
                     }`}
                   >
@@ -61,37 +78,26 @@ const Header = () => {
               </nav>
             </SheetContent>
           </Sheet>
-        </div>
-        
-        <nav className="hidden md:flex md:items-center space-x-6">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path + item.name}
-              href={item.path}
-              className={`font-medium transition duration-200 ${
-                location === item.path
-                  ? "text-blue-600"
-                  : "text-primary hover:text-blue-500"
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-        
-        <div className="md:flex items-center hidden">
-          <div className="ml-4 flex items-center">
-            <img 
-              src="https://cdn.pixabay.com/photo/2020/01/28/10/34/bat-4798152_1280.png" 
-              alt="Bat-Com Logo" 
-              className="h-12"
-            />
-            <span className="ml-2 font-montserrat font-semibold text-primary">Bat-Com</span>
-          </div>
+          
+          <nav className="hidden md:flex md:items-center">
+            {navItems.map((item, index) => (
+              <Link 
+                key={item.path + item.name}
+                href={item.path}
+                className={`font-medium px-3 py-2 text-sm rounded-md transition duration-200 ${
+                  location === item.path
+                    ? "text-blue-600 bg-blue-50 font-semibold"
+                    : "text-primary hover:text-blue-500 hover:bg-gray-50"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
       
-      <div className="bg-primary h-3 w-full"></div>
+      <div className="bg-primary h-2 w-full"></div>
     </header>
   );
 };
