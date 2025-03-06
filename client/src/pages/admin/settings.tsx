@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import AdminNav from "@/components/admin/admin-nav";
 import {
   Card,
   CardContent,
@@ -189,265 +190,268 @@ export default function AdminSettings() {
   };
   
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Configure website and admin settings.
-        </p>
+    <>
+      <AdminNav />
+      <div className="p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Settings</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            Configure website and admin settings.
+          </p>
+        </div>
+        
+        <Tabs defaultValue="website" className="space-y-4">
+          <TabsList className="bg-background border grid grid-cols-3 lg:w-[400px]">
+            <TabsTrigger value="website" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Website</span>
+            </TabsTrigger>
+            <TabsTrigger value="api" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              <span className="hidden sm:inline">API</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Security</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Website Settings */}
+          <TabsContent value="website">
+            <Card>
+              <CardHeader>
+                <CardTitle>Website Settings</CardTitle>
+                <CardDescription>
+                  Configure general website settings and appearance.
+                </CardDescription>
+              </CardHeader>
+              <form onSubmit={handleWebsiteSubmit}>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="siteName">Site Name</Label>
+                        <Input 
+                          id="siteName" 
+                          name="siteName" 
+                          value={websiteSettings.siteName}
+                          onChange={handleWebsiteSettingChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contactEmail">Contact Email</Label>
+                        <Input 
+                          id="contactEmail" 
+                          name="contactEmail" 
+                          type="email"
+                          value={websiteSettings.contactEmail}
+                          onChange={handleWebsiteSettingChange}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="siteDescription">Site Description</Label>
+                      <Input 
+                        id="siteDescription" 
+                        name="siteDescription" 
+                        value={websiteSettings.siteDescription}
+                        onChange={handleWebsiteSettingChange}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="theme">Theme</Label>
+                      <Select 
+                        value={websiteSettings.theme} 
+                        onValueChange={(value) => handleSelectChange("website", "theme", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select theme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">Default</SelectItem>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
+                          <SelectItem value="system">System</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Features</h3>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="allowRegistration">Allow Registration</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Allow users to register accounts on the website.
+                        </p>
+                      </div>
+                      <Switch 
+                        id="allowRegistration"
+                        checked={websiteSettings.allowRegistration}
+                        onCheckedChange={(checked) => handleSwitchChange("website", "allowRegistration", checked)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Put the website in maintenance mode (only admins can access).
+                        </p>
+                      </div>
+                      <Switch 
+                        id="maintenanceMode"
+                        checked={websiteSettings.maintenanceMode}
+                        onCheckedChange={(checked) => handleSwitchChange("website", "maintenanceMode", checked)}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" disabled={saveWebsiteSettings.isPending}>
+                    {saveWebsiteSettings.isPending ? "Saving..." : "Save Website Settings"}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
+          </TabsContent>
+          
+          {/* API Settings */}
+          <TabsContent value="api">
+            <Card>
+              <CardHeader>
+                <CardTitle>API Settings</CardTitle>
+                <CardDescription>
+                  Configure API access and rate limiting.
+                </CardDescription>
+              </CardHeader>
+              <form onSubmit={handleAPISubmit}>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="apiRateLimit">API Rate Limit (requests per minute)</Label>
+                      <Input 
+                        id="apiRateLimit" 
+                        name="apiRateLimit" 
+                        type="number"
+                        value={apiSettings.apiRateLimit}
+                        onChange={handleAPISettingChange}
+                      />
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">API Access</h3>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="enablePublicAPI">Enable Public API</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Allow public access to the API endpoints.
+                        </p>
+                      </div>
+                      <Switch 
+                        id="enablePublicAPI"
+                        checked={apiSettings.enablePublicAPI}
+                        onCheckedChange={(checked) => handleSwitchChange("api", "enablePublicAPI", checked)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="requireAPIKey">Require API Key</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Require API keys for all API requests.
+                        </p>
+                      </div>
+                      <Switch 
+                        id="requireAPIKey"
+                        checked={apiSettings.requireAPIKey}
+                        onCheckedChange={(checked) => handleSwitchChange("api", "requireAPIKey", checked)}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" disabled={saveAPISettings.isPending}>
+                    {saveAPISettings.isPending ? "Saving..." : "Save API Settings"}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
+          </TabsContent>
+          
+          {/* Security Settings */}
+          <TabsContent value="security">
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+                <CardDescription>
+                  Configure security and authentication settings.
+                </CardDescription>
+              </CardHeader>
+              <form onSubmit={handleSecuritySubmit}>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="adminLoginAttempts">Max Login Attempts</Label>
+                        <Input 
+                          id="adminLoginAttempts" 
+                          name="adminLoginAttempts" 
+                          type="number"
+                          value={securitySettings.adminLoginAttempts}
+                          onChange={handleSecuritySettingChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
+                        <Input 
+                          id="sessionTimeout" 
+                          name="sessionTimeout" 
+                          type="number"
+                          value={securitySettings.sessionTimeout}
+                          onChange={handleSecuritySettingChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Authentication</h3>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="enableTwoFactor">Two-Factor Authentication</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Require two-factor authentication for admin accounts.
+                        </p>
+                      </div>
+                      <Switch 
+                        id="enableTwoFactor"
+                        checked={securitySettings.enableTwoFactor}
+                        onCheckedChange={(checked) => handleSwitchChange("security", "enableTwoFactor", checked)}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" disabled={saveSecuritySettings.isPending}>
+                    {saveSecuritySettings.isPending ? "Saving..." : "Save Security Settings"}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <Tabs defaultValue="website" className="space-y-4">
-        <TabsList className="bg-background border grid grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="website" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Website</span>
-          </TabsTrigger>
-          <TabsTrigger value="api" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            <span className="hidden sm:inline">API</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Security</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        {/* Website Settings */}
-        <TabsContent value="website">
-          <Card>
-            <CardHeader>
-              <CardTitle>Website Settings</CardTitle>
-              <CardDescription>
-                Configure general website settings and appearance.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleWebsiteSubmit}>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="siteName">Site Name</Label>
-                      <Input 
-                        id="siteName" 
-                        name="siteName" 
-                        value={websiteSettings.siteName}
-                        onChange={handleWebsiteSettingChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contactEmail">Contact Email</Label>
-                      <Input 
-                        id="contactEmail" 
-                        name="contactEmail" 
-                        type="email"
-                        value={websiteSettings.contactEmail}
-                        onChange={handleWebsiteSettingChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="siteDescription">Site Description</Label>
-                    <Input 
-                      id="siteDescription" 
-                      name="siteDescription" 
-                      value={websiteSettings.siteDescription}
-                      onChange={handleWebsiteSettingChange}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="theme">Theme</Label>
-                    <Select 
-                      value={websiteSettings.theme} 
-                      onValueChange={(value) => handleSelectChange("website", "theme", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select theme" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default">Default</SelectItem>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="system">System</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Features</h3>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="allowRegistration">Allow Registration</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow users to register accounts on the website.
-                      </p>
-                    </div>
-                    <Switch 
-                      id="allowRegistration"
-                      checked={websiteSettings.allowRegistration}
-                      onCheckedChange={(checked) => handleSwitchChange("website", "allowRegistration", checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Put the website in maintenance mode (only admins can access).
-                      </p>
-                    </div>
-                    <Switch 
-                      id="maintenanceMode"
-                      checked={websiteSettings.maintenanceMode}
-                      onCheckedChange={(checked) => handleSwitchChange("website", "maintenanceMode", checked)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={saveWebsiteSettings.isPending}>
-                  {saveWebsiteSettings.isPending ? "Saving..." : "Save Website Settings"}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </TabsContent>
-        
-        {/* API Settings */}
-        <TabsContent value="api">
-          <Card>
-            <CardHeader>
-              <CardTitle>API Settings</CardTitle>
-              <CardDescription>
-                Configure API access and rate limiting.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleAPISubmit}>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="apiRateLimit">API Rate Limit (requests per minute)</Label>
-                    <Input 
-                      id="apiRateLimit" 
-                      name="apiRateLimit" 
-                      type="number"
-                      value={apiSettings.apiRateLimit}
-                      onChange={handleAPISettingChange}
-                    />
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">API Access</h3>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="enablePublicAPI">Enable Public API</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow public access to the API endpoints.
-                      </p>
-                    </div>
-                    <Switch 
-                      id="enablePublicAPI"
-                      checked={apiSettings.enablePublicAPI}
-                      onCheckedChange={(checked) => handleSwitchChange("api", "enablePublicAPI", checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="requireAPIKey">Require API Key</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Require API keys for all API requests.
-                      </p>
-                    </div>
-                    <Switch 
-                      id="requireAPIKey"
-                      checked={apiSettings.requireAPIKey}
-                      onCheckedChange={(checked) => handleSwitchChange("api", "requireAPIKey", checked)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={saveAPISettings.isPending}>
-                  {saveAPISettings.isPending ? "Saving..." : "Save API Settings"}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </TabsContent>
-        
-        {/* Security Settings */}
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
-                Configure security and authentication settings.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSecuritySubmit}>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="adminLoginAttempts">Max Login Attempts</Label>
-                      <Input 
-                        id="adminLoginAttempts" 
-                        name="adminLoginAttempts" 
-                        type="number"
-                        value={securitySettings.adminLoginAttempts}
-                        onChange={handleSecuritySettingChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
-                      <Input 
-                        id="sessionTimeout" 
-                        name="sessionTimeout" 
-                        type="number"
-                        value={securitySettings.sessionTimeout}
-                        onChange={handleSecuritySettingChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Authentication</h3>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="enableTwoFactor">Two-Factor Authentication</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Require two-factor authentication for admin accounts.
-                      </p>
-                    </div>
-                    <Switch 
-                      id="enableTwoFactor"
-                      checked={securitySettings.enableTwoFactor}
-                      onCheckedChange={(checked) => handleSwitchChange("security", "enableTwoFactor", checked)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={saveSecuritySettings.isPending}>
-                  {saveSecuritySettings.isPending ? "Saving..." : "Save Security Settings"}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+    </>
   );
 }

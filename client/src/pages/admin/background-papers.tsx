@@ -240,274 +240,274 @@ export default function BackgroundPapersAdmin() {
               Manage educational resources and background materials.
             </p>
           </div>
-        
-        {/* Add Background Paper Dialog */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Paper
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add New Background Paper</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input 
-                  id="title" 
-                  name="title" 
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="Paper title"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="virusCategoryId">Virus Category *</Label>
-                <Select 
-                  value={formData.virusCategoryId?.toString()} 
-                  onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select virus category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {virusCategories?.map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Add Background Paper Dialog */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add Paper
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add New Background Paper</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="link">Resource Link</Label>
+                  <Label htmlFor="title">Title *</Label>
                   <Input 
-                    id="link" 
-                    name="link" 
-                    value={formData.link}
+                    id="title" 
+                    name="title" 
+                    value={formData.title}
                     onChange={handleChange}
-                    placeholder="https://example.com/paper.pdf"
+                    placeholder="Paper title"
+                    required
                   />
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input 
-                    id="imageUrl" 
-                    name="imageUrl" 
-                    value={formData.imageUrl}
-                    onChange={handleChange}
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <Label htmlFor="virusCategoryId">Virus Category *</Label>
+                  <Select 
+                    value={formData.virusCategoryId?.toString()} 
+                    onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select virus category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {virusCategories?.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Brief description of this background paper"
-                  rows={4}
-                />
-              </div>
-              
-              <DialogFooter>
-                <Button type="submit" disabled={addBackgroundPaper.isPending || updateBackgroundPaper.isPending}>
-                  {addBackgroundPaper.isPending || updateBackgroundPaper.isPending ? "Saving..." : "Save Paper"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-      
-      {/* Background Papers Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Virus Category</TableHead>
-              <TableHead>Link</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && (
-              Array(5).fill(0).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
-                </TableRow>
-              ))
-            )}
-            
-            {!isLoading && backgroundPapers?.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  No background papers found. Add your first paper to get started.
-                </TableCell>
-              </TableRow>
-            )}
-            
-            {!isLoading && backgroundPapers?.map((paper) => (
-              <TableRow key={paper.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gray-400" />
-                    <span className="max-w-[300px] truncate">{paper.title}</span>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="link">Resource Link</Label>
+                    <Input 
+                      id="link" 
+                      name="link" 
+                      value={formData.link}
+                      onChange={handleChange}
+                      placeholder="https://example.com/paper.pdf"
+                    />
                   </div>
-                </TableCell>
-                <TableCell>{getVirusCategoryName(paper.virusCategoryId)}</TableCell>
-                <TableCell>
-                  {paper.link ? (
-                    <a 
-                      href={paper.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 truncate max-w-[250px]"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      <span className="truncate">{paper.link}</span>
-                    </a>
-                  ) : (
-                    <span className="text-gray-400 text-sm">No link provided</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {/* Edit Dialog */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => loadPaperData(paper)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Edit Background Paper</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-title">Title *</Label>
-                            <Input 
-                              id="edit-title" 
-                              name="title" 
-                              value={formData.title}
-                              onChange={handleChange}
-                              required
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-virusCategoryId">Virus Category *</Label>
-                            <Select 
-                              value={formData.virusCategoryId?.toString()} 
-                              onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select virus category" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {virusCategories?.map((category) => (
-                                  <SelectItem key={category.id} value={category.id.toString()}>
-                                    {category.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="imageUrl">Image URL</Label>
+                    <Input 
+                      id="imageUrl" 
+                      name="imageUrl" 
+                      value={formData.imageUrl}
+                      onChange={handleChange}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    name="description" 
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Brief description of this background paper"
+                    rows={4}
+                  />
+                </div>
+                
+                <DialogFooter>
+                  <Button type="submit" disabled={addBackgroundPaper.isPending || updateBackgroundPaper.isPending}>
+                    {addBackgroundPaper.isPending || updateBackgroundPaper.isPending ? "Saving..." : "Save Paper"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {/* Background Papers Table */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Virus Category</TableHead>
+                <TableHead>Link</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading && (
+                Array(5).fill(0).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
+                  </TableRow>
+                ))
+              )}
+              
+              {!isLoading && backgroundPapers?.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                    No background papers found. Add your first paper to get started.
+                  </TableCell>
+                </TableRow>
+              )}
+              
+              {!isLoading && backgroundPapers?.map((paper) => (
+                <TableRow key={paper.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-gray-400" />
+                      <span className="max-w-[300px] truncate">{paper.title}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getVirusCategoryName(paper.virusCategoryId)}</TableCell>
+                  <TableCell>
+                    {paper.link ? (
+                      <a 
+                        href={paper.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 truncate max-w-[250px]"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        <span className="truncate">{paper.link}</span>
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 text-sm">No link provided</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {/* Edit Dialog */}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => loadPaperData(paper)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Edit Background Paper</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                             <div className="space-y-2">
-                              <Label htmlFor="edit-link">Resource Link</Label>
+                              <Label htmlFor="edit-title">Title *</Label>
                               <Input 
-                                id="edit-link" 
-                                name="link" 
-                                value={formData.link}
+                                id="edit-title" 
+                                name="title" 
+                                value={formData.title}
                                 onChange={handleChange}
+                                required
                               />
                             </div>
+                            
                             <div className="space-y-2">
-                              <Label htmlFor="edit-imageUrl">Image URL</Label>
-                              <Input 
-                                id="edit-imageUrl" 
-                                name="imageUrl" 
-                                value={formData.imageUrl}
+                              <Label htmlFor="edit-virusCategoryId">Virus Category *</Label>
+                              <Select 
+                                value={formData.virusCategoryId?.toString()} 
+                                onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select virus category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {virusCategories?.map((category) => (
+                                    <SelectItem key={category.id} value={category.id.toString()}>
+                                      {category.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-link">Resource Link</Label>
+                                <Input 
+                                  id="edit-link" 
+                                  name="link" 
+                                  value={formData.link}
+                                  onChange={handleChange}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-imageUrl">Image URL</Label>
+                                <Input 
+                                  id="edit-imageUrl" 
+                                  name="imageUrl" 
+                                  value={formData.imageUrl}
+                                  onChange={handleChange}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-description">Description</Label>
+                              <Textarea 
+                                id="edit-description" 
+                                name="description" 
+                                value={formData.description}
                                 onChange={handleChange}
+                                rows={4}
                               />
                             </div>
+                            
+                            <DialogFooter>
+                              <Button type="submit" disabled={updateBackgroundPaper.isPending}>
+                                {updateBackgroundPaper.isPending ? "Saving..." : "Save Changes"}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                      
+                      {/* Delete Dialog */}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Delete Background Paper</DialogTitle>
+                          </DialogHeader>
+                          <div className="py-4">
+                            <p>Are you sure you want to delete <span className="font-semibold">{paper.title}</span>?</p>
+                            <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
                           </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-description">Description</Label>
-                            <Textarea 
-                              id="edit-description" 
-                              name="description" 
-                              value={formData.description}
-                              onChange={handleChange}
-                              rows={4}
-                            />
-                          </div>
-                          
                           <DialogFooter>
-                            <Button type="submit" disabled={updateBackgroundPaper.isPending}>
-                              {updateBackgroundPaper.isPending ? "Saving..." : "Save Changes"}
+                            <Button 
+                              variant="destructive" 
+                              onClick={() => deleteBackgroundPaper.mutate(paper.id)}
+                              disabled={deleteBackgroundPaper.isPending}
+                            >
+                              {deleteBackgroundPaper.isPending ? "Deleting..." : "Delete"}
                             </Button>
                           </DialogFooter>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
-                    
-                    {/* Delete Dialog */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Delete Background Paper</DialogTitle>
-                        </DialogHeader>
-                        <div className="py-4">
-                          <p>Are you sure you want to delete <span className="font-semibold">{paper.title}</span>?</p>
-                          <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
-                        </div>
-                        <DialogFooter>
-                          <Button 
-                            variant="destructive" 
-                            onClick={() => deleteBackgroundPaper.mutate(paper.id)}
-                            disabled={deleteBackgroundPaper.isPending}
-                          >
-                            {deleteBackgroundPaper.isPending ? "Deleting..." : "Delete"}
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
     </>
   );
 }
