@@ -5,15 +5,27 @@ const Footer = () => {
     <footer className="bg-primary text-white">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-6 md:mb-0 flex items-center">
-            <img 
-              src="https://www.jhsph.edu/themes/custom/jhu_symposium/logo-white.svg" 
-              alt="Johns Hopkins Bloomberg School of Public Health" 
-              className="h-12"
-            />
-            <div className="ml-4">
-              <div className="font-montserrat font-semibold">BLOOMBERG SCHOOL</div>
-              <div className="text-sm">of PUBLIC HEALTH</div>
+          <div className="mb-6 md:mb-0 flex flex-col md:flex-row items-center">
+            {/* JHU Logo with color inversion via CSS */}
+            <div className="mb-4 md:mb-0">
+              <img 
+                src="/assets/logos/jhu-logo.svg" 
+                alt="Johns Hopkins University" 
+                className="h-14 w-auto filter invert brightness-200"
+                style={{ filter: 'invert(1) brightness(1.5)' }}
+              />
+            </div>
+            
+            <div className="md:ml-8 flex items-center">
+              <img 
+                src="https://www.jhsph.edu/themes/custom/jhu_symposium/logo-white.svg" 
+                alt="Johns Hopkins Bloomberg School of Public Health" 
+                className="h-12"
+              />
+              <div className="ml-4">
+                <div className="font-montserrat font-semibold">BLOOMBERG SCHOOL</div>
+                <div className="text-sm">of PUBLIC HEALTH</div>
+              </div>
             </div>
           </div>
           

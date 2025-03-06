@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 150">
+  <g class="jhu-logo-group">
+    <!-- Shield -->
+    <path d="M50,10 L150,10 L150,120 L100,140 L50,120 Z" fill="#000044" class="jhu-logo-shield"/>
+    
+    <!-- Cross -->
+    <path d="M100,20 L100,130 M70,50 L130,50" stroke="#ffffff" stroke-width="10" class="jhu-logo-cross"/>
+    
+    <!-- JOHNS HOPKINS -->
+    <g class="jhu-logo-text" fill="#000044">
+      <!-- JOHNS -->
+      <path d="M190,40 L190,100 M185,40 L195,40 M185,70 L190,70" />
+      <circle cx="215" cy="50" r="10" />
+      <path d="M215,60 L215,100" />
+      <path d="M235,40 L260,40 L260,70 L235,70 L235,100" />
+      <path d="M280,40 L280,100 M270,40 L290,40" />
+      <path d="M310,40 C290,40 290,70 310,70 C330,70 330,100 310,100" />
+      
+      <!-- HOPKINS -->
+      <path d="M350,40 L350,100 M350,70 L370,70 M370,40 L370,100" />
+      <circle cx="395" cy="50" r="10" />
+      <path d="M395,60 L395,100" />
+      <path d="M415,40 L440,40 L440,70 L415,70 L415,100" />
+      <path d="M460,40 L460,100 M450,40 L470,40" />
+      <path d="M490,40 L490,100 M480,40 L500,40" />
+      <path d="M520,40 L540,40 L540,70 L520,70 L520,100" />
+    </g>
+    
+    <!-- UNIVERSITY -->
+    <g class="jhu-logo-university" fill="#000044">
+      <path d="M250,110 L250,130 C240,140 260,140 250,130" />
+      <path d="M270,110 L270,130" />
+      <path d="M290,110 L290,130" />
+      <path d="M310,110 L310,130 L320,130" />
+      <path d="M340,110 L330,130 L350,130" />
+      <path d="M360,110 L360,130" />
+      <path d="M380,110 L380,130 C370,140 390,140 380,130" />
+      <path d="M400,110 L400,130" />
+      <path d="M415,110 L415,130 L425,130" />
+      <path d="M440,110 L440,130 L450,110 L450,130" />
+    </g>
+  </g>
+</svg>
