@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon, neonConfig } from '@neondatabase/serverless';
 import { 
   users, type User, type InsertUser,
   virusCategories, type VirusCategory, type InsertVirusCategory,
@@ -9,6 +9,9 @@ import {
 } from '@shared/schema';
 import { IStorage } from './storage';
 import { eq, and, gte, lte, like, sql } from 'drizzle-orm';
+
+// Configure neon to use fetch
+neonConfig.fetchConnectionCache = true;
 
 const sql_url = process.env.DATABASE_URL || '';
 const client = neon(sql_url);
