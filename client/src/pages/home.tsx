@@ -6,11 +6,12 @@ import BackgroundPapersSection from "@/components/sections/background-papers-sec
 
 const Home = () => {
   return (
-    <main>
+    <main className="container mx-auto px-4">
       <HeroSection 
         title="Our teams curate and assess historical and emerging research on bat virus spillover events."
         description="We prioritize high-quality research on spillover events to shed light on viral reservoirs, intermediate hosts, recipient hosts, and possible spillover pathways."
       />
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-16"></div>
       <VirusCategoriesSection />
       <TeamSection showAllMembers={false} />
       <PublicationsSection />

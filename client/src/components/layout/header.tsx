@@ -93,7 +93,7 @@ const Header = () => {
         </div>
       </div>
       
-      <div className="bg-blue-800 h-2 w-full mt-2"></div>
+      <div className="bg-blue-800 h-2 w-full"></div>
     </header>
   );
 };
