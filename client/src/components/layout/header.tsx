@@ -22,17 +22,13 @@ const Header = () => {
   return (
     <header className="bg-white shadow-md">
       {/* Top institutional bar */}
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between border-b">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between border-b border-gray-200">
         <Link href="/" className="flex items-center">
           <img 
-            src="https://www.jhsph.edu/themes/custom/jhu_symposium/logo.svg" 
-            alt="Johns Hopkins Bloomberg School of Public Health" 
-            className="h-10"
+            src="/assets/logos-vertical-1024x683.jpg" 
+            alt="Johns Hopkins University" 
+            className="h-12"
           />
-          <div className="ml-3 hidden md:block">
-            <div className="text-primary font-montserrat font-semibold text-sm">BLOOMBERG SCHOOL</div>
-            <div className="text-primary text-xs">of PUBLIC HEALTH</div>
-          </div>
         </Link>
         
         <div className="flex items-center">
@@ -79,15 +75,15 @@ const Header = () => {
             </SheetContent>
           </Sheet>
           
-          <nav className="hidden md:flex md:items-center">
-            {navItems.map((item, index) => (
+          <nav className="hidden md:flex md:items-center md:space-x-1">
+            {navItems.map((item) => (
               <Link 
                 key={item.path + item.name}
                 href={item.path}
-                className={`font-medium px-3 py-2 text-sm rounded-md transition duration-200 ${
+                className={`font-medium px-3 py-2 text-sm transition duration-200 border-b-2 ${
                   location === item.path
-                    ? "text-blue-600 bg-blue-50 font-semibold"
-                    : "text-primary hover:text-blue-500 hover:bg-gray-50"
+                    ? "text-blue-700 border-blue-600"
+                    : "text-primary hover:text-blue-600 border-transparent hover:border-blue-300"
                 }`}
               >
                 {item.name}
@@ -97,7 +93,7 @@ const Header = () => {
         </div>
       </div>
       
-      <div className="bg-primary h-2 w-full"></div>
+      <div className="bg-blue-800 h-1 w-full"></div>
     </header>
   );
 };
