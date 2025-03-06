@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,8 +12,26 @@ import Search from "@/pages/search";
 import WhatWeDo from "@/pages/what-we-do";
 import Contact from "@/pages/contact";
 import NotFound from "@/pages/not-found";
+import AdminPage from "@/pages/admin/index";
+import AdminTeam from "@/pages/admin/team";
 
 function Router() {
+  const [location] = useLocation();
+  const isAdminRoute = location.startsWith('/admin');
+  
+  // If we're on an admin route, we use a different layout
+  if (isAdminRoute) {
+    return (
+      <Switch>
+        <Route path="/admin" component={AdminPage} />
+        <Route path="/admin/team" component={AdminTeam} />
+        {/* Add other admin routes as needed */}
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
+  
+  // Main site layout
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
