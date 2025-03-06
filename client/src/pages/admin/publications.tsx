@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import AdminNav from "@/components/admin/admin-nav";
 import {
   Table,
   TableBody,
@@ -271,9 +272,11 @@ export default function PublicationsAdmin() {
   };
   
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
+    <>
+      <AdminNav />
+      <div className="p-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
           <h1 className="text-3xl font-bold">Publications</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
             Manage research publications and articles.
@@ -704,5 +707,6 @@ export default function PublicationsAdmin() {
         </Table>
       </div>
     </div>
+    </>
   );
 }
