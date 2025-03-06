@@ -201,7 +201,7 @@ export default function WhatWeDo() {
   const [activeTab, setActiveTab] = useState("kotahi");
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       <HeroSection 
         title="What We Do" 
         description="At Bat-Com, we systematically review and evaluate scientific evidence related to bat viruses and their potential to cause human disease. Our work focuses on providing high-quality, accessible information to researchers, public health officials, and policymakers."

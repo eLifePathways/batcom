@@ -17,7 +17,7 @@ function Router() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <div className="flex-grow">
+      <main className="flex-grow bg-white">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/team" component={Team} />
@@ -28,7 +28,7 @@ function Router() {
           <Route path="/contact" component={Contact} />
           <Route component={NotFound} />
         </Switch>
-      </div>
+      </main>
       <Footer />
     </div>
   );
