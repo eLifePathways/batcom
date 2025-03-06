@@ -28,13 +28,15 @@ function Router() {
       <Switch>
         <Route path="/admin" component={AdminPage} />
         <Route path="/admin/team" component={AdminTeam} />
-        <Route path="/admin/publications" component={() => <div>Publications Management</div>} />
-        <Route path="/admin/publications/new" component={() => <div>Add New Publication</div>} />
-        <Route path="/admin/background-papers" component={() => <div>Background Papers Management</div>} />
-        <Route path="/admin/background-papers/new" component={() => <div>Add New Background Paper</div>} />
-        <Route path="/admin/virus-categories" component={() => <div>Virus Categories Management</div>} />
-        <Route path="/admin/virus-categories/new" component={() => <div>Add New Virus Category</div>} />
-        <Route path="/admin/settings" component={() => <div>Admin Settings</div>} />
+        <Route path="/admin/publications" component={AdminPublications} />
+        <Route path="/admin/background-papers" component={AdminBackgroundPapers} />
+        <Route path="/admin/virus-categories" component={AdminVirusCategories} />
+        <Route path="/admin/settings" component={() => (
+          <div className="p-8">
+            <h1 className="text-3xl font-bold mb-4">Settings</h1>
+            <p className="text-gray-500">Admin settings will be implemented soon.</p>
+          </div>
+        )} />
         <Route component={NotFound} />
       </Switch>
     );

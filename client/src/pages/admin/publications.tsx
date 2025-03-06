@@ -505,7 +505,7 @@ export default function PublicationsAdmin() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                       >
-                        <External className="h-4 w-4" />
+                        <ExternalLink className="h-4 w-4" />
                       </a>
                     )}
                     
