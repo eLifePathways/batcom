@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <radialGradient id="paramyxoBg" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:#003300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#001100;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#paramyxoBg)" />
+  
+  <!-- Main virus bodies -->
+  <g>
+    <circle cx="400" cy="400" r="120" fill="#00bb44" opacity="0.8"/>
+    <circle cx="250" cy="300" r="90" fill="#00bb44" opacity="0.7"/>
+    <circle cx="550" cy="350" r="100" fill="#00bb44" opacity="0.75"/>
+  </g>
+  
+  <!-- Spikes on virus surface -->
+  <g fill="#99ff99">
+    <!-- Spikes on first virus -->
+    <g transform="translate(400, 400)">
+      <g id="spikes1">
+        <line x1="0" y1="0" x2="0" y2="-140" stroke="#99ff99" stroke-width="3"/>
+        <circle cx="0" cy="-150" r="10"/>
+      </g>
+      <!-- Duplicate and rotate -->
+      <use href="#spikes1" transform="rotate(20)"/>
+      <use href="#spikes1" transform="rotate(40)"/>
+      <use href="#spikes1" transform="rotate(60)"/>
+      <use href="#spikes1" transform="rotate(80)"/>
+      <use href="#spikes1" transform="rotate(100)"/>
+      <use href="#spikes1" transform="rotate(120)"/>
+      <use href="#spikes1" transform="rotate(140)"/>
+      <use href="#spikes1" transform="rotate(160)"/>
+      <use href="#spikes1" transform="rotate(180)"/>
+      <use href="#spikes1" transform="rotate(200)"/>
+      <use href="#spikes1" transform="rotate(220)"/>
+      <use href="#spikes1" transform="rotate(240)"/>
+      <use href="#spikes1" transform="rotate(260)"/>
+      <use href="#spikes1" transform="rotate(280)"/>
+      <use href="#spikes1" transform="rotate(300)"/>
+      <use href="#spikes1" transform="rotate(320)"/>
+      <use href="#spikes1" transform="rotate(340)"/>
+    </g>
+    
+    <!-- Spikes on second virus -->
+    <g transform="translate(250, 300)">
+      <g id="spikes2">
+        <line x1="0" y1="0" x2="0" y2="-100" stroke="#99ff99" stroke-width="2"/>
+        <circle cx="0" cy="-110" r="8"/>
+      </g>
+      <!-- Duplicate and rotate -->
+      <use href="#spikes2" transform="rotate(30)"/>
+      <use href="#spikes2" transform="rotate(60)"/>
+      <use href="#spikes2" transform="rotate(90)"/>
+      <use href="#spikes2" transform="rotate(120)"/>
+      <use href="#spikes2" transform="rotate(150)"/>
+      <use href="#spikes2" transform="rotate(180)"/>
+      <use href="#spikes2" transform="rotate(210)"/>
+      <use href="#spikes2" transform="rotate(240)"/>
+      <use href="#spikes2" transform="rotate(270)"/>
+      <use href="#spikes2" transform="rotate(300)"/>
+      <use href="#spikes2" transform="rotate(330)"/>
+    </g>
+    
+    <!-- Spikes on third virus -->
+    <g transform="translate(550, 350)">
+      <g id="spikes3">
+        <line x1="0" y1="0" x2="0" y2="-120" stroke="#99ff99" stroke-width="2.5"/>
+        <circle cx="0" cy="-130" r="9"/>
+      </g>
+      <!-- Duplicate and rotate -->
+      <use href="#spikes3" transform="rotate(25)"/>
+      <use href="#spikes3" transform="rotate(50)"/>
+      <use href="#spikes3" transform="rotate(75)"/>
+      <use href="#spikes3" transform="rotate(100)"/>
+      <use href="#spikes3" transform="rotate(125)"/>
+      <use href="#spikes3" transform="rotate(150)"/>
+      <use href="#spikes3" transform="rotate(175)"/>
+      <use href="#spikes3" transform="rotate(200)"/>
+      <use href="#spikes3" transform="rotate(225)"/>
+      <use href="#spikes3" transform="rotate(250)"/>
+      <use href="#spikes3" transform="rotate(275)"/>
+      <use href="#spikes3" transform="rotate(300)"/>
+      <use href="#spikes3" transform="rotate(325)"/>
+      <use href="#spikes3" transform="rotate(350)"/>
+    </g>
+  </g>
+</svg>

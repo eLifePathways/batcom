@@ -231,37 +231,37 @@ export class MemStorage implements IStorage {
     const coronaviridae = this.createVirusCategory({
       name: "Coronaviridae",
       description: "Family of enveloped, positive-sense, single-stranded RNA viruses.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/04/02/19/07/virus-4996107_1280.png"
+      imageUrl: "/assets/viruses/coronavirus.svg"
     });
 
     const filoviridae = this.createVirusCategory({
       name: "Filoviridae",
       description: "Family of filamentous, enveloped, negative-sense RNA viruses.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/04/09/08/23/virus-5020400_1280.jpg"
+      imageUrl: "/assets/viruses/filovirus.svg"
     });
 
     const paramyxoviridae = this.createVirusCategory({
       name: "Paramyxoviridae",
       description: "Family of negative-sense RNA viruses, including measles and mumps.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/03/16/16/29/virus-4937553_1280.jpg"
+      imageUrl: "/assets/viruses/paramyxovirus.svg"
     });
 
     const sedoreoviridae = this.createVirusCategory({
       name: "Sedoreoviridae",
       description: "Subfamily of viruses within the family Reoviridae.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/04/10/13/23/virus-5025901_1280.jpg"
+      imageUrl: "/assets/viruses/sedoreovirus.svg"
     });
 
     const rhabdoviridae = this.createVirusCategory({
       name: "Rhabdoviridae",
       description: "Family of negative-sense RNA viruses, including rabies virus.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/03/26/19/06/coronavirus-4972480_1280.jpg"
+      imageUrl: "/assets/viruses/rhabdovirus.svg"
     });
 
     const otherUnknown = this.createVirusCategory({
       name: "Other/Unknown",
       description: "Additional viral families and unclassified viruses under investigation.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/03/31/17/03/virus-4988544_1280.jpg"
+      imageUrl: "/assets/viruses/unknown-virus.svg"
     });
 
     // Add team members
