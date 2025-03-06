@@ -89,7 +89,7 @@ export default function TeamMembersAdmin() {
   // Add team member mutation
   const addTeamMember = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/team-members', 'POST', data);
+      return apiRequest('POST', '/api/team-members', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
@@ -112,7 +112,7 @@ export default function TeamMembersAdmin() {
   // Update team member mutation
   const updateTeamMember = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest(`/api/team-members/${id}`, 'PUT', data);
+      return apiRequest('PUT', `/api/team-members/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
@@ -136,7 +136,7 @@ export default function TeamMembersAdmin() {
   // Delete team member mutation
   const deleteTeamMember = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/team-members/${id}`, 'DELETE');
+      return apiRequest('DELETE', `/api/team-members/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
