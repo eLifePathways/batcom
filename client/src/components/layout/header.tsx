@@ -33,11 +33,10 @@ const Header = () => {
         
         <div className="flex items-center">
           <img 
-            src="https://cdn.pixabay.com/photo/2020/01/28/10/34/bat-4798152_1280.png" 
+            src="/assets/bats.png" 
             alt="Bat-Com Logo" 
-            className="h-10"
+            className="h-12"
           />
-          <span className="ml-2 font-montserrat font-semibold text-primary">Bat-Com</span>
         </div>
       </div>
       
