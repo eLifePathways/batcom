@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import AdminNav from "@/components/admin/admin-nav";
 import {
   Table,
   TableBody,
@@ -229,14 +230,16 @@ export default function BackgroundPapersAdmin() {
   };
   
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Background Papers</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Manage educational resources and background materials.
-          </p>
-        </div>
+    <>
+      <AdminNav />
+      <div className="p-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Background Papers</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              Manage educational resources and background materials.
+            </p>
+          </div>
         
         {/* Add Background Paper Dialog */}
         <Dialog>
@@ -505,5 +508,6 @@ export default function BackgroundPapersAdmin() {
         </Table>
       </div>
     </div>
+    </>
   );
 }
