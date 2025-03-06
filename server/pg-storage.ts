@@ -1,271 +1,190 @@
-import {
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { neon } from '@neondatabase/serverless';
+import { 
   users, type User, type InsertUser,
   virusCategories, type VirusCategory, type InsertVirusCategory,
   teamMembers, type TeamMember, type InsertTeamMember,
   publications, type Publication, type InsertPublication,
   backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper
-} from "@shared/schema";
+} from '@shared/schema';
+import { IStorage } from './storage';
+import { eq, and, gte, lte, like, sql } from 'drizzle-orm';
 
-export interface IStorage {
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+const sql_url = process.env.DATABASE_URL || '';
+const client = neon(sql_url);
+const db = drizzle(client);
 
-  // Virus category operations
-  getAllVirusCategories(): Promise<VirusCategory[]>;
-  getVirusCategory(id: number): Promise<VirusCategory | undefined>;
-  createVirusCategory(category: InsertVirusCategory): Promise<VirusCategory>;
-
-  // Team member operations
-  getAllTeamMembers(): Promise<TeamMember[]>;
-  getTeamMember(id: number): Promise<TeamMember | undefined>;
-  createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
-
-  // Publication operations
-  getAllPublications(): Promise<Publication[]>;
-  getPublication(id: number): Promise<Publication | undefined>;
-  createPublication(publication: InsertPublication): Promise<Publication>;
-  getPublicationsByVirusCategory(virusCategoryId: number): Promise<Publication[]>;
-  getPublicationsByEvidenceQuality(quality: string): Promise<Publication[]>;
-  getPublicationsByEvidenceType(type: string): Promise<Publication[]>;
-  getPublicationsByYear(year: number): Promise<Publication[]>;
-  getPublicationsByYearRange(startYear: number, endYear: number): Promise<Publication[]>;
-  getPublicationsByRegion(region: string): Promise<Publication[]>;
-  searchPublications(query: string): Promise<Publication[]>;
-
-  // Background paper operations
-  getAllBackgroundPapers(): Promise<BackgroundPaper[]>;
-  getBackgroundPaper(id: number): Promise<BackgroundPaper | undefined>;
-  createBackgroundPaper(paper: InsertBackgroundPaper): Promise<BackgroundPaper>;
-  getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]>;
-}
-
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private virusCategories: Map<number, VirusCategory>;
-  private teamMembers: Map<number, TeamMember>;
-  private publications: Map<number, Publication>;
-  private backgroundPapers: Map<number, BackgroundPaper>;
+export class PostgresStorage implements IStorage {
   
-  private userCurrentId: number;
-  private virusCategoryCurrentId: number;
-  private teamMemberCurrentId: number;
-  private publicationCurrentId: number;
-  private backgroundPaperCurrentId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.virusCategories = new Map();
-    this.teamMembers = new Map();
-    this.publications = new Map();
-    this.backgroundPapers = new Map();
-    
-    this.userCurrentId = 1;
-    this.virusCategoryCurrentId = 1;
-    this.teamMemberCurrentId = 1;
-    this.publicationCurrentId = 1;
-    this.backgroundPaperCurrentId = 1;
-
-    // Initialize with sample data
-    this.initializeData();
-  }
-
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   // Virus category operations
   async getAllVirusCategories(): Promise<VirusCategory[]> {
-    return Array.from(this.virusCategories.values());
+    return db.select().from(virusCategories);
   }
 
   async getVirusCategory(id: number): Promise<VirusCategory | undefined> {
-    return this.virusCategories.get(id);
+    const result = await db.select().from(virusCategories).where(eq(virusCategories.id, id));
+    return result[0];
   }
 
   async createVirusCategory(category: InsertVirusCategory): Promise<VirusCategory> {
-    const id = this.virusCategoryCurrentId++;
-    const virusCategory: VirusCategory = { 
-      ...category, 
-      id,
-      imageUrl: category.imageUrl ?? null 
-    };
-    this.virusCategories.set(id, virusCategory);
-    return virusCategory;
+    const result = await db.insert(virusCategories).values(category).returning();
+    return result[0];
   }
 
   // Team member operations
   async getAllTeamMembers(): Promise<TeamMember[]> {
-    return Array.from(this.teamMembers.values());
+    return db.select().from(teamMembers);
   }
 
   async getTeamMember(id: number): Promise<TeamMember | undefined> {
-    return this.teamMembers.get(id);
+    const result = await db.select().from(teamMembers).where(eq(teamMembers.id, id));
+    return result[0];
   }
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
-    const id = this.teamMemberCurrentId++;
-    const teamMember: TeamMember = { 
-      ...member, 
-      id,
-      imageUrl: member.imageUrl ?? null,
-      email: member.email ?? null,
-      website: member.website ?? null,
-      socialMedia: member.socialMedia ?? null
-    };
-    this.teamMembers.set(id, teamMember);
-    return teamMember;
+    const result = await db.insert(teamMembers).values(member).returning();
+    return result[0];
   }
 
   // Publication operations
   async getAllPublications(): Promise<Publication[]> {
-    return Array.from(this.publications.values());
+    return db.select().from(publications);
   }
 
   async getPublication(id: number): Promise<Publication | undefined> {
-    return this.publications.get(id);
+    const result = await db.select().from(publications).where(eq(publications.id, id));
+    return result[0];
   }
 
   async createPublication(publication: InsertPublication): Promise<Publication> {
-    const id = this.publicationCurrentId++;
-    const newPublication: Publication = { 
-      ...publication, 
-      id,
-      link: publication.link ?? null
-    };
-    this.publications.set(id, newPublication);
-    return newPublication;
+    const result = await db.insert(publications).values(publication).returning();
+    return result[0];
   }
 
   async getPublicationsByVirusCategory(virusCategoryId: number): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.virusCategoryId === virusCategoryId
-    );
+    return db.select().from(publications).where(eq(publications.virusCategoryId, virusCategoryId));
   }
 
   async getPublicationsByEvidenceQuality(quality: string): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.evidenceQuality === quality
-    );
+    return db.select().from(publications).where(eq(publications.evidenceQuality, quality));
   }
 
   async getPublicationsByEvidenceType(type: string): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.evidenceType === type
-    );
+    return db.select().from(publications).where(eq(publications.evidenceType, type));
   }
 
   async getPublicationsByYear(year: number): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.year === year
-    );
+    return db.select().from(publications).where(eq(publications.year, year));
   }
 
   async getPublicationsByYearRange(startYear: number, endYear: number): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.year >= startYear && publication.year <= endYear
+    return db.select().from(publications).where(
+      and(
+        gte(publications.year, startYear),
+        lte(publications.year, endYear)
+      )
     );
   }
 
   async getPublicationsByRegion(region: string): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.region === region
-    );
+    return db.select().from(publications).where(eq(publications.region, region));
   }
 
   async searchPublications(query: string): Promise<Publication[]> {
-    const lowercaseQuery = query.toLowerCase();
-    return Array.from(this.publications.values()).filter(
-      publication => 
-        publication.title.toLowerCase().includes(lowercaseQuery) ||
-        publication.authors.toLowerCase().includes(lowercaseQuery) ||
-        publication.abstract.toLowerCase().includes(lowercaseQuery)
+    // Case-insensitive search across multiple fields
+    const searchQuery = `%${query.toLowerCase()}%`;
+    return db.select().from(publications).where(
+      sql`(LOWER(${publications.title}) LIKE ${searchQuery} OR 
+           LOWER(${publications.authors}) LIKE ${searchQuery} OR 
+           LOWER(${publications.abstract}) LIKE ${searchQuery})`
     );
   }
 
   // Background paper operations
   async getAllBackgroundPapers(): Promise<BackgroundPaper[]> {
-    return Array.from(this.backgroundPapers.values());
+    return db.select().from(backgroundPapers);
   }
 
   async getBackgroundPaper(id: number): Promise<BackgroundPaper | undefined> {
-    return this.backgroundPapers.get(id);
+    const result = await db.select().from(backgroundPapers).where(eq(backgroundPapers.id, id));
+    return result[0];
   }
 
   async createBackgroundPaper(paper: InsertBackgroundPaper): Promise<BackgroundPaper> {
-    const id = this.backgroundPaperCurrentId++;
-    const backgroundPaper: BackgroundPaper = { 
-      ...paper, 
-      id,
-      link: paper.link ?? null,
-      imageUrl: paper.imageUrl ?? null
-    };
-    this.backgroundPapers.set(id, backgroundPaper);
-    return backgroundPaper;
+    const result = await db.insert(backgroundPapers).values(paper).returning();
+    return result[0];
   }
 
   async getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]> {
-    return Array.from(this.backgroundPapers.values()).filter(
-      paper => paper.virusCategoryId === virusCategoryId
-    );
+    return db.select().from(backgroundPapers).where(eq(backgroundPapers.virusCategoryId, virusCategoryId));
   }
 
-  // Initialize sample data
-  private initializeData() {
+  // Initialize the database with sample data
+  async initializeDatabase(): Promise<void> {
+    // Check if there's any data in the virus categories table
+    const existingCategories = await db.select().from(virusCategories).limit(1);
+    if (existingCategories.length > 0) {
+      console.log('Database already has data. Skipping initialization.');
+      return;
+    }
+
+    console.log('Initializing database with sample data...');
+
     // Add virus categories
-    const coronaviridae = this.createVirusCategory({
+    const [coronaviridae] = await db.insert(virusCategories).values({
       name: "Coronaviridae",
       description: "Family of enveloped, positive-sense, single-stranded RNA viruses.",
       imageUrl: "/assets/viruses/coronavirus.svg"
-    });
+    }).returning();
 
-    const filoviridae = this.createVirusCategory({
+    const [filoviridae] = await db.insert(virusCategories).values({
       name: "Filoviridae",
       description: "Family of filamentous, enveloped, negative-sense RNA viruses.",
       imageUrl: "/assets/viruses/filovirus.svg"
-    });
+    }).returning();
 
-    const paramyxoviridae = this.createVirusCategory({
+    const [paramyxoviridae] = await db.insert(virusCategories).values({
       name: "Paramyxoviridae",
       description: "Family of negative-sense RNA viruses, including measles and mumps.",
       imageUrl: "/assets/viruses/paramyxovirus.svg"
-    });
+    }).returning();
 
-    const sedoreoviridae = this.createVirusCategory({
+    const [sedoreoviridae] = await db.insert(virusCategories).values({
       name: "Sedoreoviridae",
       description: "Subfamily of viruses within the family Reoviridae.",
       imageUrl: "/assets/viruses/sedoreovirus.svg"
-    });
+    }).returning();
 
-    const rhabdoviridae = this.createVirusCategory({
+    const [rhabdoviridae] = await db.insert(virusCategories).values({
       name: "Rhabdoviridae",
       description: "Family of negative-sense RNA viruses, including rabies virus.",
       imageUrl: "/assets/viruses/rhabdovirus.svg"
-    });
+    }).returning();
 
-    const otherUnknown = this.createVirusCategory({
+    const [otherUnknown] = await db.insert(virusCategories).values({
       name: "Other/Unknown",
       description: "Additional viral families and unclassified viruses under investigation.",
       imageUrl: "/assets/viruses/unknown-virus.svg"
-    });
+    }).returning();
 
     // Add team members
-    this.createTeamMember({
+    await db.insert(teamMembers).values({
       name: "Emily Gurley",
       title: "Professor of Epidemiology",
       institution: "Johns Hopkins University - Bloomberg School of Public Health",
@@ -276,7 +195,7 @@ export class MemStorage implements IStorage {
       socialMedia: "https://www.linkedin.com/in/emily-gurley"
     });
 
-    this.createTeamMember({
+    await db.insert(teamMembers).values({
       name: "Clif McKee",
       title: "Research Scientist",
       institution: "Johns Hopkins University - Bloomberg School of Public Health",
@@ -288,138 +207,133 @@ export class MemStorage implements IStorage {
     });
 
     // Add publications
-    this.createPublication({
+    await db.insert(publications).values({
       title: "Bat Coronaviruses in China",
       authors: "Li et al.",
       year: 2018,
       abstract: "Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.",
       evidenceQuality: "high",
       evidenceType: "infection",
-      virusCategoryId: 1, // Coronaviridae
+      virusCategoryId: coronaviridae.id,
       region: "Asia",
-      publicationDate: "2018-03-15",
+      publicationDate: new Date("2018-03-15"),
       link: "https://example.com/bat-coronaviruses-china"
     });
 
-    this.createPublication({
+    await db.insert(publications).values({
       title: "Nipah Virus Emergence in Malaysia",
       authors: "Chua et al.",
       year: 2000,
       abstract: "Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.",
       evidenceQuality: "medium",
       evidenceType: "spillover",
-      virusCategoryId: 3, // Paramyxoviridae
+      virusCategoryId: paramyxoviridae.id,
       region: "Asia",
-      publicationDate: "2000-09-26",
+      publicationDate: new Date("2000-09-26"),
       link: "https://example.com/nipah-virus-emergence"
     });
 
-    this.createPublication({
+    await db.insert(publications).values({
       title: "Ebola Virus Antibodies in Fruit Bats",
       authors: "Leroy et al.",
       year: 2005,
       abstract: "Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.",
       evidenceQuality: "low",
       evidenceType: "infection",
-      virusCategoryId: 2, // Filoviridae
+      virusCategoryId: filoviridae.id,
       region: "Africa",
-      publicationDate: "2005-12-01",
+      publicationDate: new Date("2005-12-01"),
       link: "https://example.com/ebola-antibodies-bats"
     });
 
-    this.createPublication({
+    await db.insert(publications).values({
       title: "MERS-CoV in Saudi Arabian Camels",
       authors: "Azhar et al.",
       year: 2014,
       abstract: "Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.",
       evidenceQuality: "high",
       evidenceType: "spillover",
-      virusCategoryId: 1, // Coronaviridae
+      virusCategoryId: coronaviridae.id,
       region: "Middle East",
-      publicationDate: "2014-06-05",
+      publicationDate: new Date("2014-06-05"),
       link: "https://example.com/mers-cov-camels"
     });
 
     // Add background papers
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Origin and evolution of pathogenic coronaviruses",
-      virusCategoryId: 1, // Coronaviridae
+      virusCategoryId: coronaviridae.id,
       link: "https://example.com/coronavirus-evolution",
       imageUrl: "/assets/viruses/bat-hanging.png"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Bat coronaviruses in China: A comprehensive review",
-      virusCategoryId: 1, // Coronaviridae
+      virusCategoryId: coronaviridae.id,
       link: "https://example.com/bat-coronavirus-review",
       imageUrl: "/assets/viruses/bat-flying.png"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "SARS-CoV-2: Zoonotic origins and wildlife reservoirs",
-      virusCategoryId: 1, // Coronaviridae
+      virusCategoryId: coronaviridae.id,
       link: "https://example.com/sars-cov-2-origins"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Fruit bats as reservoirs of Ebola virus",
-      virusCategoryId: 2, // Filoviridae
+      virusCategoryId: filoviridae.id,
       link: "https://example.com/fruit-bats-ebola"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Marburg virus ecology in African bat populations",
-      virusCategoryId: 2, // Filoviridae
+      virusCategoryId: filoviridae.id,
       link: "https://example.com/marburg-ecology"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Molecular characterization of filoviruses in bats",
-      virusCategoryId: 2, // Filoviridae
+      virusCategoryId: filoviridae.id,
       link: "https://example.com/filovirus-characterization"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Nipah virus: Transmission dynamics and epidemiology",
-      virusCategoryId: 3, // Paramyxoviridae
+      virusCategoryId: paramyxoviridae.id,
       link: "https://example.com/nipah-transmission"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Hendra virus: Bat-horse-human transmission pathways",
-      virusCategoryId: 3, // Paramyxoviridae
+      virusCategoryId: paramyxoviridae.id,
       link: "https://example.com/hendra-pathways"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Evolutionary dynamics of bat paramyxoviruses",
-      virusCategoryId: 3, // Paramyxoviridae
+      virusCategoryId: paramyxoviridae.id,
       link: "https://example.com/paramyxovirus-evolution"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Bat lyssaviruses: Antigenic and genetic diversity",
-      virusCategoryId: 5, // Rhabdoviridae
+      virusCategoryId: rhabdoviridae.id,
       link: "https://example.com/bat-lyssaviruses"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Global patterns of rabies virus persistence in bat reservoirs",
-      virusCategoryId: 5, // Rhabdoviridae
+      virusCategoryId: rhabdoviridae.id,
       link: "https://example.com/rabies-persistence"
     });
 
-    this.createBackgroundPaper({
+    await db.insert(backgroundPapers).values({
       title: "Ecological factors influencing bat-associated rhabdoviruses",
-      virusCategoryId: 5, // Rhabdoviridae
+      virusCategoryId: rhabdoviridae.id,
       link: "https://example.com/rhabdovirus-ecology"
     });
+
+    console.log('Database initialization complete.');
   }
 }
-
-import { PostgresStorage } from './pg-storage';
-
-// Choose which storage implementation to use
-export const storage = process.env.DATABASE_URL 
-  ? new PostgresStorage() 
-  : new MemStorage();
