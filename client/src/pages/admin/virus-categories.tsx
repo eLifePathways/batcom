@@ -177,7 +177,7 @@ export default function VirusCategoriesAdmin() {
   };
   
   return (
-    <div>
+    <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Virus Categories</h1>

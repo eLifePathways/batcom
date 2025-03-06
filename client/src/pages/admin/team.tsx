@@ -190,7 +190,7 @@ export default function TeamMembersAdmin() {
   };
   
   return (
-    <div>
+    <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Team Members</h1>

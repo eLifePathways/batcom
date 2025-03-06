@@ -121,7 +121,7 @@ export default function AdminPage() {
       
       {/* Main content */}
       <div className="flex-1 md:ml-64">
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto p-8">
           <AdminDashboard />
         </main>
       </div>
