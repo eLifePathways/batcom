@@ -70,12 +70,12 @@ const BackgroundPapersSection = ({ virusCategoryId, showAllPapers = false }: Bac
           {/* Left Column with Bat Images */}
           <div className="md:w-1/4">
             <img 
-              src="https://cdn.pixabay.com/photo/2016/11/10/02/37/bat-1813460_1280.jpg" 
+              src="/assets/viruses/bat-hanging.png" 
               alt="Bat hanging" 
               className="w-full h-auto rounded-lg shadow-md mb-6"
             />
             <img 
-              src="https://cdn.pixabay.com/photo/2020/02/27/07/38/bat-4883534_1280.jpg" 
+              src="/assets/viruses/bat-flying.png" 
               alt="Bat in flight" 
               className="w-full h-auto rounded-lg shadow-md"
             />

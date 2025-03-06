@@ -211,13 +211,13 @@ export class MemStorage implements IStorage {
     const coronaviridae = this.createVirusCategory({
       name: "Coronaviridae",
       description: "Family of enveloped, positive-sense, single-stranded RNA viruses.",
-      imageUrl: "/assets/viruses/bat-hanging.png"
+      imageUrl: "https://cdn.pixabay.com/photo/2020/04/02/19/07/virus-4996107_1280.png"
     });
 
     const filoviridae = this.createVirusCategory({
       name: "Filoviridae",
       description: "Family of filamentous, enveloped, negative-sense RNA viruses.",
-      imageUrl: "/assets/viruses/bat-flying.png"
+      imageUrl: "https://cdn.pixabay.com/photo/2020/04/09/08/23/virus-5020400_1280.jpg"
     });
 
     const paramyxoviridae = this.createVirusCategory({
@@ -324,13 +324,15 @@ export class MemStorage implements IStorage {
     this.createBackgroundPaper({
       title: "Origin and evolution of pathogenic coronaviruses",
       virusCategoryId: 1, // Coronaviridae
-      link: "https://example.com/coronavirus-evolution"
+      link: "https://example.com/coronavirus-evolution",
+      imageUrl: "/assets/viruses/bat-hanging.png"
     });
 
     this.createBackgroundPaper({
       title: "Bat coronaviruses in China: A comprehensive review",
       virusCategoryId: 1, // Coronaviridae
-      link: "https://example.com/bat-coronavirus-review"
+      link: "https://example.com/bat-coronavirus-review",
+      imageUrl: "/assets/viruses/bat-flying.png"
     });
 
     this.createBackgroundPaper({
