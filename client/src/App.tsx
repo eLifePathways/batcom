@@ -9,6 +9,7 @@ import Team from "@/pages/team";
 import Publications from "@/pages/publications";
 import BackgroundPapers from "@/pages/background-papers";
 import Search from "@/pages/search";
+import WhatWeDo from "@/pages/what-we-do";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
           <Route path="/team" component={Team} />
           <Route path="/publications" component={Publications} />
           <Route path="/background-papers" component={BackgroundPapers} />
+          <Route path="/what-we-do" component={WhatWeDo} />
           <Route path="/search" component={Search} />
           <Route component={NotFound} />
         </Switch>
