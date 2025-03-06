@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initDatabase } from "./db";
 import { storage } from "./storage";
-import { PostgresStorage } from "./pg-storage";
+import { DatabaseStorage } from "./db-storage";
 
 const app = express();
 app.use(express.json());
@@ -47,7 +47,7 @@ app.use((req, res, next) => {
       await initDatabase();
       
       // If we're using PostgreSQL storage, initialize sample data
-      if (storage instanceof PostgresStorage) {
+      if (storage instanceof DatabaseStorage) {
         console.log("Initializing sample data...");
         await storage.initializeDatabase();
       }

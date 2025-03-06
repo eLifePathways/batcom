@@ -275,7 +275,7 @@ export class DatabaseStorage implements IStorage {
           evidenceType: "infection",
           virusCategoryId: coronaviridae.id,
           region: "Asia",
-          publicationDate: new Date("2018-03-15"),
+          publicationDate: "2018-03-15",
           link: "https://example.com/bat-coronaviruses-china"
         });
 
@@ -290,7 +290,7 @@ export class DatabaseStorage implements IStorage {
           evidenceType: "spillover",
           virusCategoryId: paramyxoviridae.id,
           region: "Asia",
-          publicationDate: new Date("2000-09-26"),
+          publicationDate: "2000-09-26",
           link: "https://example.com/nipah-virus-emergence"
         });
 
@@ -305,7 +305,7 @@ export class DatabaseStorage implements IStorage {
           evidenceType: "infection",
           virusCategoryId: filoviridae.id,
           region: "Africa",
-          publicationDate: new Date("2005-12-01"),
+          publicationDate: "2005-12-01",
           link: "https://example.com/ebola-antibodies-bats"
         });
 
@@ -320,7 +320,7 @@ export class DatabaseStorage implements IStorage {
           evidenceType: "spillover",
           virusCategoryId: coronaviridae.id,
           region: "Middle East",
-          publicationDate: new Date("2014-06-05"),
+          publicationDate: "2014-06-05",
           link: "https://example.com/mers-cov-camels"
         });
 
