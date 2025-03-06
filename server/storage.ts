@@ -211,13 +211,13 @@ export class MemStorage implements IStorage {
     const coronaviridae = this.createVirusCategory({
       name: "Coronaviridae",
       description: "Family of enveloped, positive-sense, single-stranded RNA viruses.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/04/02/19/07/virus-4996107_1280.png"
+      imageUrl: "/assets/viruses/bat-hanging.png"
     });
 
     const filoviridae = this.createVirusCategory({
       name: "Filoviridae",
       description: "Family of filamentous, enveloped, negative-sense RNA viruses.",
-      imageUrl: "https://cdn.pixabay.com/photo/2020/04/09/08/23/virus-5020400_1280.jpg"
+      imageUrl: "/assets/viruses/bat-flying.png"
     });
 
     const paramyxoviridae = this.createVirusCategory({
