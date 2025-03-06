@@ -11,7 +11,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import AdminDashboard from "./dashboard";
+import AdminDashboard from "@/components/admin/dashboard";
 
 // Sidebar navigation items
 const navItems = [

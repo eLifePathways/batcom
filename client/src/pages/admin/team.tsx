@@ -72,7 +72,7 @@ export default function TeamMembersAdmin() {
       title: member.title,
       institution: member.institution,
       description: member.description,
-      imageUrl: member.imageUrl,
+      imageUrl: member.imageUrl || "",
       email: member.email || "",
       website: member.website || "",
       socialMedia: member.socialMedia || ""
@@ -89,11 +89,7 @@ export default function TeamMembersAdmin() {
   // Add team member mutation
   const addTeamMember = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/team-members', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      return apiRequest('/api/team-members', 'POST', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
@@ -116,11 +112,7 @@ export default function TeamMembersAdmin() {
   // Update team member mutation
   const updateTeamMember = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest(`/api/team-members/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      return apiRequest(`/api/team-members/${id}`, 'PUT', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
@@ -144,9 +136,7 @@ export default function TeamMembersAdmin() {
   // Delete team member mutation
   const deleteTeamMember = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/team-members/${id}`, {
-        method: 'DELETE',
-      });
+      return apiRequest(`/api/team-members/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
@@ -186,9 +176,9 @@ export default function TeamMembersAdmin() {
       institution: formData.institution,
       description: formData.description,
       imageUrl: formData.imageUrl || "https://via.placeholder.com/150",
-      email: formData.email || null,
-      website: formData.website || null,
-      socialMedia: formData.socialMedia || null
+      email: formData.email || "",
+      website: formData.website || "",
+      socialMedia: formData.socialMedia || ""
     };
     
     // Update or add
