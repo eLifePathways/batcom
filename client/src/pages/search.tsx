@@ -33,13 +33,14 @@ const Search = () => {
   };
 
   return (
-    <main>
+    <main className="container mx-auto px-4">
       <HeroSection 
         title="Search Our Reviews"
         description="Find specific research papers and reviews on bat virus spillover events by searching our comprehensive database."
       />
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
       
-      <div className="container mx-auto px-4 py-12">
+      <div>
         <div className="max-w-3xl mx-auto mb-12">
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-grow">

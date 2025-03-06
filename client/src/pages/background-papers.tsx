@@ -134,13 +134,14 @@ export default function BackgroundPapers() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4">
       <HeroSection 
         title="Background Papers" 
         description="Our background papers provide comprehensive overviews of bat virus research, synthesizing key findings and highlighting important knowledge gaps. These papers are designed to be accessible to researchers, public health officials, and policymakers."
       />
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
       
-      <div className="mt-12">
+      <div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex flex-wrap mb-8 w-full max-w-full overflow-x-auto justify-start">
             <TabsTrigger value="all" className="flex-shrink-0">All Papers</TabsTrigger>
@@ -193,6 +194,6 @@ export default function BackgroundPapers() {
           </div>
         </Tabs>
       </div>
-    </div>
+    </main>
   );
 }

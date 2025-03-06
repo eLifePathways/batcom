@@ -201,13 +201,14 @@ export default function WhatWeDo() {
   const [activeTab, setActiveTab] = useState("kotahi");
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <main className="container mx-auto px-4">
       <HeroSection 
         title="What We Do" 
         description="At Bat-Com, we systematically review and evaluate scientific evidence related to bat viruses and their potential to cause human disease. Our work focuses on providing high-quality, accessible information to researchers, public health officials, and policymakers."
       />
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
       
-      <div className="mt-12">
+      <div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
             <TabsTrigger value="kotahi">Kotahi</TabsTrigger>
@@ -224,6 +225,6 @@ export default function WhatWeDo() {
           </div>
         </Tabs>
       </div>
-    </div>
+    </main>
   );
 }
