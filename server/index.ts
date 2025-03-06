@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initDatabase } from "./db";
 import { storage } from "./storage";
+import { PostgresStorage } from "./pg-storage";
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,22 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  try {
+    // Initialize database if using PostgreSQL
+    if (process.env.DATABASE_URL) {
+      console.log("Initializing database...");
+      await initDatabase();
+      
+      // If we're using PostgreSQL storage, initialize sample data
+      if (storage instanceof PostgresStorage) {
+        console.log("Initializing sample data...");
+        await storage.initializeDatabase();
+      }
+    }
+  } catch (error) {
+    console.error("Database initialization error:", error);
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

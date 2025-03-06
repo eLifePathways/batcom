@@ -39,6 +39,9 @@ export interface IStorage {
   getBackgroundPaper(id: number): Promise<BackgroundPaper | undefined>;
   createBackgroundPaper(paper: InsertBackgroundPaper): Promise<BackgroundPaper>;
   getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]>;
+  
+  // Database initialization
+  initializeDatabase(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -225,6 +228,12 @@ export class MemStorage implements IStorage {
     );
   }
 
+  // Database initialization method for interface compliance
+  async initializeDatabase(): Promise<void> {
+    console.log("Using in-memory storage, data already initialized.");
+    return;
+  }
+  
   // Initialize sample data
   private initializeData() {
     // Add virus categories

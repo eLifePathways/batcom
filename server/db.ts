@@ -14,14 +14,17 @@ export async function initDatabase() {
   try {
     console.log('Creating database tables...');
     
+    // Create each table separately
     await client`
       CREATE TABLE IF NOT EXISTS virus_categories (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         image_url TEXT
-      );
-      
+      )
+    `;
+    
+    await client`
       CREATE TABLE IF NOT EXISTS team_members (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
@@ -32,8 +35,10 @@ export async function initDatabase() {
         email TEXT,
         website TEXT,
         social_media TEXT
-      );
-      
+      )
+    `;
+    
+    await client`
       CREATE TABLE IF NOT EXISTS publications (
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
@@ -46,21 +51,25 @@ export async function initDatabase() {
         region TEXT NOT NULL,
         publication_date DATE NOT NULL,
         link TEXT
-      );
-      
+      )
+    `;
+    
+    await client`
       CREATE TABLE IF NOT EXISTS background_papers (
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         virus_category_id INTEGER NOT NULL,
         link TEXT,
         image_url TEXT
-      );
-      
+      )
+    `;
+    
+    await client`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL
-      );
+      )
     `;
     
     console.log('Database tables created successfully.');
