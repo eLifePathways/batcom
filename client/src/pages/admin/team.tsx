@@ -41,7 +41,7 @@ export default function TeamMembersAdmin() {
   
   // State for dialog open/close
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editMemberId, setEditMemberId] = useState<number | null>(null);
   
   // Form state for new/edit team member
   const [formData, setFormData] = useState({
@@ -127,7 +127,7 @@ export default function TeamMembersAdmin() {
       });
       setSelectedTeamMember(null);
       resetFormData();
-      setEditDialogOpen(false);
+      setEditMemberId(null);
     },
     onError: (error) => {
       toast({
@@ -385,14 +385,17 @@ export default function TeamMembersAdmin() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {/* Edit Dialog */}
-                    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                    <Dialog 
+                      open={editMemberId === member.id} 
+                      onOpenChange={(open) => open ? setEditMemberId(member.id) : setEditMemberId(null)}
+                    >
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
                           size="icon" 
                           onClick={() => {
                             loadTeamMemberData(member);
-                            setEditDialogOpen(true);
+                            setEditMemberId(member.id);
                           }}
                         >
                           <Edit className="h-4 w-4" />
@@ -503,7 +506,11 @@ export default function TeamMembersAdmin() {
                     {/* Delete Dialog */}
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="text-red-500 hover:text-red-600"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
