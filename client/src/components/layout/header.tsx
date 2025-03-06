@@ -11,6 +11,7 @@ const navItems = [
   { name: "Most recent reviews", path: "/publications" },
   { name: "Background papers", path: "/background-papers" },
   { name: "Search our reviews", path: "/search" },
+  { name: "Contact", path: "/contact" },
 ];
 
 const Header = () => {

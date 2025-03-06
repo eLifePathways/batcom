@@ -10,6 +10,7 @@ import Publications from "@/pages/publications";
 import BackgroundPapers from "@/pages/background-papers";
 import Search from "@/pages/search";
 import WhatWeDo from "@/pages/what-we-do";
+import Contact from "@/pages/contact";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/background-papers" component={BackgroundPapers} />
           <Route path="/what-we-do" component={WhatWeDo} />
           <Route path="/search" component={Search} />
+          <Route path="/contact" component={Contact} />
           <Route component={NotFound} />
         </Switch>
       </div>
