@@ -8,6 +8,7 @@ const Team = () => {
         title="Our Research Team"
         description="Meet the dedicated researchers behind our work on bat virus spillover events. Our interdisciplinary team combines expertise in virology, epidemiology, ecology, and public health."
       />
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
       <TeamSection showAllMembers={true} />
     </main>
   );
