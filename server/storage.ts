@@ -21,6 +21,8 @@ export interface IStorage {
   getAllTeamMembers(): Promise<TeamMember[]>;
   getTeamMember(id: number): Promise<TeamMember | undefined>;
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
+  updateTeamMember(id: number, data: Partial<TeamMember>): Promise<TeamMember | undefined>;
+  deleteTeamMember(id: number): Promise<boolean>;
 
   // Publication operations
   getAllPublications(): Promise<Publication[]>;
@@ -133,6 +135,30 @@ export class MemStorage implements IStorage {
     };
     this.teamMembers.set(id, teamMember);
     return teamMember;
+  }
+  
+  async updateTeamMember(id: number, data: Partial<TeamMember>): Promise<TeamMember | undefined> {
+    const teamMember = this.teamMembers.get(id);
+    if (!teamMember) {
+      return undefined;
+    }
+    
+    const updatedMember: TeamMember = { 
+      ...teamMember,
+      ...data,
+      id, // Ensure id doesn't change
+      imageUrl: data.imageUrl ?? teamMember.imageUrl,
+      email: data.email ?? teamMember.email,
+      website: data.website ?? teamMember.website,
+      socialMedia: data.socialMedia ?? teamMember.socialMedia
+    };
+    
+    this.teamMembers.set(id, updatedMember);
+    return updatedMember;
+  }
+  
+  async deleteTeamMember(id: number): Promise<boolean> {
+    return this.teamMembers.delete(id);
   }
 
   // Publication operations

@@ -66,6 +66,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch team member' });
     }
   });
+  
+  // Update team member
+  app.put('/api/team-members/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid team member ID' });
+      }
+      
+      const memberData = req.body;
+      const updatedMember = await storage.updateTeamMember(id, memberData);
+      if (!updatedMember) {
+        return res.status(404).json({ message: 'Team member not found' });
+      }
+      
+      res.json(updatedMember);
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      res.status(500).json({ message: 'Failed to update team member' });
+    }
+  });
+  
+  // Delete team member
+  app.delete('/api/team-members/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid team member ID' });
+      }
+      
+      const success = await storage.deleteTeamMember(id);
+      if (!success) {
+        return res.status(404).json({ message: 'Team member not found' });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting team member:', error);
+      res.status(500).json({ message: 'Failed to delete team member' });
+    }
+  });
 
   // Publications endpoints
   app.get('/api/publications', async (req: Request, res: Response) => {

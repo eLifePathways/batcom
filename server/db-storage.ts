@@ -64,6 +64,29 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return newMember;
   }
+  
+  async updateTeamMember(id: number, data: Partial<TeamMember>): Promise<TeamMember | undefined> {
+    const existingMember = await this.getTeamMember(id);
+    if (!existingMember) {
+      return undefined;
+    }
+    
+    const [updatedMember] = await db
+      .update(teamMembers)
+      .set(data)
+      .where(eq(teamMembers.id, id))
+      .returning();
+      
+    return updatedMember;
+  }
+  
+  async deleteTeamMember(id: number): Promise<boolean> {
+    const result = await db
+      .delete(teamMembers)
+      .where(eq(teamMembers.id, id));
+    
+    return true; // Postgres doesn't easily return affected rows count
+  }
 
   // Publication operations
   async getAllPublications(): Promise<Publication[]> {
