@@ -47,6 +47,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch team members' });
     }
   });
+  
+  // Create team member
+  app.post('/api/team-members', async (req: Request, res: Response) => {
+    try {
+      const memberData = req.body;
+      const newMember = await storage.createTeamMember(memberData);
+      res.json(newMember);
+    } catch (error) {
+      console.error('Error creating team member:', error);
+      res.status(500).json({ message: 'Failed to create team member' });
+    }
+  });
 
   app.get('/api/team-members/:id', async (req: Request, res: Response) => {
     try {
