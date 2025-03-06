@@ -100,7 +100,11 @@ export class MemStorage implements IStorage {
 
   async createVirusCategory(category: InsertVirusCategory): Promise<VirusCategory> {
     const id = this.virusCategoryCurrentId++;
-    const virusCategory: VirusCategory = { ...category, id };
+    const virusCategory: VirusCategory = { 
+      ...category, 
+      id,
+      imageUrl: category.imageUrl ?? null 
+    };
     this.virusCategories.set(id, virusCategory);
     return virusCategory;
   }
@@ -116,7 +120,14 @@ export class MemStorage implements IStorage {
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
     const id = this.teamMemberCurrentId++;
-    const teamMember: TeamMember = { ...member, id };
+    const teamMember: TeamMember = { 
+      ...member, 
+      id,
+      imageUrl: member.imageUrl ?? null,
+      email: member.email ?? null,
+      website: member.website ?? null,
+      socialMedia: member.socialMedia ?? null
+    };
     this.teamMembers.set(id, teamMember);
     return teamMember;
   }
@@ -132,7 +143,11 @@ export class MemStorage implements IStorage {
 
   async createPublication(publication: InsertPublication): Promise<Publication> {
     const id = this.publicationCurrentId++;
-    const newPublication: Publication = { ...publication, id };
+    const newPublication: Publication = { 
+      ...publication, 
+      id,
+      link: publication.link ?? null
+    };
     this.publications.set(id, newPublication);
     return newPublication;
   }
@@ -194,7 +209,12 @@ export class MemStorage implements IStorage {
 
   async createBackgroundPaper(paper: InsertBackgroundPaper): Promise<BackgroundPaper> {
     const id = this.backgroundPaperCurrentId++;
-    const backgroundPaper: BackgroundPaper = { ...paper, id };
+    const backgroundPaper: BackgroundPaper = { 
+      ...paper, 
+      id,
+      link: paper.link ?? null,
+      imageUrl: paper.imageUrl ?? null
+    };
     this.backgroundPapers.set(id, backgroundPaper);
     return backgroundPaper;
   }
