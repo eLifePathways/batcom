@@ -250,7 +250,7 @@ export class MemStorage implements IStorage {
       title: "Professor of Epidemiology",
       institution: "Johns Hopkins University - Bloomberg School of Public Health",
       description: "Professor of Epidemiology specializing in zoonotic disease transmission and viral spillover events.",
-      imageUrl: "https://cdn.pixabay.com/photo/2023/03/31/12/20/researcher-7889025_1280.jpg",
+      imageUrl: "/assets/team/emily-gurley.png",
       email: "egurley@jhu.edu",
       website: "https://www.jhsph.edu/faculty/directory/profile/emily-gurley",
       socialMedia: "https://www.linkedin.com/in/emily-gurley"
@@ -261,7 +261,7 @@ export class MemStorage implements IStorage {
       title: "Research Scientist",
       institution: "Johns Hopkins University - Bloomberg School of Public Health",
       description: "Research Scientist focused on bat ecology and viral evolution in bat populations.",
-      imageUrl: "https://cdn.pixabay.com/photo/2021/05/03/11/54/laboratory-6225888_1280.jpg",
+      imageUrl: "/assets/team/cliff-whitworth.png",
       email: "cmckee@jhu.edu",
       website: "https://www.jhsph.edu/faculty/directory/profile/clif-mckee",
       socialMedia: "https://twitter.com/clif_mckee"
@@ -277,7 +277,7 @@ export class MemStorage implements IStorage {
       evidenceType: "infection",
       virusCategoryId: 1, // Coronaviridae
       region: "Asia",
-      publicationDate: new Date("2018-03-15"),
+      publicationDate: "2018-03-15",
       link: "https://example.com/bat-coronaviruses-china"
     });
 
@@ -290,7 +290,7 @@ export class MemStorage implements IStorage {
       evidenceType: "spillover",
       virusCategoryId: 3, // Paramyxoviridae
       region: "Asia",
-      publicationDate: new Date("2000-09-26"),
+      publicationDate: "2000-09-26",
       link: "https://example.com/nipah-virus-emergence"
     });
 
@@ -303,7 +303,7 @@ export class MemStorage implements IStorage {
       evidenceType: "infection",
       virusCategoryId: 2, // Filoviridae
       region: "Africa",
-      publicationDate: new Date("2005-12-01"),
+      publicationDate: "2005-12-01",
       link: "https://example.com/ebola-antibodies-bats"
     });
 
@@ -316,7 +316,7 @@ export class MemStorage implements IStorage {
       evidenceType: "spillover",
       virusCategoryId: 1, // Coronaviridae
       region: "Middle East",
-      publicationDate: new Date("2014-06-05"),
+      publicationDate: "2014-06-05",
       link: "https://example.com/mers-cov-camels"
     });
 
