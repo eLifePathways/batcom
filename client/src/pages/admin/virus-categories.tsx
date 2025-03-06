@@ -178,7 +178,7 @@ export default function VirusCategoriesAdmin() {
   };
   
   return (
-    <>
+    <div>
       <AdminNav />
       <div className="p-8">
         <div className="flex justify-between items-center mb-8">
@@ -391,6 +391,6 @@ export default function VirusCategoriesAdmin() {
           </Table>
         </div>
       </div>
-    </>
+    </div>
   );
 }
