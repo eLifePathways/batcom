@@ -39,6 +39,10 @@ export default function TeamMembersAdmin() {
   // State for selected team member (for edit modal)
   const [selectedTeamMember, setSelectedTeamMember] = useState<TeamMember | null>(null);
   
+  // State for dialog open/close
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  
   // Form state for new/edit team member
   const [formData, setFormData] = useState({
     name: "",
@@ -98,6 +102,7 @@ export default function TeamMembersAdmin() {
         description: "Team member added successfully",
       });
       resetFormData();
+      setAddDialogOpen(false);
     },
     onError: (error) => {
       toast({
@@ -122,6 +127,7 @@ export default function TeamMembersAdmin() {
       });
       setSelectedTeamMember(null);
       resetFormData();
+      setEditDialogOpen(false);
     },
     onError: (error) => {
       toast({
@@ -200,9 +206,16 @@ export default function TeamMembersAdmin() {
         </div>
         
         {/* Add Member Dialog */}
-        <Dialog>
+        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
+            <Button 
+              className="flex items-center gap-2"
+              onClick={() => {
+                resetFormData();
+                setSelectedTeamMember(null);
+                setAddDialogOpen(true);
+              }}
+            >
               <Plus className="h-4 w-4" />
               Add Member
             </Button>
@@ -372,12 +385,15 @@ export default function TeamMembersAdmin() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {/* Edit Dialog */}
-                    <Dialog>
+                    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          onClick={() => loadTeamMemberData(member)}
+                          onClick={() => {
+                            loadTeamMemberData(member);
+                            setEditDialogOpen(true);
+                          }}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
