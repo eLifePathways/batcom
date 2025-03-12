@@ -202,7 +202,13 @@ export default function VirusCategoriesAdmin() {
           </div>
           
           {/* Add Virus Category Dialog */}
-          <Dialog>
+          <Dialog onOpenChange={(open) => {
+            // Reset form data and selected category when opening the Add dialog
+            if (open) {
+              resetFormData();
+              setSelectedCategory(null);
+            }
+          }}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
@@ -311,12 +317,15 @@ export default function VirusCategoriesAdmin() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {/* Edit Dialog */}
-                      <Dialog>
+                      <Dialog onOpenChange={(open) => {
+                        if (open) {
+                          loadCategoryData(category);
+                        }
+                      }}>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
-                            size="icon" 
-                            onClick={() => loadCategoryData(category)}
+                            size="icon"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
