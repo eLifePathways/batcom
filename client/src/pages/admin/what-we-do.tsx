@@ -499,14 +499,14 @@ export default function WhatWeDoAdmin() {
   const { 
     data: sections = [], 
     isLoading: sectionsLoading 
-  } = useQuery({ 
+  } = useQuery<WhatWeDoSection[]>({ 
     queryKey: ['/api/what-we-do/sections'] 
   });
 
   const { 
     data: contentItems = [], 
     isLoading: contentLoading 
-  } = useQuery({ 
+  } = useQuery<WhatWeDoContent[]>({ 
     queryKey: ['/api/what-we-do/content/section', selectedSectionId],
     enabled: !!selectedSectionId
   });
