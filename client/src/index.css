@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Screenshot mode styling */
+.screenshot-in-progress [role="dialog"],
+.screenshot-in-progress dialog {
+  display: none !important;
+}
+
+/* Ensure elements have proper colors during screenshot */
+.screenshot-in-progress * {
+  color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
 @layer base {
   * {
     @apply border-border;

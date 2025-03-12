@@ -16,129 +16,98 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
     onCapture(screenshot);
   }, [screenshot, onCapture]);
 
+  // Completely new approach for screenshot capture
   const captureScreen = async () => {
     setIsCapturing(true);
     
     try {
-      // Store window scroll position
-      const scrollX = window.scrollX;
-      const scrollY = window.scrollY;
+      // Add a class to the body to hide elements we don't want in the screenshot
+      document.body.classList.add('screenshot-in-progress');
       
-      // Temporarily hide the report dialog to prevent it from showing in the screenshot
+      // Hide the dialog directly
       let dialogElement = document.querySelector('[role="dialog"]');
-      let originalStyles: string | null = null;
-      
       if (dialogElement) {
-        // Save original styles
-        originalStyles = dialogElement.getAttribute('style');
-        
-        // Hide dialog without changing its DOM position - use opacity instead of visibility
-        // This prevents the dialog from closing when taking a screenshot
-        dialogElement.setAttribute('data-screenshot-temp', 'true');
-        dialogElement.setAttribute('style', 'opacity: 0; pointer-events: none;');
+        (dialogElement as HTMLElement).style.display = 'none';
       }
       
-      // Wait a small delay for the UI to update
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Wait for UI updates
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      // IMPROVED APPROACH: Use more compatible settings for html2canvas
-      const canvas = await html2canvas(document.body, {
-        allowTaint: true,
-        useCORS: true,
-        logging: false,
-        scale: window.devicePixelRatio > 1 ? 1 : window.devicePixelRatio, // Better for different displays
-        backgroundColor: '#ffffff', // Use explicit white background
-        foreignObjectRendering: false,
-        imageTimeout: 0,
-        removeContainer: true, // Clean up temporary elements
-        onclone: (documentClone) => {
-          // Fix potential styling issues in the cloned document
-          const styleSheets = Array.from(document.styleSheets);
-          styleSheets.forEach(styleSheet => {
-            try {
-              const rules = Array.from(styleSheet.cssRules || []);
-              const styleElement = documentClone.createElement('style');
-              styleElement.type = 'text/css';
-              rules.forEach(rule => {
-                styleElement.appendChild(documentClone.createTextNode(rule.cssText));
-              });
-              documentClone.head.appendChild(styleElement);
-            } catch (e) {
-              console.warn('Could not access rules from stylesheet', e);
-            }
-          });
-        },
-        ignoreElements: (element) => {
-          // Ignore dialog elements in the screenshot
-          return element.hasAttribute('data-screenshot-temp');
-        }
-      });
+      // Create a simple canvas with the current viewport size
+      const viewportWidth = Math.min(1280, window.innerWidth);
+      const viewportHeight = Math.min(800, window.innerHeight);
       
-      // Restore scroll position if needed
-      window.scrollTo(scrollX, scrollY);
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      canvas.width = viewportWidth;
+      canvas.height = viewportHeight;
       
-      // Restore dialog visibility
-      if (dialogElement) {
-        dialogElement.removeAttribute('data-screenshot-temp');
-        
-        if (originalStyles) {
-          dialogElement.setAttribute('style', originalStyles);
-        } else {
-          dialogElement.removeAttribute('style');
-        }
+      // Get the 2D context
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Failed to get canvas context');
       }
       
-      // Use a smaller maximum size to reduce file size
-      const MAX_WIDTH = 1280;
-      const MAX_HEIGHT = 960;
+      // Draw a white background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, viewportWidth, viewportHeight);
       
-      let width = canvas.width;
-      let height = canvas.height;
+      // Draw text info (fallback in case rendering fails)
+      ctx.fillStyle = '#000000';
+      ctx.font = '14px Arial';
+      ctx.fillText(`Captured: ${window.location.href}`, 10, 20);
+      ctx.fillText(`Time: ${new Date().toLocaleString()}`, 10, 40);
       
-      // Calculate new dimensions while maintaining aspect ratio
-      if (width > MAX_WIDTH) {
-        const ratio = MAX_WIDTH / width;
-        width = MAX_WIDTH;
-        height = Math.round(height * ratio);
+      try {
+        // Simple approach - just draw what's visible in the viewport
+        const simplifiedOptions = {
+          width: viewportWidth,
+          height: viewportHeight,
+          x: window.scrollX,
+          y: window.scrollY,
+          allowTaint: true,
+          useCORS: true,
+          backgroundColor: '#FFFFFF',
+          logging: false,
+          scale: 1,
+          ignoreElements: (element: Element) => {
+            return element.tagName === 'DIALOG' || 
+                   element.hasAttribute('role') && element.getAttribute('role') === 'dialog';
+          }
+        };
+        
+        // Capture the content
+        const contentCanvas = await html2canvas(document.documentElement, simplifiedOptions);
+        
+        // Draw the captured content onto our canvas
+        ctx.drawImage(contentCanvas, 0, 0);
+      } catch (renderError) {
+        console.error('Rendering error:', renderError);
+        // If html2canvas fails, at least we have the fallback text
+        ctx.fillStyle = '#FF0000';
+        ctx.fillText('Failed to render page content. Basic info provided instead.', 10, 70);
       }
       
-      if (height > MAX_HEIGHT) {
-        const ratio = MAX_HEIGHT / height;
-        height = MAX_HEIGHT;
-        width = Math.round(width * ratio);
-      }
+      // Add a border to the image
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, viewportWidth, viewportHeight);
       
-      // Create a new canvas for the resized image
-      const resizedCanvas = document.createElement('canvas');
-      resizedCanvas.width = width;
-      resizedCanvas.height = height;
-      
-      // Get context and draw with vibrant colors
-      const ctx = resizedCanvas.getContext('2d');
-      if (ctx) {
-        // Make sure we're drawing at high quality
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        
-        // Fill with white background first
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, width, height);
-        
-        // Draw the captured image on top
-        ctx.drawImage(canvas, 0, 0, width, height);
-        
-        // Add a subtle border to ensure visibility
-        ctx.strokeStyle = '#e5e7eb';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(0, 0, width, height);
-      }
-      
-      // Convert to PNG for better quality
-      const dataUrl = resizedCanvas.toDataURL('image/png');
+      // Get the image as data URL (PNG for better quality)
+      const dataUrl = canvas.toDataURL('image/png');
       setScreenshot(dataUrl);
     } catch (error) {
       console.error('Error capturing screenshot:', error);
     } finally {
+      // Clean up
+      document.body.classList.remove('screenshot-in-progress');
+      
+      // Restore any hidden elements
+      let dialogElement = document.querySelector('[role="dialog"]');
+      if (dialogElement) {
+        (dialogElement as HTMLElement).style.display = '';
+      }
+      
       setIsCapturing(false);
     }
   };
