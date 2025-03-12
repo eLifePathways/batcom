@@ -28,6 +28,8 @@ export interface IStorage {
   getAllPublications(): Promise<Publication[]>;
   getPublication(id: number): Promise<Publication | undefined>;
   createPublication(publication: InsertPublication): Promise<Publication>;
+  updatePublication(id: number, data: Partial<Publication>): Promise<Publication | undefined>;
+  deletePublication(id: number): Promise<boolean>;
   getPublicationsByVirusCategory(virusCategoryId: number): Promise<Publication[]>;
   getPublicationsByEvidenceQuality(quality: string): Promise<Publication[]>;
   getPublicationsByEvidenceType(type: string): Promise<Publication[]>;
@@ -40,6 +42,8 @@ export interface IStorage {
   getAllBackgroundPapers(): Promise<BackgroundPaper[]>;
   getBackgroundPaper(id: number): Promise<BackgroundPaper | undefined>;
   createBackgroundPaper(paper: InsertBackgroundPaper): Promise<BackgroundPaper>;
+  updateBackgroundPaper(id: number, data: Partial<BackgroundPaper>): Promise<BackgroundPaper | undefined>;
+  deleteBackgroundPaper(id: number): Promise<boolean>;
   getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]>;
   
   // Database initialization
@@ -179,6 +183,27 @@ export class MemStorage implements IStorage {
     };
     this.publications.set(id, newPublication);
     return newPublication;
+  }
+  
+  async updatePublication(id: number, data: Partial<Publication>): Promise<Publication | undefined> {
+    const publication = this.publications.get(id);
+    if (!publication) {
+      return undefined;
+    }
+    
+    const updatedPublication: Publication = { 
+      ...publication,
+      ...data,
+      id, // Ensure id doesn't change
+      link: data.link ?? publication.link
+    };
+    
+    this.publications.set(id, updatedPublication);
+    return updatedPublication;
+  }
+  
+  async deletePublication(id: number): Promise<boolean> {
+    return this.publications.delete(id);
   }
 
   async getPublicationsByVirusCategory(virusCategoryId: number): Promise<Publication[]> {
