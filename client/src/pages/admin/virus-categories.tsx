@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Edit, Trash2, Image } from "lucide-react";
-import AdminNav from "@/components/admin/admin-nav";
+import AdminLayout from "@/components/layout/admin-layout";
 import { ImageUpload } from "@/components/ui/image-upload";
 
 type VirusCategory = {
@@ -234,248 +234,250 @@ export default function VirusCategoriesAdmin() {
   };
   
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Virus Categories</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Manage virus categories and taxonomic groups.
-            </p>
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold">Virus Categories</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">
+                Manage virus categories and taxonomic groups.
+              </p>
+            </div>
+            
+            {/* Add Virus Category Dialog */}
+            <Dialog 
+              open={addDialogOpen} 
+              onOpenChange={(open) => {
+                handleDialogState('add', open);
+                // Reset form data and selected category when opening the Add dialog
+                if (open) {
+                  resetFormData();
+                  setSelectedCategory(null);
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Category
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Add New Virus Category</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Category Name *</Label>
+                    <Input 
+                      id="name" 
+                      name="name" 
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g., Coronaviridae"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description *</Label>
+                    <Textarea 
+                      id="description" 
+                      name="description" 
+                      value={formData.description}
+                      onChange={handleChange}
+                      placeholder="Brief description of this virus category"
+                      rows={4}
+                      required
+                    />
+                  </div>
+                  
+                  <ImageUpload
+                    currentImageUrl={formData.imageUrl}
+                    onImageUploaded={(imageUrl) => {
+                      setFormData(prev => ({ ...prev, imageUrl }));
+                    }}
+                    label="Category Image"
+                    description="Upload an image for this virus category (PNG, JPG up to 5MB)"
+                  />
+                  
+                  <DialogFooter>
+                    <Button type="submit" disabled={addVirusCategory.isPending || updateVirusCategory.isPending}>
+                      {addVirusCategory.isPending || updateVirusCategory.isPending ? "Saving..." : "Save Category"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
           
-          {/* Add Virus Category Dialog */}
-          <Dialog 
-            open={addDialogOpen} 
-            onOpenChange={(open) => {
-              handleDialogState('add', open);
-              // Reset form data and selected category when opening the Add dialog
-              if (open) {
-                resetFormData();
-                setSelectedCategory(null);
-              }
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Category
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Add New Virus Category</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Category Name *</Label>
-                  <Input 
-                    id="name" 
-                    name="name" 
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="e.g., Coronaviridae"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
-                  <Textarea 
-                    id="description" 
-                    name="description" 
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Brief description of this virus category"
-                    rows={4}
-                    required
-                  />
-                </div>
-                
-                <ImageUpload
-                  currentImageUrl={formData.imageUrl}
-                  onImageUploaded={(imageUrl) => {
-                    setFormData(prev => ({ ...prev, imageUrl }));
-                  }}
-                  label="Category Image"
-                  description="Upload an image for this virus category (PNG, JPG up to 5MB)"
-                />
-                
-                <DialogFooter>
-                  <Button type="submit" disabled={addVirusCategory.isPending || updateVirusCategory.isPending}>
-                    {addVirusCategory.isPending || updateVirusCategory.isPending ? "Saving..." : "Save Category"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-        
-        {/* Virus Categories Table */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[60px]"></TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                Array(5).fill(0).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[300px]" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
-                  </TableRow>
-                ))
-              )}
-              
-              {!isLoading && virusCategories?.length === 0 && (
+          {/* Virus Categories Table */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                    No virus categories found. Add your first category to get started.
-                  </TableCell>
+                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-              
-              {!isLoading && [...(virusCategories || [])].sort((a, b) => a.id - b.id).map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell>
-                    {category.imageUrl ? (
-                      <img 
-                        src={category.imageUrl} 
-                        alt={category.name} 
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <Image className="h-5 w-5 text-gray-500" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="max-w-[400px] truncate">{category.description}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {/* Edit Dialog */}
-                      <Dialog 
-                        open={editDialogOpen && selectedCategory?.id === category.id}
-                        onOpenChange={(open) => {
-                          setEditDialogOpen(open);
-                          if (open) {
-                            loadCategoryData(category);
-                          }
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="icon"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Edit Virus Category</DialogTitle>
-                          </DialogHeader>
-                          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-name">Category Name *</Label>
-                              <Input 
-                                id="edit-name" 
-                                name="name" 
-                                value={formData.name}
-                                onChange={handleChange}
-                                required
+              </TableHeader>
+              <TableBody>
+                {isLoading && (
+                  Array(5).fill(0).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[300px]" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                )}
+                
+                {!isLoading && virusCategories?.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                      No virus categories found. Add your first category to get started.
+                    </TableCell>
+                  </TableRow>
+                )}
+                
+                {!isLoading && [...(virusCategories || [])].sort((a, b) => a.id - b.id).map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell>
+                      {category.imageUrl ? (
+                        <img 
+                          src={category.imageUrl} 
+                          alt={category.name} 
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <Image className="h-5 w-5 text-gray-500" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="max-w-[400px] truncate">{category.description}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {/* Edit Dialog */}
+                        <Dialog 
+                          open={editDialogOpen && selectedCategory?.id === category.id}
+                          onOpenChange={(open) => {
+                            setEditDialogOpen(open);
+                            if (open) {
+                              loadCategoryData(category);
+                            }
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="icon"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Edit Virus Category</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-name">Category Name *</Label>
+                                <Input 
+                                  id="edit-name" 
+                                  name="name" 
+                                  value={formData.name}
+                                  onChange={handleChange}
+                                  required
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-description">Description *</Label>
+                                <Textarea 
+                                  id="edit-description" 
+                                  name="description" 
+                                  value={formData.description}
+                                  onChange={handleChange}
+                                  rows={4}
+                                  required
+                                />
+                              </div>
+                              
+                              <ImageUpload
+                                currentImageUrl={formData.imageUrl}
+                                onImageUploaded={(imageUrl) => {
+                                  setFormData(prev => ({ ...prev, imageUrl }));
+                                }}
+                                label="Category Image"
+                                description="Upload an image for this virus category (PNG, JPG up to 5MB)"
                               />
+                              
+                              <DialogFooter>
+                                <Button type="submit" disabled={updateVirusCategory.isPending}>
+                                  {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
+                                </Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        {/* Delete Dialog */}
+                        <Dialog
+                          open={deleteDialogOpen && selectedCategory?.id === category.id}
+                          onOpenChange={(open) => {
+                            setDeleteDialogOpen(open);
+                            if (open) {
+                              setSelectedCategory(category);
+                            }
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete Virus Category</DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4">
+                              <p>Are you sure you want to delete <span className="font-semibold">{category.name}</span>?</p>
+                              <p className="text-sm text-gray-500 mt-2">This will also delete any associated publications and background papers.</p>
+                              <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
                             </div>
-                            
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-description">Description *</Label>
-                              <Textarea 
-                                id="edit-description" 
-                                name="description" 
-                                value={formData.description}
-                                onChange={handleChange}
-                                rows={4}
-                                required
-                              />
-                            </div>
-                            
-                            <ImageUpload
-                              currentImageUrl={formData.imageUrl}
-                              onImageUploaded={(imageUrl) => {
-                                setFormData(prev => ({ ...prev, imageUrl }));
-                              }}
-                              label="Category Image"
-                              description="Upload an image for this virus category (PNG, JPG up to 5MB)"
-                            />
-                            
                             <DialogFooter>
-                              <Button type="submit" disabled={updateVirusCategory.isPending}>
-                                {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
+                              <Button 
+                                variant="destructive" 
+                                onClick={() => {
+                                  if (selectedCategory) {
+                                    try {
+                                      deleteVirusCategory.mutate(selectedCategory.id);
+                                    } catch (error) {
+                                      console.error("Error deleting virus category:", error);
+                                    }
+                                  }
+                                }}
+                                disabled={deleteVirusCategory.isPending}
+                              >
+                                {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
                               </Button>
                             </DialogFooter>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                      
-                      {/* Delete Dialog */}
-                      <Dialog
-                        open={deleteDialogOpen && selectedCategory?.id === category.id}
-                        onOpenChange={(open) => {
-                          setDeleteDialogOpen(open);
-                          if (open) {
-                            setSelectedCategory(category);
-                          }
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Delete Virus Category</DialogTitle>
-                          </DialogHeader>
-                          <div className="py-4">
-                            <p>Are you sure you want to delete <span className="font-semibold">{category.name}</span>?</p>
-                            <p className="text-sm text-gray-500 mt-2">This will also delete any associated publications and background papers.</p>
-                            <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
-                          </div>
-                          <DialogFooter>
-                            <Button 
-                              variant="destructive" 
-                              onClick={() => {
-                                if (selectedCategory) {
-                                  try {
-                                    deleteVirusCategory.mutate(selectedCategory.id);
-                                  } catch (error) {
-                                    console.error("Error deleting virus category:", error);
-                                  }
-                                }
-                              }}
-                              disabled={deleteVirusCategory.isPending}
-                            >
-                              {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
