@@ -422,7 +422,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
             </TabsContent>
             
             <TabsContent value="screenshot" className="mt-3">
-              {issue.screenshotUrl ? (
+              {issue.screenshotUrl && issue.screenshotUrl.trim() !== "" ? (
                 <Card>
                   <CardHeader className="py-2 px-3">
                     <CardTitle className="text-sm flex items-center">
@@ -462,7 +462,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
             </TabsContent>
             
             <TabsContent value="console" className="mt-3">
-              {issue.consoleLog ? (
+              {issue.consoleLog && issue.consoleLog.trim() !== "" ? (
                 <Card>
                   <CardHeader className="py-2 px-3">
                     <CardTitle className="text-sm flex items-center">
