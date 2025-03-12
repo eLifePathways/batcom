@@ -14,6 +14,22 @@ const Search = () => {
   const { data: publications, isLoading, error } = useQuery<Publication[]>({
     queryKey: ['/api/publications', { query: submittedQuery }],
     enabled: submittedQuery.length > 0,
+    queryFn: async ({ queryKey }) => {
+      const [url, params] = queryKey;
+      const queryParams = params as { query: string };
+      const response = await fetch(`${url}?query=${encodeURIComponent(queryParams.query)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Search request failed');
+      }
+      
+      return response.json();
+    }
   });
   
   const { data: categories } = useQuery<VirusCategory[]>({
