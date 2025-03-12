@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Table,
@@ -52,6 +52,7 @@ export default function IssuesAdmin() {
   const [selectedIssueId, setSelectedIssueId] = useState<number | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [issueCommentsMap, setIssueCommentsMap] = useState<Record<number, { lastCommentDate: string | null, hasUnreadComments: boolean }>>({});
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -72,6 +73,45 @@ export default function IssuesAdmin() {
       return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
     })
   });
+  
+  // Fetch comments for each issue to check for unread comments
+  useEffect(() => {
+    if (!issues) return;
+    
+    const fetchCommentsForIssues = async () => {
+      const commentPromises = issues.map(async (issue) => {
+        try {
+          const comments = await apiRequest(`/api/issues/${issue.id}/comments`);
+          if (!comments || comments.length === 0) {
+            return [issue.id, { lastCommentDate: null, hasUnreadComments: false }];
+          }
+          
+          // Sort comments by date (newest first)
+          const sortedComments = [...comments].sort((a, b) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          
+          const lastCommentDate = sortedComments[0]?.createdAt;
+          
+          // Check if the last comment is newer than the last time the issue was updated
+          // This would indicate an unread comment
+          const hasUnreadComments = lastCommentDate && 
+            new Date(lastCommentDate).getTime() > new Date(issue.updatedAt).getTime();
+            
+          return [issue.id, { lastCommentDate, hasUnreadComments }];
+        } catch (error) {
+          console.error(`Error fetching comments for issue ${issue.id}:`, error);
+          return [issue.id, { lastCommentDate: null, hasUnreadComments: false }];
+        }
+      });
+      
+      const commentsResults = await Promise.all(commentPromises);
+      const commentsMap = Object.fromEntries(commentsResults);
+      setIssueCommentsMap(commentsMap);
+    };
+    
+    fetchCommentsForIssues();
+  }, [issues]);
   
   const updateIssueMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: Partial<Issue> }) => {
@@ -130,6 +170,25 @@ export default function IssuesAdmin() {
   const handleViewDetails = (issue: Issue) => {
     setSelectedIssue(issue);
     setIsDetailDialogOpen(true);
+    
+    // Mark comments as read by updating the issue's updatedAt field
+    if (issueCommentsMap[issue.id]?.hasUnreadComments) {
+      updateIssueMutation.mutate({ 
+        id: issue.id, 
+        data: { 
+          updatedAt: new Date().toISOString() 
+        } 
+      });
+      
+      // Also update the local state
+      setIssueCommentsMap(prev => ({
+        ...prev,
+        [issue.id]: {
+          ...prev[issue.id],
+          hasUnreadComments: false
+        }
+      }));
+    }
   };
   
   const getStatusBadge = (status: Issue['status']) => {
