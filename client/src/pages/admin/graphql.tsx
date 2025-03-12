@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "@/components/layout/admin-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,109 +6,49 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Globe } from "lucide-react";
+import { Loader2, Globe, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
-// Predefined queries for Kotahi GraphQL API
-const predefinedQueries = [
+// Default queries to show if schema introspection fails
+const defaultQueries = [
   {
-    name: "Current User",
+    name: "Schema Introspection",
     query: `
-query {
-  currentUser {
-    id
-    username
-    email
-    admin
-    defaultIdentity {
-      id
+query IntrospectionQuery {
+  __schema {
+    queryType {
       name
-      email
-    }
-  }
-}`,
-    variables: "{}"
-  },
-  {
-    name: "List Submissions",
-    query: `
-query GetSubmissions {
-  manuscripts {
-    edges {
-      node {
-        id
-        meta {
-          title
-          articleType
-          stage
-        }
-        submission {
-          id
-          status
-          createdAt
-        }
-      }
-    }
-  }
-}`,
-    variables: "{}"
-  },
-  {
-    name: "Journal Configuration",
-    query: `
-query {
-  config {
-    journal {
-      name
-      theme {
-        logo
-        footerLogo
-        primaryColor
-        headerColorText
-      }
-    }
-    teams {
-      id
-      name
-      role
-    }
-  }
-}`,
-    variables: "{}"
-  },
-  {
-    name: "Manuscript Types",
-    query: `
-query {
-  manuscriptTypes {
-    id
-    name
-    count
-  }
-}`,
-    variables: "{}"
-  },
-  {
-    name: "List Reviews",
-    query: `
-query {
-  reviews {
-    edges {
-      node {
-        id
-        recommendation
-        status
-        user {
-          id
-          username
-        }
-        manuscript {
-          id
-          meta {
-            title
+      fields {
+        name
+        description
+        args {
+          name
+          description
+          type {
+            name
+            kind
           }
         }
+        type {
+          name
+          kind
+          ofType {
+            name
+            kind
+          }
+        }
+      }
+    }
+    types {
+      name
+      kind
+      description
+      fields {
+        name
+        description
       }
     }
   }
@@ -117,6 +57,44 @@ query {
   }
 ];
 
+// Type definitions for schema information
+interface GraphQLType {
+  name: string;
+  kind: string;
+  description?: string;
+  fields?: GraphQLField[];
+}
+
+interface GraphQLField {
+  name: string;
+  description?: string;
+  type?: {
+    name?: string;
+    kind?: string;
+    ofType?: {
+      name?: string;
+      kind?: string;
+    };
+  };
+  args?: GraphQLArgument[];
+}
+
+interface GraphQLArgument {
+  name: string;
+  description?: string;
+  type: {
+    name?: string;
+    kind?: string;
+  };
+}
+
+interface DynamicQuery {
+  name: string;
+  query: string;
+  variables: string;
+  description?: string;
+}
+
 export default function GraphQLAdmin() {
   // Load previously saved endpoint from localStorage if available
   const savedEndpoint = typeof window !== 'undefined' ? localStorage.getItem('graphql_endpoint') || '' : '';
@@ -124,13 +102,257 @@ export default function GraphQLAdmin() {
   const [activeTab, setActiveTab] = useState("connection");
   const [endpoint, setEndpoint] = useState(savedEndpoint);
   const [apiKey, setApiKey] = useState("");
+  const [schema, setSchema] = useState<any>(null);
+  const [schemaTypes, setSchemaTypes] = useState<GraphQLType[]>([]);
+  const [schemaQueries, setSchemaQueries] = useState<GraphQLField[]>([]);
+  const [dynamicQueries, setDynamicQueries] = useState<DynamicQuery[]>(defaultQueries);
   const [selectedQueryIndex, setSelectedQueryIndex] = useState(0);
-  const [query, setQuery] = useState(predefinedQueries[0].query);
-  const [variables, setVariables] = useState(predefinedQueries[0].variables);
+  const [query, setQuery] = useState(defaultQueries[0].query);
+  const [variables, setVariables] = useState(defaultQueries[0].variables);
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingSchema, setIsFetchingSchema] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Introspect the GraphQL schema when the endpoint changes or when requested
+  const fetchSchema = async () => {
+    if (!endpoint || !endpoint.startsWith('http')) {
+      toast({
+        title: "Invalid API Endpoint",
+        description: "Please configure a valid GraphQL API endpoint first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsFetchingSchema(true);
+    setError(null);
+    
+    try {
+      const introspectionQuery = `
+      query IntrospectionQuery {
+        __schema {
+          queryType {
+            name
+            fields {
+              name
+              description
+              args {
+                name
+                description
+                type {
+                  name
+                  kind
+                }
+              }
+              type {
+                name
+                kind
+                ofType {
+                  name
+                  kind
+                }
+              }
+            }
+          }
+          types {
+            name
+            kind
+            description
+            fields {
+              name
+              description
+            }
+          }
+        }
+      }`;
+      
+      // Build request headers
+      const headers: Record<string, string> = {};
+      if (apiKey) {
+        headers["Authorization"] = `Bearer ${apiKey}`;
+      }
+      
+      // Use our proxy endpoint
+      const response = await fetch('/api/graphql-proxy', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          endpoint,
+          query: introspectionQuery,
+          variables: {},
+          headers
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.errors) {
+        const errorMessage = Array.isArray(result.errors) 
+          ? result.errors.map((e: any) => e.message).join("\n") 
+          : result.error || "Failed to fetch schema";
+          
+        setError(`Schema introspection failed: ${errorMessage}`);
+        toast({
+          title: "Schema Introspection Failed",
+          description: "Could not fetch the GraphQL schema. Using default queries instead.",
+          variant: "destructive",
+        });
+      } else if (result.data && result.data.__schema) {
+        setSchema(result.data.__schema);
+        
+        // Extract query fields
+        const queryFields = result.data.__schema.queryType.fields || [];
+        setSchemaQueries(queryFields);
+        
+        // Extract types
+        const types = result.data.__schema.types || [];
+        setSchemaTypes(types.filter((type: GraphQLType) => 
+          !type.name.startsWith('__') && 
+          type.kind !== 'SCALAR' && 
+          type.kind !== 'INPUT_OBJECT'
+        ));
+        
+        // Generate dynamic queries based on the schema
+        const generatedQueries = generateQueriesFromSchema(queryFields, types);
+        if (generatedQueries.length > 0) {
+          setDynamicQueries(generatedQueries);
+          setSelectedQueryIndex(0);
+          setQuery(generatedQueries[0].query);
+          setVariables(generatedQueries[0].variables);
+          
+          toast({
+            title: "Schema Loaded",
+            description: `Generated ${generatedQueries.length} queries from the GraphQL schema.`,
+          });
+        }
+      }
+    } catch (err) {
+      setError(`Failed to fetch schema: ${err instanceof Error ? err.message : "Unknown error"}`);
+      toast({
+        title: "Error Fetching Schema",
+        description: "An error occurred while fetching the schema. Using default queries instead.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetchingSchema(false);
+    }
+  };
+  
+  // Generate useful queries based on the schema
+  const generateQueriesFromSchema = (
+    queryFields: GraphQLField[], 
+    types: GraphQLType[]
+  ): DynamicQuery[] => {
+    const queries: DynamicQuery[] = [];
+    
+    // First, add the introspection query
+    queries.push(defaultQueries[0]);
+    
+    // For each query field, generate a basic query
+    queryFields.forEach(field => {
+      // Skip internal fields
+      if (field.name.startsWith('__')) return;
+      
+      // Get the return type
+      const returnTypeName = field.type?.name || field.type?.ofType?.name;
+      if (!returnTypeName) return;
+      
+      // Find the corresponding type in the schema
+      const returnType = types.find(t => t.name === returnTypeName);
+      
+      // Generate a query based on the type
+      let queryString = `query Get${field.name.charAt(0).toUpperCase() + field.name.slice(1)} {\n  ${field.name}`;
+      
+      // Add arguments if they exist
+      if (field.args && field.args.length > 0) {
+        queryString += `(`;
+        // We'll just include argument placeholders
+        queryString += field.args.map(arg => {
+          return `${arg.name}: $${arg.name}`;
+        }).join(', ');
+        queryString += `)`;
+      }
+      
+      // Check if this is a connection/edge type (common in GraphQL APIs)
+      const isConnection = returnTypeName.endsWith('Connection') || 
+                           returnType?.fields?.some(f => f.name === 'edges' || f.name === 'nodes');
+                           
+      if (isConnection) {
+        queryString += ` {\n    edges {\n      node {\n        id\n`;
+        
+        // Add a few common fields from the node type
+        queryString += `        # Add the fields you want to retrieve\n`;
+        queryString += `      }\n    }\n  }\n}`;
+      } else if (returnType && returnType.fields) {
+        // For non-connection types, include some of the fields
+        queryString += ` {\n`;
+        
+        // Always include ID if available
+        const hasId = returnType.fields.some(f => f.name === 'id');
+        if (hasId) {
+          queryString += `    id\n`;
+        }
+        
+        // Include a few other common fields
+        const commonFields = ['name', 'title', 'description', 'type', 'status'];
+        commonFields.forEach(fieldName => {
+          if (returnType.fields?.some(f => f.name === fieldName)) {
+            queryString += `    ${fieldName}\n`;
+          }
+        });
+        
+        // Close the query
+        queryString += `    # Add more fields as needed\n  }\n}`;
+      } else {
+        // Simple scalar return type
+        queryString += `\n}`;
+      }
+      
+      // Generate variables object if needed
+      let variablesString = "{}";
+      if (field.args && field.args.length > 0) {
+        const varsObj: Record<string, any> = {};
+        field.args.forEach(arg => {
+          // Add placeholder based on type
+          if (arg.type.kind === 'SCALAR') {
+            switch(arg.type.name) {
+              case 'Int':
+                varsObj[arg.name] = 1;
+                break;
+              case 'Float':
+                varsObj[arg.name] = 1.0;
+                break;
+              case 'Boolean':
+                varsObj[arg.name] = false;
+                break;
+              case 'ID':
+                varsObj[arg.name] = "id123";
+                break;
+              default:
+                varsObj[arg.name] = "";
+            }
+          } else {
+            varsObj[arg.name] = null;
+          }
+        });
+        variablesString = JSON.stringify(varsObj, null, 2);
+      }
+      
+      // Add the query to our collection
+      queries.push({
+        name: `Query ${field.name}`,
+        query: queryString,
+        variables: variablesString,
+        description: field.description
+      });
+    });
+    
+    return queries;
+  };
   
   // Handle tab changes
   const handleTabChange = (value: string) => {
@@ -139,6 +361,15 @@ export default function GraphQLAdmin() {
     setError(null);
   };
 
+  // Effect to fetch schema when endpoint changes
+  useEffect(() => {
+    // When component first mounts and has a valid endpoint
+    if (endpoint && endpoint.startsWith('http')) {
+      // Auto-fetch schema when component loads with a valid endpoint
+      fetchSchema();
+    }
+  }, [endpoint]); // Re-run when endpoint changes
+  
   // Handle API config submission
   const handleSaveConfig = () => {
     if (!endpoint || !endpoint.startsWith('http')) {
@@ -157,6 +388,9 @@ export default function GraphQLAdmin() {
       console.error('Failed to save endpoint to localStorage:', error);
     }
     
+    // Fetch schema from the endpoint
+    fetchSchema();
+    
     toast({
       title: "API Configuration Saved",
       description: "Your GraphQL API endpoint has been configured.",
@@ -169,8 +403,8 @@ export default function GraphQLAdmin() {
   const handleQuerySelection = (index: string) => {
     const queryIndex = parseInt(index);
     setSelectedQueryIndex(queryIndex);
-    setQuery(predefinedQueries[queryIndex].query);
-    setVariables(predefinedQueries[queryIndex].variables);
+    setQuery(dynamicQueries[queryIndex].query);
+    setVariables(dynamicQueries[queryIndex].variables);
   };
 
   // Execute GraphQL query
@@ -307,23 +541,74 @@ export default function GraphQLAdmin() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="predefinedQuery">Predefined Queries</Label>
-                    <Select 
-                      value={selectedQueryIndex.toString()} 
-                      onValueChange={handleQuerySelection}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a predefined query" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {predefinedQueries.map((q, index) => (
-                          <SelectItem key={index} value={index.toString()}>
-                            {q.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium">API Schema</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {schema ? 
+                            `${schemaQueries.length} API queries available` : 
+                            "No schema loaded yet"}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={fetchSchema} 
+                        disabled={isFetchingSchema || !endpoint}
+                      >
+                        {isFetchingSchema ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Loading Schema...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Refresh Schema
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {schema && (
+                      <div className="space-y-1 py-2">
+                        <Badge variant="outline" className="mr-1">
+                          {dynamicQueries.length} Queries
+                        </Badge>
+                        {schemaTypes.length > 0 && (
+                          <Badge variant="outline">
+                            {schemaTypes.length} Types
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    
+                    <Separator />
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="predefinedQuery">Available Queries</Label>
+                      <Select 
+                        value={selectedQueryIndex.toString()} 
+                        onValueChange={handleQuerySelection}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a query" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dynamicQueries.map((q: DynamicQuery, index: number) => (
+                            <SelectItem key={index} value={index.toString()}>
+                              {q.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {dynamicQueries[selectedQueryIndex]?.description && (
+                        <p className="text-sm text-muted-foreground">
+                          {dynamicQueries[selectedQueryIndex].description}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
