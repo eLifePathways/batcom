@@ -21,7 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, Send, AlertCircle, Code, Screenshot, UserRound, Link2 } from "lucide-react";
+import { Loader2, Send, AlertCircle, Code, Image as ImageIcon, UserRound, Link2 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -260,7 +260,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange }: IssueDetailDial
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Screenshot className="h-5 w-5 mr-2" />
+                    <ImageIcon className="h-5 w-5 mr-2" />
                     No Screenshot Available
                   </CardTitle>
                   <CardDescription>

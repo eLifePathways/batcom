@@ -529,6 +529,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Issue CRUD routes
+  app.get('/api/issues', async (req: Request, res: Response) => {
+    try {
+      const issues = await storage.getAllIssues();
+      res.status(200).json(issues);
+    } catch (error) {
+      console.error('Error getting issues:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  app.get('/api/issues/:id', async (req: Request, res: Response) => {
+    try {
+      const issueId = parseInt(req.params.id);
+      if (isNaN(issueId)) {
+        return res.status(400).json({ message: 'Invalid issue ID' });
+      }
+      
+      const issue = await storage.getIssue(issueId);
+      if (!issue) {
+        return res.status(404).json({ message: 'Issue not found' });
+      }
+      
+      res.status(200).json(issue);
+    } catch (error) {
+      console.error('Error getting issue:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  app.post('/api/issues', async (req: Request, res: Response) => {
+    try {
+      const issueData = req.body;
+      
+      const newIssue = await storage.createIssue({
+        title: issueData.title,
+        description: issueData.description,
+        pageUrl: issueData.url,
+        screenshotUrl: issueData.screenshot || null,
+        consoleLog: issueData.consoleLog || null,
+        browserInfo: issueData.userAgent,
+      });
+      
+      res.status(201).json(newIssue);
+    } catch (error) {
+      console.error('Error creating issue:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  app.put('/api/issues/:id', async (req: Request, res: Response) => {
+    try {
+      const issueId = parseInt(req.params.id);
+      if (isNaN(issueId)) {
+        return res.status(400).json({ message: 'Invalid issue ID' });
+      }
+      
+      const updateData = req.body;
+      const updatedIssue = await storage.updateIssue(issueId, updateData);
+      
+      if (!updatedIssue) {
+        return res.status(404).json({ message: 'Issue not found' });
+      }
+      
+      res.status(200).json(updatedIssue);
+    } catch (error) {
+      console.error('Error updating issue:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  app.delete('/api/issues/:id', async (req: Request, res: Response) => {
+    try {
+      const issueId = parseInt(req.params.id);
+      if (isNaN(issueId)) {
+        return res.status(400).json({ message: 'Invalid issue ID' });
+      }
+      
+      const success = await storage.deleteIssue(issueId);
+      if (!success) {
+        return res.status(404).json({ message: 'Issue not found' });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting issue:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  // Issue comments routes
+  app.get('/api/issues/:issueId/comments', async (req: Request, res: Response) => {
+    try {
+      const issueId = parseInt(req.params.issueId);
+      if (isNaN(issueId)) {
+        return res.status(400).json({ message: 'Invalid issue ID' });
+      }
+      
+      const comments = await storage.getIssueComments(issueId);
+      res.status(200).json(comments);
+    } catch (error) {
+      console.error('Error getting issue comments:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  app.post('/api/issues/:issueId/comments', async (req: Request, res: Response) => {
+    try {
+      const issueId = parseInt(req.params.issueId);
+      if (isNaN(issueId)) {
+        return res.status(400).json({ message: 'Invalid issue ID' });
+      }
+      
+      const { comment, isInternal } = req.body;
+      
+      // Make sure the issue exists
+      const issue = await storage.getIssue(issueId);
+      if (!issue) {
+        return res.status(404).json({ message: 'Issue not found' });
+      }
+      
+      const newComment = await storage.createIssueComment({
+        issueId,
+        content: comment,
+        userId: null,
+      });
+      
+      res.status(201).json(newComment);
+    } catch (error) {
+      console.error('Error creating issue comment:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  app.put('/api/issues/comments/:id', async (req: Request, res: Response) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      if (isNaN(commentId)) {
+        return res.status(400).json({ message: 'Invalid comment ID' });
+      }
+      
+      const updateData = req.body;
+      const updatedComment = await storage.updateIssueComment(commentId, updateData);
+      
+      if (!updatedComment) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+      
+      res.status(200).json(updatedComment);
+    } catch (error) {
+      console.error('Error updating issue comment:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  app.delete('/api/issues/comments/:id', async (req: Request, res: Response) => {
+    try {
+      const commentId = parseInt(req.params.id);
+      if (isNaN(commentId)) {
+        return res.status(400).json({ message: 'Invalid comment ID' });
+      }
+      
+      const success = await storage.deleteIssueComment(commentId);
+      if (!success) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting issue comment:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

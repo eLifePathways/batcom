@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Camera, Image, X } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Camera, RefreshCw, Trash } from "lucide-react";
 import html2canvas from "html2canvas";
 
 interface ScreenshotCaptureProps {
@@ -11,79 +11,114 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
 
-  const captureScreenshot = async () => {
+  // Send screenshot to parent when it changes
+  useEffect(() => {
+    onCapture(screenshot);
+  }, [screenshot, onCapture]);
+
+  const captureScreen = async () => {
     setIsCapturing(true);
     
     try {
-      // Wait for a short delay to allow the UI to update (hiding the capture button)
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Temporarily hide the report dialog to prevent it from showing in the screenshot
+      const dialogElement = document.querySelector('[role="dialog"]');
       
+      if (dialogElement) {
+        dialogElement.setAttribute('data-screenshot-temp', 'hidden');
+        dialogElement.setAttribute('style', 'visibility: hidden;');
+      }
+      
+      // Wait a small delay for the UI to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Capture the screen
       const canvas = await html2canvas(document.body, {
         allowTaint: true,
         useCORS: true,
-        scale: 0.5, // Reduce resolution to keep file size manageable
+        logging: false,
+        scale: window.devicePixelRatio,
       });
       
-      const dataUrl = canvas.toDataURL("image/png");
+      // Restore dialog visibility
+      if (dialogElement) {
+        dialogElement.removeAttribute('data-screenshot-temp');
+        dialogElement.removeAttribute('style');
+      }
+      
+      // Convert to dataURL and save
+      const dataUrl = canvas.toDataURL('image/png');
       setScreenshot(dataUrl);
-      onCapture(dataUrl);
     } catch (error) {
-      console.error("Error capturing screenshot:", error);
+      console.error('Error capturing screenshot:', error);
     } finally {
       setIsCapturing(false);
     }
   };
-  
+
   const clearScreenshot = () => {
     setScreenshot(null);
-    onCapture(null);
   };
 
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium">Screenshot</p>
-      
+    <div className="space-y-4">
       {screenshot ? (
-        <div className="relative">
-          <img 
-            src={screenshot} 
-            alt="Screenshot" 
-            className="max-h-[200px] w-full object-contain border rounded-md bg-gray-50" 
-          />
-          <Button
-            type="button"
-            size="icon"
-            variant="destructive"
-            className="absolute top-1 right-1 h-6 w-6"
-            onClick={clearScreenshot}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+        <div className="space-y-3">
+          <div className="relative border rounded-md overflow-hidden bg-gray-50">
+            <img 
+              src={screenshot} 
+              alt="Page screenshot" 
+              className="w-full h-auto object-contain"
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              className="absolute top-2 right-2 opacity-90"
+              onClick={clearScreenshot}
+            >
+              <Trash className="h-4 w-4 mr-1" />
+              Remove
+            </Button>
+          </div>
+          <div className="flex justify-end">
+            <Button 
+              variant="outline" 
+              type="button" 
+              onClick={captureScreen}
+              disabled={isCapturing}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isCapturing ? 'animate-spin' : ''}`} />
+              {isCapturing ? 'Capturing...' : 'Re-capture'}
+            </Button>
+          </div>
         </div>
       ) : (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={captureScreenshot}
-          disabled={isCapturing}
-          className="w-full flex items-center justify-center gap-2 h-[100px] border-dashed"
-        >
-          {isCapturing ? (
-            <span>Capturing...</span>
-          ) : (
-            <>
-              <Camera className="h-5 w-5 mr-1" />
-              Capture Screenshot
-            </>
-          )}
-        </Button>
+        <div className="flex flex-col items-center justify-center gap-3 p-6 border rounded-md bg-gray-50">
+          <Camera className="h-8 w-8 text-gray-400" />
+          <div className="text-center">
+            <p className="text-sm text-gray-600 mb-2">
+              Take a screenshot of the current page
+            </p>
+            <Button 
+              type="button" 
+              onClick={captureScreen}
+              disabled={isCapturing}
+              className="min-w-[120px]"
+            >
+              {isCapturing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Capturing...
+                </>
+              ) : (
+                <>
+                  <Camera className="h-4 w-4 mr-2" />
+                  Capture
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       )}
-      
-      <p className="text-xs text-gray-500">
-        {screenshot 
-          ? "Screenshot attached. Click the X to remove it." 
-          : "Click to capture the current page (the capture button will be hidden in the screenshot)."}
-      </p>
     </div>
   );
 }
