@@ -116,7 +116,7 @@ export default function PublicationsAdmin() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: name === "virusCategoryId" ? parseInt(value) : value
     }));
   };
   
