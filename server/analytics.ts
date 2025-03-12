@@ -3,7 +3,7 @@ import { db } from "./db";
 import { pageViews, sessions } from "@shared/schema";
 import { v4 as uuidv4 } from "uuid";
 import { UAParser } from "ua-parser-js";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 
 const SESSION_COOKIE = "bat_com_session";
 const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -127,10 +127,10 @@ export const analyticsMiddleware = async (req: Request, res: Response, next: Nex
         .limit(1);
         
       if (sessionData.length > 0) {
-        const pageViews = sessionData[0].totalPageViews || 0;
+        const pageViewsCount = sessionData[0].totalPageViews || 0;
         await db.update(sessions)
           .set({ 
-            totalPageViews: pageViews + 1,
+            totalPageViews: pageViewsCount + 1,
             endedAt: new Date(), // Update the last activity time
             exitPage: path // Update exit page (will be overwritten if user continues browsing)
           })
@@ -178,21 +178,19 @@ export const analyticsMiddleware = async (req: Request, res: Response, next: Nex
 // Function to add scroll depth tracking
 export const trackScrollDepth = async (sessionId: string, path: string, scrollDepth: number) => {
   try {
-    // Find the most recent page view for this session and path
-    const recentPageViews = await db
+    // Find the most recent page view for this session
+    const pageViewsResult = await db
       .select()
       .from(pageViews)
-      .where(
-        eq(pageViews.sessionId, sessionId)
-      )
-      .orderBy(pageViews.visitedAt, 'desc')
-      .limit(1);
+      .where(eq(pageViews.sessionId, sessionId))
+      .orderBy(desc(pageViews.visitedAt))
+      .limit(10); // Get more records to filter by path
     
-    // Filter by path in JavaScript since we're already limiting to 1 record
-    const filteredViews = recentPageViews.filter(view => view.path === path);
+    // Filter by path in JavaScript
+    const matchingViews = pageViewsResult.filter(view => view.path === path);
     
-    if (filteredViews.length > 0) {
-      const pageView = filteredViews[0];
+    if (matchingViews.length > 0) {
+      const pageView = matchingViews[0]; // most recent matching view
       
       // Update the scroll depth if it's higher than what was previously recorded
       if (!pageView.scrollDepth || scrollDepth > pageView.scrollDepth) {
@@ -209,21 +207,19 @@ export const trackScrollDepth = async (sessionId: string, path: string, scrollDe
 // Function to record time on page
 export const trackTimeOnPage = async (sessionId: string, path: string, timeOnPage: number) => {
   try {
-    // Find the most recent page view for this session and path
-    const recentPageViews = await db
+    // Find the most recent page view for this session
+    const pageViewsResult = await db
       .select()
       .from(pageViews)
-      .where(
-        eq(pageViews.sessionId, sessionId)
-      )
-      .orderBy(pageViews.visitedAt, 'desc')
-      .limit(1);
+      .where(eq(pageViews.sessionId, sessionId))
+      .orderBy(desc(pageViews.visitedAt))
+      .limit(10); // Get more records to filter by path
     
-    // Filter by path in JavaScript since we're already limiting to 1 record
-    const filteredViews = recentPageViews.filter(view => view.path === path);
+    // Filter by path in JavaScript
+    const matchingViews = pageViewsResult.filter(view => view.path === path);
     
-    if (filteredViews.length > 0) {
-      const pageView = filteredViews[0];
+    if (matchingViews.length > 0) {
+      const pageView = matchingViews[0]; // most recent matching view
       
       await db.update(pageViews)
         .set({ timeOnPage })
