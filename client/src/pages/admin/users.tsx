@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Edit, Trash2, User, UserPlus, Key } from "lucide-react";
+import { Edit, Trash2, User, UserPlus, UserCog, Key } from "lucide-react";
 
 type User = {
   id: number;
