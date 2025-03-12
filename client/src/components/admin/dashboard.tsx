@@ -23,15 +23,27 @@ export default function AdminDashboard() {
   });
   
   // Prepare data for publications by year chart
-  const publicationsByYear = publications && Array.isArray(publications) ? 
-    Object.entries(
-      publications.reduce((acc: Record<number, number>, pub: any) => {
-        acc[pub.year] = (acc[pub.year] || 0) + 1;
-        return acc;
-      }, {} as Record<number, number>)
-    )
-    .map(([year, count]) => ({ year, count }))
-    .sort((a, b) => parseInt(a.year) - parseInt(b.year)) : [];
+  const publicationsByYear = publications && Array.isArray(publications) 
+    ? Object.entries(
+        publications.reduce((acc: Record<string, number>, pub: any) => {
+          // Log publications to ensure we're getting the right data
+          console.log('Processing publication:', pub.title, 'Year:', pub.year);
+          
+          // Ensure we're working with numeric year values
+          const year = typeof pub.year === 'number' ? pub.year.toString() : String(pub.year);
+          acc[year] = (acc[year] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      )
+      .map(([year, count]) => ({ 
+        year: year,  // Keep year as string for display
+        count: count // Actual count
+      }))
+      .sort((a, b) => parseInt(a.year) - parseInt(b.year)) 
+    : [];
+    
+  // Log the final chart data
+  console.log('Publication chart data:', publicationsByYear);
   
   // Stats cards data
   const statsCards = [
@@ -114,9 +126,9 @@ export default function AdminDashboard() {
               <BarChart data={publicationsByYear} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="var(--primary)" />
+                <YAxis allowDecimals={false} domain={[0, 'dataMax']} />
+                <Tooltip formatter={(value) => [value, 'Publications']} />
+                <Bar dataKey="count" fill="var(--primary)" name="Publications" />
               </BarChart>
             </ResponsiveContainer>
           </div>
