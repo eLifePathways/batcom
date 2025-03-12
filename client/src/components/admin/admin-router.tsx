@@ -4,17 +4,25 @@ import { useLocation, useRoute } from 'wouter';
 // This component handles direct hits to admin URLs
 export default function AdminRouter() {
   const [location, navigate] = useLocation();
-  const [match] = useRoute('/admin/*');
+  const [isAdminRoute] = useRoute('/admin/*');
+  const [isExactAdminRoute] = useRoute('/admin');
   
   useEffect(() => {
-    if (match) {
+    if (isAdminRoute || isExactAdminRoute) {
       console.log('Admin router handling admin route:', location);
       
-      // Keep the user on the same URL but ensure our routing system picks it up
-      // This allows direct visits to admin URLs to work properly
-      navigate(location);
+      // For admin routes, we want to ensure the admin layout is applied
+      // and the correct component is rendered
+      
+      // This is a no-op navigation that forces a re-render while keeping the URL the same
+      // It helps ensure the router picks up the route correctly after a direct page load
+      const currentPath = location;
+      window.setTimeout(() => {
+        navigate(currentPath, { replace: true });
+        console.log('Admin router navigation complete');
+      }, 0);
     }
-  }, [location, match, navigate]);
+  }, [isAdminRoute, isExactAdminRoute]);
   
   return null;
 }
