@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -325,9 +326,11 @@ export default function TeamMembersAdmin() {
                 </div>
                 
                 <DialogFooter>
-                  <Button type="submit" disabled={addTeamMember.isPending || updateTeamMember.isPending}>
-                    {addTeamMember.isPending || updateTeamMember.isPending ? "Saving..." : "Save Member"}
-                  </Button>
+                  <DialogClose asChild>
+                    <Button type="submit" disabled={addTeamMember.isPending || updateTeamMember.isPending}>
+                      {addTeamMember.isPending || updateTeamMember.isPending ? "Saving..." : "Save Member"}
+                    </Button>
+                  </DialogClose>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -498,9 +501,11 @@ export default function TeamMembersAdmin() {
                             </div>
                             
                             <DialogFooter>
-                              <Button type="submit" disabled={updateTeamMember.isPending}>
-                                {updateTeamMember.isPending ? "Saving..." : "Save Changes"}
-                              </Button>
+                              <DialogClose asChild>
+                                <Button type="submit" disabled={updateTeamMember.isPending}>
+                                  {updateTeamMember.isPending ? "Saving..." : "Save Changes"}
+                                </Button>
+                              </DialogClose>
                             </DialogFooter>
                           </form>
                         </DialogContent>

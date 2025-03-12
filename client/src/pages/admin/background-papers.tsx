@@ -322,9 +322,11 @@ export default function BackgroundPapersAdmin() {
                 </div>
                 
                 <DialogFooter>
-                  <Button type="submit" disabled={addBackgroundPaper.isPending || updateBackgroundPaper.isPending}>
-                    {addBackgroundPaper.isPending || updateBackgroundPaper.isPending ? "Saving..." : "Save Paper"}
-                  </Button>
+                  <DialogClose asChild>
+                    <Button type="submit" disabled={addBackgroundPaper.isPending || updateBackgroundPaper.isPending}>
+                      {addBackgroundPaper.isPending || updateBackgroundPaper.isPending ? "Saving..." : "Save Paper"}
+                    </Button>
+                  </DialogClose>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -467,9 +469,11 @@ export default function BackgroundPapersAdmin() {
                             </div>
                             
                             <DialogFooter>
-                              <Button type="submit" disabled={updateBackgroundPaper.isPending}>
-                                {updateBackgroundPaper.isPending ? "Saving..." : "Save Changes"}
-                              </Button>
+                              <DialogClose asChild>
+                                <Button type="submit" disabled={updateBackgroundPaper.isPending}>
+                                  {updateBackgroundPaper.isPending ? "Saving..." : "Save Changes"}
+                                </Button>
+                              </DialogClose>
                             </DialogFooter>
                           </form>
                         </DialogContent>
@@ -491,13 +495,15 @@ export default function BackgroundPapersAdmin() {
                             <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
                           </div>
                           <DialogFooter>
-                            <Button 
-                              variant="destructive" 
-                              onClick={() => deleteBackgroundPaper.mutate(paper.id)}
-                              disabled={deleteBackgroundPaper.isPending}
-                            >
-                              {deleteBackgroundPaper.isPending ? "Deleting..." : "Delete"}
-                            </Button>
+                            <DialogClose asChild>
+                              <Button 
+                                variant="destructive" 
+                                onClick={() => deleteBackgroundPaper.mutate(paper.id)}
+                                disabled={deleteBackgroundPaper.isPending}
+                              >
+                                {deleteBackgroundPaper.isPending ? "Deleting..." : "Delete"}
+                              </Button>
+                            </DialogClose>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
