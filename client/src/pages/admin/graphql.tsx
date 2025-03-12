@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -82,18 +82,25 @@ query {
 
 export default function GraphQLAdmin() {
   const [activeTab, setActiveTab] = useState("connection");
+  // Initialize with empty endpoint - user must configure before using
   const [endpoint, setEndpoint] = useState("");
   const [selectedQueryIndex, setSelectedQueryIndex] = useState(0);
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Reset response and error when changing tabs
+  useEffect(() => {
+    setResponse(null);
+    setError(null);
+  }, [activeTab]);
 
   // Form for API configuration
   const configForm = useForm<z.infer<typeof graphqlConfigSchema>>({
     resolver: zodResolver(graphqlConfigSchema),
     defaultValues: {
-      endpoint: "",
+      endpoint: "https://kotahi-instance.example.org/graphql",
       apiKey: "",
     },
   });
@@ -141,17 +148,34 @@ export default function GraphQLAdmin() {
     setError(null);
     
     try {
-      // Parse variables if provided
-      const variables = data.variables ? JSON.parse(data.variables) : {};
+      // Safely parse variables if provided
+      let variables = {};
+      if (data.variables) {
+        try {
+          variables = JSON.parse(data.variables);
+        } catch (parseError) {
+          setError("Invalid JSON in variables field");
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Get API key if available
+      const apiKey = configForm.getValues("apiKey");
+      
+      // Build request headers
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json"
+      };
+      
+      // Add authorization header if API key is provided
+      if (apiKey) {
+        headers["Authorization"] = `Bearer ${apiKey}`;
+      }
       
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(configForm.getValues("apiKey") ? {
-            "Authorization": `Bearer ${configForm.getValues("apiKey")}`
-          } : {})
-        },
+        headers,
         body: JSON.stringify({
           query: data.query,
           variables
