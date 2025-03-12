@@ -17,6 +17,7 @@ import AdminTeam from "@/pages/admin/team";
 import AdminPublications from "@/pages/admin/publications";
 import AdminBackgroundPapers from "@/pages/admin/background-papers";
 import AdminVirusCategories from "@/pages/admin/virus-categories";
+import AdminUsers from "@/pages/admin/users";
 import AdminSettings from "@/pages/admin/settings";
 import AdminAnalytics from "@/pages/admin/analytics";
 
@@ -41,6 +42,8 @@ function Router() {
           <Route path="/admin/virus-categories" component={AdminVirusCategories} />
           <Route path="/admin/virus-categories/:action" component={AdminVirusCategories} />
           <Route path="/admin/team/:action" component={AdminTeam} />
+          <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/admin/users/:action" component={AdminUsers} />
           <Route path="/admin/settings" component={AdminSettings} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
           <Route component={NotFound} />
