@@ -41,12 +41,15 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       // Wait a small delay for the UI to update
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Capture the screen
+      // Capture the screen with improved quality
       const canvas = await html2canvas(document.body, {
         allowTaint: true,
         useCORS: true,
         logging: false,
         scale: window.devicePixelRatio,
+        backgroundColor: null, // Don't use a background color to preserve transparency
+        foreignObjectRendering: false, // Better compatibility
+        imageTimeout: 0, // Don't timeout on images
       });
       
       // Restore scroll position if needed
@@ -88,14 +91,23 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       resizedCanvas.width = width;
       resizedCanvas.height = height;
       
-      // Draw original image to the resized canvas
-      const ctx = resizedCanvas.getContext('2d');
+      // Draw original image to the resized canvas with improved quality
+      const ctx = resizedCanvas.getContext('2d', { alpha: true });
       if (ctx) {
+        // Set high quality image rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Use a white background to ensure colors are vibrant
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw the image on top
         ctx.drawImage(canvas, 0, 0, width, height);
       }
       
-      // Convert to dataURL with compression (JPEG with 0.7 quality)
-      const dataUrl = resizedCanvas.toDataURL('image/jpeg', 0.7);
+      // Convert to PNG format for better quality and colors (no compression artifacts)
+      const dataUrl = resizedCanvas.toDataURL('image/png');
       setScreenshot(dataUrl);
     } catch (error) {
       console.error('Error capturing screenshot:', error);
@@ -119,7 +131,7 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
                 alt="Page screenshot" 
                 className="w-full h-auto object-contain"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-100/70 pointer-events-none"></div>
+              {/* No gradient overlay to ensure we see the actual colors */}
             </div>
             <div className="flex justify-between items-center p-2 bg-gray-50 border-t">
               <a 
