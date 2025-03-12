@@ -20,6 +20,8 @@ import AdminVirusCategories from "@/pages/admin/virus-categories";
 import AdminSettings from "@/pages/admin/settings";
 import AdminAnalytics from "@/pages/admin/analytics";
 
+import AdminLayout from "@/components/layout/admin-layout";
+
 function Router() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith('/admin');
@@ -27,21 +29,23 @@ function Router() {
   // If we're on an admin route, we use a different layout
   if (isAdminRoute) {
     return (
-      <Switch>
-        <Route path="/admin" component={AdminPage} />
-        <Route path="/admin/team" component={AdminTeam} />
-        <Route path="/admin/publications" component={AdminPublications} />
-        {/* Redirect sub-routes to the main admin page for that resource */}
-        <Route path="/admin/publications/:action" component={AdminPublications} />
-        <Route path="/admin/background-papers" component={AdminBackgroundPapers} />
-        <Route path="/admin/background-papers/:action" component={AdminBackgroundPapers} />
-        <Route path="/admin/virus-categories" component={AdminVirusCategories} />
-        <Route path="/admin/virus-categories/:action" component={AdminVirusCategories} />
-        <Route path="/admin/team/:action" component={AdminTeam} />
-        <Route path="/admin/settings" component={AdminSettings} />
-        <Route path="/admin/analytics" component={AdminAnalytics} />
-        <Route component={NotFound} />
-      </Switch>
+      <AdminLayout>
+        <Switch>
+          <Route path="/admin" component={AdminPage} />
+          <Route path="/admin/team" component={AdminTeam} />
+          <Route path="/admin/publications" component={AdminPublications} />
+          {/* Redirect sub-routes to the main admin page for that resource */}
+          <Route path="/admin/publications/:action" component={AdminPublications} />
+          <Route path="/admin/background-papers" component={AdminBackgroundPapers} />
+          <Route path="/admin/background-papers/:action" component={AdminBackgroundPapers} />
+          <Route path="/admin/virus-categories" component={AdminVirusCategories} />
+          <Route path="/admin/virus-categories/:action" component={AdminVirusCategories} />
+          <Route path="/admin/team/:action" component={AdminTeam} />
+          <Route path="/admin/settings" component={AdminSettings} />
+          <Route path="/admin/analytics" component={AdminAnalytics} />
+          <Route component={NotFound} />
+        </Switch>
+      </AdminLayout>
     );
   }
   
