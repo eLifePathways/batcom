@@ -170,7 +170,7 @@ export default function IssuesAdmin() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Issue Reports</h1>
@@ -311,13 +311,13 @@ export default function IssuesAdmin() {
       </AlertDialog>
       
       {/* Issue Detail Dialog */}
-      {selectedIssue && (
+      {selectedIssue ? (
         <IssueDetailDialog
           issue={selectedIssue}
           open={isDetailDialogOpen}
           onOpenChange={setIsDetailDialogOpen}
         />
-      )}
-    </AdminLayout>
+      ) : null}
+    </>
   );
 }
