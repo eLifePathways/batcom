@@ -141,7 +141,11 @@ export default function PublicationsAdmin() {
   // Add publication mutation
   const addPublication = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/publications', data);
+      return apiRequest('/api/publications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
@@ -164,7 +168,11 @@ export default function PublicationsAdmin() {
   // Update publication mutation
   const updatePublication = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest('PUT', `/api/publications/${id}`, data);
+      return apiRequest(`/api/publications/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
@@ -188,7 +196,9 @@ export default function PublicationsAdmin() {
   // Delete publication mutation
   const deletePublication = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/publications/${id}`);
+      return apiRequest(`/api/publications/${id}`, {
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/publications'] });

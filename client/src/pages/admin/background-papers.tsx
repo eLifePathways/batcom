@@ -118,7 +118,11 @@ export default function BackgroundPapersAdmin() {
   // Add background paper mutation
   const addBackgroundPaper = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/background-papers', data);
+      return apiRequest('/api/background-papers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/background-papers'] });
@@ -141,7 +145,11 @@ export default function BackgroundPapersAdmin() {
   // Update background paper mutation
   const updateBackgroundPaper = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest('PUT', `/api/background-papers/${id}`, data);
+      return apiRequest(`/api/background-papers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/background-papers'] });
@@ -165,7 +173,9 @@ export default function BackgroundPapersAdmin() {
   // Delete background paper mutation
   const deleteBackgroundPaper = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/background-papers/${id}`);
+      return apiRequest(`/api/background-papers/${id}`, {
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/background-papers'] });

@@ -95,7 +95,11 @@ export default function TeamMembersAdmin() {
   // Add team member mutation
   const addTeamMember = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/team-members', data);
+      return apiRequest('/api/team-members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
