@@ -12,7 +12,8 @@ import {
   ArrowLeft,
   UserCog,
   AlertCircle,
-  Layout
+  Layout,
+  Globe
 } from "lucide-react";
 
 const AdminSidebar = () => {

@@ -55,12 +55,6 @@ export default function AdminNav() {
       active: location === "/admin/what-we-do" || location.startsWith("/admin/what-we-do/"),
     },
     {
-      href: "/admin/graphql",
-      label: "GraphQL API",
-      icon: <Globe className="h-5 w-5" />,
-      active: location === "/admin/graphql" || location.startsWith("/admin/graphql/"),
-    },
-    {
       href: "/admin/users",
       label: "User Management",
       icon: <UserCog className="h-5 w-5" />,
@@ -77,6 +71,12 @@ export default function AdminNav() {
       label: "Analytics",
       icon: <BarChart className="h-5 w-5" />,
       active: location === "/admin/analytics" || location.startsWith("/admin/analytics/"),
+    },
+    {
+      href: "/admin/graphql",
+      label: "GraphQL API",
+      icon: <Globe className="h-5 w-5" />,
+      active: location === "/admin/graphql" || location.startsWith("/admin/graphql/"),
     },
     {
       href: "/admin/settings",
