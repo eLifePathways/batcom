@@ -134,7 +134,8 @@ const SectionForm = ({
       imageUrl: "",
       slug: "",
       sortOrder: 0
-    }
+    },
+    mode: "onSubmit"
   });
 
   const handleImageUploaded = (imageUrl: string) => {
@@ -544,6 +545,9 @@ export default function WhatWeDoAdmin() {
   const createSectionMutation = useMutation({
     mutationFn: (newSection: any) => apiRequest('/api/what-we-do/sections', { 
       method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(newSection) 
     }),
     onSuccess: () => {
@@ -567,6 +571,9 @@ export default function WhatWeDoAdmin() {
   const updateSectionMutation = useMutation({
     mutationFn: ({ id, data }: { id: number, data: any }) => apiRequest(`/api/what-we-do/sections/${id}`, { 
       method: 'PUT', 
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(data) 
     }),
     onSuccess: () => {
@@ -610,6 +617,9 @@ export default function WhatWeDoAdmin() {
   const createContentMutation = useMutation({
     mutationFn: (newContent: any) => apiRequest('/api/what-we-do/content', { 
       method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(newContent) 
     }),
     onSuccess: () => {
@@ -633,6 +643,9 @@ export default function WhatWeDoAdmin() {
   const updateContentMutation = useMutation({
     mutationFn: ({ id, data }: { id: number, data: any }) => apiRequest(`/api/what-we-do/content/${id}`, { 
       method: 'PUT', 
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(data) 
     }),
     onSuccess: () => {
@@ -676,24 +689,78 @@ export default function WhatWeDoAdmin() {
   // Form handlers
   const handleCreateSection = (data: any) => {
     console.log('Creating section with data:', data);
-    // Ensure that required fields are always set 
+    
+    // Check if data is valid before submitting
+    if (!data || typeof data !== 'object') {
+      console.error('Invalid form data:', data);
+      toast({
+        title: "Form Error",
+        description: "The form data is invalid. Please fill out the required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Ensure that required fields are always set
     const sectionData = {
-      ...data,
-      title: data.title?.trim() || '',
-      slug: data.slug?.trim() || ''
+      title: data.title?.trim(),
+      slug: data.slug?.trim(),
+      subtitle: data.subtitle || null,
+      description: data.description || null,
+      imageUrl: data.imageUrl || null,
+      sortOrder: data.sortOrder || 0
     };
+    
+    // Validate required fields
+    if (!sectionData.title || !sectionData.slug) {
+      toast({
+        title: "Validation Error",
+        description: "Title and slug are required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    console.log('Submitting section data:', sectionData);
     createSectionMutation.mutate(sectionData);
   };
 
   const handleUpdateSection = (data: any) => {
     if (editingSection) {
       console.log('Updating section with data:', data);
+      
+      // Check if data is valid before submitting
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid form data:', data);
+        toast({
+          title: "Form Error",
+          description: "The form data is invalid. Please fill out the required fields.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       // Ensure that required fields are always set
       const sectionData = {
-        ...data,
-        title: data.title?.trim() || '',
-        slug: data.slug?.trim() || ''
+        title: data.title?.trim(),
+        slug: data.slug?.trim(),
+        subtitle: data.subtitle || null,
+        description: data.description || null,
+        imageUrl: data.imageUrl || null,
+        sortOrder: data.sortOrder || 0
       };
+      
+      // Validate required fields
+      if (!sectionData.title || !sectionData.slug) {
+        toast({
+          title: "Validation Error",
+          description: "Title and slug are required fields.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('Submitting updated section data:', sectionData);
       updateSectionMutation.mutate({ id: editingSection.id, data: sectionData });
     }
   };
