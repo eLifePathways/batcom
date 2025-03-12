@@ -290,7 +290,8 @@ export class MemStorage implements IStorage {
       ...paper, 
       id,
       link: paper.link ?? null,
-      imageUrl: paper.imageUrl ?? null
+      imageUrl: paper.imageUrl ?? null,
+      description: paper.description ?? null
     };
     this.backgroundPapers.set(id, backgroundPaper);
     return backgroundPaper;
@@ -307,7 +308,8 @@ export class MemStorage implements IStorage {
       ...data,
       id, // Ensure id doesn't change
       link: data.link ?? paper.link,
-      imageUrl: data.imageUrl ?? paper.imageUrl
+      imageUrl: data.imageUrl ?? paper.imageUrl,
+      description: data.description ?? paper.description
     };
     
     this.backgroundPapers.set(id, updatedPaper);
