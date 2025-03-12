@@ -140,6 +140,20 @@ const SectionForm = ({
   const handleImageUploaded = (imageUrl: string) => {
     form.setValue("imageUrl", imageUrl);
   };
+  
+  // Auto-generate slug from title if not manually set
+  const autoGenerateSlug = (title: string) => {
+    if (!form.getValues("slug")) {
+      const slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")  // Remove special characters
+        .replace(/\s+/g, "-")          // Replace spaces with hyphens
+        .replace(/-+/g, "-")           // Replace multiple hyphens with single hyphen
+        .trim();
+      
+      form.setValue("slug", slug);
+    }
+  };
 
   return (
     <Form {...form}>
