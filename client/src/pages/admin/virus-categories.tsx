@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -239,9 +240,11 @@ export default function VirusCategoriesAdmin() {
                 </div>
                 
                 <DialogFooter>
-                  <Button type="submit" disabled={addVirusCategory.isPending || updateVirusCategory.isPending}>
-                    {addVirusCategory.isPending || updateVirusCategory.isPending ? "Saving..." : "Save Category"}
-                  </Button>
+                  <DialogClose asChild>
+                    <Button type="submit" disabled={addVirusCategory.isPending || updateVirusCategory.isPending}>
+                      {addVirusCategory.isPending || updateVirusCategory.isPending ? "Saving..." : "Save Category"}
+                    </Button>
+                  </DialogClose>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -348,9 +351,11 @@ export default function VirusCategoriesAdmin() {
                             </div>
                             
                             <DialogFooter>
-                              <Button type="submit" disabled={updateVirusCategory.isPending}>
-                                {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
-                              </Button>
+                              <DialogClose asChild>
+                                <Button type="submit" disabled={updateVirusCategory.isPending}>
+                                  {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
+                                </Button>
+                              </DialogClose>
                             </DialogFooter>
                           </form>
                         </DialogContent>
@@ -373,13 +378,15 @@ export default function VirusCategoriesAdmin() {
                             <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
                           </div>
                           <DialogFooter>
-                            <Button 
-                              variant="destructive" 
-                              onClick={() => deleteVirusCategory.mutate(category.id)}
-                              disabled={deleteVirusCategory.isPending}
-                            >
-                              {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
-                            </Button>
+                            <DialogClose asChild>
+                              <Button 
+                                variant="destructive" 
+                                onClick={() => deleteVirusCategory.mutate(category.id)}
+                                disabled={deleteVirusCategory.isPending}
+                              >
+                                {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
+                              </Button>
+                            </DialogClose>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
