@@ -20,8 +20,10 @@ import AdminVirusCategories from "@/pages/admin/virus-categories";
 import AdminUsers from "@/pages/admin/users";
 import AdminSettings from "@/pages/admin/settings";
 import AdminAnalytics from "@/pages/admin/analytics";
+import AdminIssues from "@/pages/admin/issues";
 
 import AdminLayout from "@/components/layout/admin-layout";
+import { BugReportButton } from "@/components/issue-report";
 
 function Router() {
   const [location] = useLocation();

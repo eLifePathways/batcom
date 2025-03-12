@@ -1,24 +1,28 @@
 import { useState } from "react";
-import { Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { IssueReportDialog } from "./issue-report-dialog";
+import { BugIcon } from "lucide-react";
+import { IssueReportDialog } from ".";
 
 export const BugReportButton = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <>
       <Button
-        variant="default"
-        size="icon"
-        className="fixed right-4 bottom-4 rounded-full shadow-lg z-50 bg-red-600 hover:bg-red-700"
-        onClick={() => setIsOpen(true)}
-        title="Report a bug"
+        variant="outline"
+        size="sm"
+        className="fixed bottom-4 right-4 z-50 rounded-full shadow-md bg-white hover:bg-gray-100 p-3 h-auto w-auto"
+        onClick={() => setDialogOpen(true)}
+        title="Report an issue"
       >
-        <Bug className="h-5 w-5" />
+        <BugIcon className="h-5 w-5" />
+        <span className="sr-only">Report an issue</span>
       </Button>
       
-      <IssueReportDialog open={isOpen} onOpenChange={setIsOpen} />
+      <IssueReportDialog 
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ScreenshotCapture } from "./screenshot-capture";
+import { ScreenshotCapture } from ".";
 import { apiRequest } from "@/lib/queryClient";
 
 const formSchema = z.object({
@@ -55,7 +55,7 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
   });
   
   // When dialog opens, capture console logs
-  useState(() => {
+  useEffect(() => {
     if (open) {
       // Try to get console logs from browser storage (if they've been saved)
       try {
@@ -67,16 +67,16 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
         // Ignore any errors
       }
     }
-  });
+  }, [open]);
   
   // Reset form when dialog closes
-  useState(() => {
+  useEffect(() => {
     if (!open) {
       form.reset();
       setScreenshot(null);
       setConsoleLog(null);
     }
-  });
+  }, [open, form]);
   
   const submitMutation = useMutation({
     mutationFn: async (data: FormValues & { screenshot?: string, consoleLog?: string }) => {
