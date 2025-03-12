@@ -17,6 +17,10 @@ export async function apiRequest<T = any>(
   });
 
   await throwIfResNotOk(res);
+  // If status is 204 No Content, return empty object since there's no body to parse
+  if (res.status === 204) {
+    return {} as T;
+  }
   return await res.json() as T;
 }
 
