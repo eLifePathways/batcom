@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ScreenshotCapture } from "./screenshot-capture";
 import { apiRequest } from "@/lib/queryClient";
+import { getFormattedErrorLogs } from "@/utils/error-tracking";
 
 const formSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters" }),
@@ -72,38 +73,35 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
   
   // Function to manually capture console logs from browser
   const captureConsoleErrors = () => {
-    // Check if the browser has any console errors in memory
-    const errorMessages: string[] = [];
-    
-    // Add any cached errors from local storage
     try {
-      const storedLogs = localStorage.getItem("consoleErrorLogs");
-      if (storedLogs) {
-        errorMessages.push("--- Stored Console Logs ---");
-        errorMessages.push(storedLogs);
-      }
+      // Use the utility to get well-formatted logs
+      const formattedLogs = getFormattedErrorLogs();
+      setConsoleLog(formattedLogs);
     } catch (e) {
-      // Ignore errors
+      console.error("Error capturing console logs:", e);
+      
+      // Fallback mechanism if the utility function fails
+      const errorMessages: string[] = [];
+      
+      // Add browser info
+      errorMessages.push("\n--- Browser Information ---");
+      errorMessages.push(`User Agent: ${navigator.userAgent}`);
+      errorMessages.push(`Platform: ${navigator.platform}`);
+      errorMessages.push(`Cookies Enabled: ${navigator.cookieEnabled}`);
+      errorMessages.push(`Language: ${navigator.language}`);
+      
+      // Add page info
+      errorMessages.push("\n--- Page Information ---");
+      errorMessages.push(`URL: ${window.location.href}`);
+      errorMessages.push(`Referrer: ${document.referrer}`);
+      errorMessages.push(`Screen Width: ${window.screen.width}px`);
+      errorMessages.push(`Screen Height: ${window.screen.height}px`);
+      errorMessages.push(`Window Width: ${window.innerWidth}px`);
+      errorMessages.push(`Window Height: ${window.innerHeight}px`);
+      
+      // Set the console log state
+      setConsoleLog(errorMessages.join("\n"));
     }
-    
-    // Add browser info
-    errorMessages.push("\n--- Browser Information ---");
-    errorMessages.push(`User Agent: ${navigator.userAgent}`);
-    errorMessages.push(`Platform: ${navigator.platform}`);
-    errorMessages.push(`Cookies Enabled: ${navigator.cookieEnabled}`);
-    errorMessages.push(`Language: ${navigator.language}`);
-    
-    // Add page info
-    errorMessages.push("\n--- Page Information ---");
-    errorMessages.push(`URL: ${window.location.href}`);
-    errorMessages.push(`Referrer: ${document.referrer}`);
-    errorMessages.push(`Screen Width: ${window.screen.width}px`);
-    errorMessages.push(`Screen Height: ${window.screen.height}px`);
-    errorMessages.push(`Window Width: ${window.innerWidth}px`);
-    errorMessages.push(`Window Height: ${window.innerHeight}px`);
-    
-    // Set the console log state
-    setConsoleLog(errorMessages.join("\n"));
   };
   
   // Reset form when dialog closes
@@ -125,7 +123,8 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
           description: data.description,
           email: data.email || undefined,
           url: window.location.href,
-          screenshotUrl: data.screenshot, // Changed from screenshot to screenshotUrl to match the schema
+          pageUrl: window.location.href,
+          screenshotUrl: data.screenshot || "", // Use empty string for null/undefined values
           consoleLog: data.consoleLog,
           userAgent: navigator.userAgent,
         }),
