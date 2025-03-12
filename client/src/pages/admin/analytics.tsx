@@ -84,270 +84,274 @@ export default function AnalyticsDashboard() {
   const summaryMetrics = calculateSummaryMetrics();
 
   return (
-    <>
-      <h1 className="text-3xl font-bold mb-6">Analytics Dashboard</h1>
-      
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Visitor Analytics</h2>
-          <p className="text-muted-foreground">Understand your website traffic and visitor behavior</p>
+    <div className="space-y-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <h1 className="text-3xl font-bold mb-6">Analytics Dashboard</h1>
+        
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Visitor Analytics</h2>
+            <p className="text-muted-foreground">Understand your website traffic and visitor behavior</p>
+          </div>
+          <Select defaultValue={timeRange} onValueChange={handleTimeRangeChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7days">Last 7 days</SelectItem>
+              <SelectItem value="30days">Last 30 days</SelectItem>
+              <SelectItem value="3months">Last 3 months</SelectItem>
+              <SelectItem value="12months">Last 12 months</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select defaultValue={timeRange} onValueChange={handleTimeRangeChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7days">Last 7 days</SelectItem>
-            <SelectItem value="30days">Last 30 days</SelectItem>
-            <SelectItem value="3months">Last 3 months</SelectItem>
-            <SelectItem value="12months">Last 12 months</SelectItem>
-          </SelectContent>
-        </Select>
+        
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Visitors</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                {isVisitorDataLoading ? (
+                  <Skeleton className="h-9 w-24" />
+                ) : (
+                  <div className="text-2xl font-bold">{summaryMetrics.totalVisitors}</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Page Views</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <MousePointerClick className="mr-2 h-4 w-4 text-muted-foreground" />
+                {isVisitorDataLoading ? (
+                  <Skeleton className="h-9 w-24" />
+                ) : (
+                  <div className="text-2xl font-bold">{summaryMetrics.totalPageViews}</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Sessions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                {isVisitorDataLoading ? (
+                  <Skeleton className="h-9 w-24" />
+                ) : (
+                  <div className="text-2xl font-bold">{summaryMetrics.totalSessions}</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pages / Session</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <ArrowUp className="mr-2 h-4 w-4 text-muted-foreground" />
+                {isVisitorDataLoading ? (
+                  <Skeleton className="h-9 w-24" />
+                ) : (
+                  <div className="text-2xl font-bold">{summaryMetrics.avgPagesPerSession}</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Visitors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-              {isVisitorDataLoading ? (
-                <Skeleton className="h-9 w-24" />
-              ) : (
-                <div className="text-2xl font-bold">{summaryMetrics.totalVisitors}</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Page Views</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <MousePointerClick className="mr-2 h-4 w-4 text-muted-foreground" />
-              {isVisitorDataLoading ? (
-                <Skeleton className="h-9 w-24" />
-              ) : (
-                <div className="text-2xl font-bold">{summaryMetrics.totalPageViews}</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Sessions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              {isVisitorDataLoading ? (
-                <Skeleton className="h-9 w-24" />
-              ) : (
-                <div className="text-2xl font-bold">{summaryMetrics.totalSessions}</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pages / Session</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <ArrowUp className="mr-2 h-4 w-4 text-muted-foreground" />
-              {isVisitorDataLoading ? (
-                <Skeleton className="h-9 w-24" />
-              ) : (
-                <div className="text-2xl font-bold">{summaryMetrics.avgPagesPerSession}</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Tabs defaultValue="overview" className="mb-8">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="visitors">Visitors</TabsTrigger>
-          <TabsTrigger value="pages">Pages</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Traffic Over Time Chart */}
-            <Card className="col-span-2">
-              <CardHeader>
-                <CardTitle>Traffic Over Time</CardTitle>
-                <CardDescription>Visitors, page views, and sessions over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isVisitorDataLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart
-                      data={visitorData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="visitors" stroke="#0088FE" strokeWidth={2} />
-                      <Line type="monotone" dataKey="pageViews" stroke="#00C49F" strokeWidth={2} />
-                      <Line type="monotone" dataKey="sessions" stroke="#FFBB28" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* Device Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Device Distribution</CardTitle>
-                <CardDescription>Visitors by device type</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isDeviceDataLoading ? (
-                  <Skeleton className="h-[250px] w-full" />
-                ) : deviceData && (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={deviceData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }: { name: string, percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <Tabs defaultValue="overview" className="mb-0">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="visitors">Visitors</TabsTrigger>
+            <TabsTrigger value="pages">Pages</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              {/* Traffic Over Time Chart */}
+              <Card className="col-span-2 shadow-none border-0">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Traffic Over Time</CardTitle>
+                  <CardDescription>Visitors, page views, and sessions over time</CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pb-0">
+                  {isVisitorDataLoading ? (
+                    <Skeleton className="h-[300px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart
+                        data={visitorData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                       >
-                        {deviceData.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* Traffic Sources */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Traffic Sources</CardTitle>
-                <CardDescription>Where your visitors come from</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isSourceDataLoading ? (
-                  <Skeleton className="h-[250px] w-full" />
-                ) : sourceData && (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={sourceData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }: { name: string, percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="visitors" stroke="#0088FE" strokeWidth={2} />
+                        <Line type="monotone" dataKey="pageViews" stroke="#00C49F" strokeWidth={2} />
+                        <Line type="monotone" dataKey="sessions" stroke="#FFBB28" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* Device Distribution */}
+              <Card className="shadow-none border-0">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Device Distribution</CardTitle>
+                  <CardDescription>Visitors by device type</CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pb-0">
+                  {isDeviceDataLoading ? (
+                    <Skeleton className="h-[250px] w-full" />
+                  ) : deviceData && (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={deviceData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }: { name: string, percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {deviceData.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* Traffic Sources */}
+              <Card className="shadow-none border-0">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Traffic Sources</CardTitle>
+                  <CardDescription>Where your visitors come from</CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pb-0">
+                  {isSourceDataLoading ? (
+                    <Skeleton className="h-[250px] w-full" />
+                  ) : sourceData && (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={sourceData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }: { name: string, percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {sourceData.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="visitors">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <Card className="col-span-2 shadow-none border-0">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Visitor Trends</CardTitle>
+                  <CardDescription>Daily visitors over time</CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pb-0">
+                  {isVisitorDataLoading ? (
+                    <Skeleton className="h-[300px] w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart
+                        data={visitorData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                       >
-                        {sourceData.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="visitors">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="col-span-2">
-              <CardHeader>
-                <CardTitle>Visitor Trends</CardTitle>
-                <CardDescription>Daily visitors over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isVisitorDataLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart
-                      data={visitorData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="visitors" fill="#0088FE" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* More visitor-specific charts would go here */}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="pages">
-          <div className="grid grid-cols-1 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Popular Pages</CardTitle>
-                <CardDescription>Most viewed pages on your site</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isPopularPagesLoading ? (
-                  <Skeleton className="h-[400px] w-full" />
-                ) : popularPagesData && (
-                  <div className="rounded-md border">
-                    <div className="grid grid-cols-10 p-4 bg-muted text-sm font-medium">
-                      <div className="col-span-4">Page</div>
-                      <div className="col-span-2 text-right">Views</div>
-                      <div className="col-span-2 text-right">Avg. Time (sec)</div>
-                      <div className="col-span-2 text-right">Bounce Rate</div>
-                    </div>
-                    {popularPagesData.map((page: any, i: number) => (
-                      <div key={i} className="grid grid-cols-10 p-4 text-sm border-t">
-                        <div className="col-span-4 font-medium truncate" title={page.page}>
-                          {page.title}
-                          <span className="block text-xs text-muted-foreground">{page.page}</span>
-                        </div>
-                        <div className="col-span-2 text-right">{page.views}</div>
-                        <div className="col-span-2 text-right">{page.avgTimeOnPage}s</div>
-                        <div className="col-span-2 text-right">{page.bounceRate}%</div>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="visitors" fill="#0088FE" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* More visitor-specific charts would go here */}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="pages">
+            <div className="grid grid-cols-1 gap-6 mt-6">
+              <Card className="shadow-none border-0">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Popular Pages</CardTitle>
+                  <CardDescription>Most viewed pages on your site</CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pb-0">
+                  {isPopularPagesLoading ? (
+                    <Skeleton className="h-[400px] w-full" />
+                  ) : popularPagesData && (
+                    <div className="rounded-md border">
+                      <div className="grid grid-cols-10 p-4 bg-muted text-sm font-medium">
+                        <div className="col-span-4">Page</div>
+                        <div className="col-span-2 text-right">Views</div>
+                        <div className="col-span-2 text-right">Avg. Time (sec)</div>
+                        <div className="col-span-2 text-right">Bounce Rate</div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </>
+                      {popularPagesData.map((page: any, i: number) => (
+                        <div key={i} className="grid grid-cols-10 p-4 text-sm border-t">
+                          <div className="col-span-4 font-medium truncate" title={page.page}>
+                            {page.title}
+                            <span className="block text-xs text-muted-foreground">{page.page}</span>
+                          </div>
+                          <div className="col-span-2 text-right">{page.views}</div>
+                          <div className="col-span-2 text-right">{page.avgTimeOnPage}s</div>
+                          <div className="col-span-2 text-right">{page.bounceRate}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 }

@@ -70,105 +70,111 @@ export default function AdminDashboard() {
   ];
   
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Manage and monitor your content in one place.
-        </p>
-      </div>
-      
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsCards.map((card) => (
-          <Link key={card.title} href={card.href}>
-            <a>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg">{card.title}</CardTitle>
-                    <div className={`p-2 rounded-full ${card.color}`}>
-                      {card.icon}
+    <div className="space-y-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            Manage and monitor your content in one place.
+          </p>
+        </div>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statsCards.map((card) => (
+            <Link key={card.title} href={card.href}>
+              <a>
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg">{card.title}</CardTitle>
+                      <div className={`p-2 rounded-full ${card.color}`}>
+                        {card.icon}
+                      </div>
                     </div>
-                  </div>
-                  <CardDescription>{card.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{card.value}</p>
-                </CardContent>
-              </Card>
-            </a>
-          </Link>
-        ))}
+                    <CardDescription>{card.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold">{card.value}</p>
+                  </CardContent>
+                </Card>
+              </a>
+            </Link>
+          ))}
+        </div>
       </div>
       
       {/* Publications Chart */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Publications by Year</CardTitle>
-          <CardDescription>Number of publications by year of publication</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={publicationsByYear} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="var(--primary)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <Card className="border-0 shadow-none">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle>Publications by Year</CardTitle>
+            <CardDescription>Number of publications by year of publication</CardDescription>
+          </CardHeader>
+          <CardContent className="px-0 pb-0">
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={publicationsByYear} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="var(--primary)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common tasks and operations</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Link href="/admin/team/new">
-              <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                <div className="p-2 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 mr-3">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium">Add Team Member</p>
-                  <p className="text-sm text-gray-500">Create a new researcher profile</p>
-                </div>
-              </a>
-            </Link>
-            
-            <Link href="/admin/publications/new">
-              <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                <div className="p-2 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 mr-3">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium">Add Publication</p>
-                  <p className="text-sm text-gray-500">Create a new research publication</p>
-                </div>
-              </a>
-            </Link>
-            
-            <Link href="/admin/background-papers/new">
-              <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                <div className="p-2 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 mr-3">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium">Add Background Paper</p>
-                  <p className="text-sm text-gray-500">Create a new educational resource</p>
-                </div>
-              </a>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <Card className="border-0 shadow-none">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common tasks and operations</CardDescription>
+          </CardHeader>
+          <CardContent className="px-0 pb-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Link href="/admin/team/new">
+                <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                  <div className="p-2 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 mr-3">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Add Team Member</p>
+                    <p className="text-sm text-gray-500">Create a new researcher profile</p>
+                  </div>
+                </a>
+              </Link>
+              
+              <Link href="/admin/publications/new">
+                <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                  <div className="p-2 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 mr-3">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Add Publication</p>
+                    <p className="text-sm text-gray-500">Create a new research publication</p>
+                  </div>
+                </a>
+              </Link>
+              
+              <Link href="/admin/background-papers/new">
+                <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                  <div className="p-2 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 mr-3">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Add Background Paper</p>
+                    <p className="text-sm text-gray-500">Create a new educational resource</p>
+                  </div>
+                </a>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
