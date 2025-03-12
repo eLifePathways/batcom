@@ -28,11 +28,12 @@ const BackgroundPapersSection = ({ virusCategoryId, showAllPapers = false }: Bac
     return category?.name || "Unknown";
   };
   
-  // Group papers by virus category
+  // Group papers by virus category and ensure they're sorted by ID
   const groupedPapers: Record<number, BackgroundPaper[]> = {};
   
   if (papers) {
-    papers.forEach(paper => {
+    // Sort papers by ID before grouping
+    [...papers].sort((a, b) => a.id - b.id).forEach(paper => {
       if (!groupedPapers[paper.virusCategoryId]) {
         groupedPapers[paper.virusCategoryId] = [];
       }

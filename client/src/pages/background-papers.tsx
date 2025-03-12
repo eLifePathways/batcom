@@ -122,11 +122,15 @@ export default function BackgroundPapers() {
   
   const isLoading = papersLoading || categoriesLoading;
 
-  // Filter papers by virus category
-  const filteredPapers = papers?.filter((paper: BackgroundPaper) => {
-    if (activeTab === "all") return true;
-    return paper.virusCategoryId === parseInt(activeTab);
-  }) || [];
+  // Filter papers by virus category and sort by ID
+  const filteredPapers = papers ? 
+    [...papers]
+      .sort((a, b) => a.id - b.id)
+      .filter((paper: BackgroundPaper) => {
+        if (activeTab === "all") return true;
+        return paper.virusCategoryId === parseInt(activeTab);
+      }) 
+    : [];
 
   // Get category name for a paper
   const getCategoryForPaper = (paper: BackgroundPaper) => {
