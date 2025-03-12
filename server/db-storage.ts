@@ -5,7 +5,9 @@ import {
   publications, type Publication, type InsertPublication,
   backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper,
   issues, type Issue, type InsertIssue,
-  issueComments, type IssueComment, type InsertIssueComment
+  issueComments, type IssueComment, type InsertIssueComment,
+  whatWeDoSections, type WhatWeDoSection, type InsertWhatWeDoSection,
+  whatWeDoContent, type WhatWeDoContent, type InsertWhatWeDoContent
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, and, gte, lte, or } from "drizzle-orm";

@@ -552,6 +552,10 @@ export class MemStorage implements IStorage {
     const newSection: WhatWeDoSection = {
       ...section,
       id,
+      subtitle: section.subtitle ?? null,
+      description: section.description ?? null,
+      imageUrl: section.imageUrl ?? null,
+      sortOrder: section.sortOrder ?? 0,
       createdAt: now,
       updatedAt: now
     };
@@ -606,6 +610,8 @@ export class MemStorage implements IStorage {
     const newContent: WhatWeDoContent = {
       ...content,
       id,
+      title: content.title ?? null,
+      sortOrder: content.sortOrder ?? 0,
       createdAt: now,
       updatedAt: now,
       metadata: content.metadata ?? null
@@ -857,71 +863,109 @@ export class MemStorage implements IStorage {
       link: "https://example.com/rhabdovirus-ecology"
     });
     
-    // Add "What We Do" sections
-    const researchSection = this.createWhatWeDoSection({
+    // For simplicity, we'll just create the basic structure
+    // In a real application, this would be properly initialized with async/await
+    
+    // Add "What We Do" sections - manually assign IDs to avoid async handling in constructor
+    const researchSectionId = 1;
+    this.whatWeDoSections.set(researchSectionId, {
+      id: researchSectionId,
       title: "Research Initiatives",
       subtitle: "Our Bat-CoV Research Initiatives",
       description: "We study bat-borne viruses with an emphasis on understanding viral ecology, host factors, and transmission dynamics.",
       slug: "research-initiatives",
       imageUrl: "/assets/what-we-do/research.jpg",
-      sortOrder: 0
+      sortOrder: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    const fieldSection = this.createWhatWeDoSection({
+    const fieldSectionId = 2;
+    this.whatWeDoSections.set(fieldSectionId, {
+      id: fieldSectionId,
       title: "Field Work",
       subtitle: "Bat Population Sampling & Monitoring",
       description: "Our field teams collect samples from bat populations across multiple continents to track viral prevalence and diversity.",
       slug: "field-work",
       imageUrl: "/assets/what-we-do/field-work.jpg",
-      sortOrder: 1
+      sortOrder: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    const labSection = this.createWhatWeDoSection({
+    const labSectionId = 3;
+    this.whatWeDoSections.set(labSectionId, {
+      id: labSectionId,
       title: "Laboratory Analysis",
       subtitle: "State-of-the-art Diagnostic Capabilities",
       description: "We employ cutting-edge molecular techniques to identify and characterize novel viruses.",
       slug: "laboratory-analysis",
       imageUrl: "/assets/what-we-do/lab-analysis.jpg",
-      sortOrder: 2
+      sortOrder: 2,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    const modelingSection = this.createWhatWeDoSection({
+    const modelingSectionId = 4;
+    this.whatWeDoSections.set(modelingSectionId, {
+      id: modelingSectionId,
       title: "Epidemic Modeling",
       subtitle: "Predicting Spillover Events",
       description: "We develop computational models to predict viral spillover events and identify high-risk areas.",
       slug: "epidemic-modeling",
       imageUrl: "/assets/what-we-do/modeling.jpg",
-      sortOrder: 3
+      sortOrder: 3,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    const capacitySection = this.createWhatWeDoSection({
+    const capacitySectionId = 5;
+    this.whatWeDoSections.set(capacitySectionId, {
+      id: capacitySectionId,
       title: "Capacity Building",
       subtitle: "Training the Next Generation",
       description: "We train researchers and public health professionals in low and middle-income countries to enhance global surveillance capacity.",
       slug: "capacity-building",
       imageUrl: "/assets/what-we-do/capacity-building.jpg",
-      sortOrder: 4
+      sortOrder: 4,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
+    // Update the section ID counter
+    this.whatWeDoSectionCurrentId = 6;
+    
     // Add content for Research Initiatives section
-    this.createWhatWeDoContent({
-      sectionId: researchSection.id,
+    const contentId1 = 1;
+    this.whatWeDoContents.set(contentId1, {
+      id: contentId1,
+      sectionId: researchSectionId,
       title: "Viral Discovery Program",
       contentType: "text",
       content: "Our viral discovery program focuses on identifying novel coronaviruses and other bat-borne viruses with pandemic potential. Using metagenomic sequencing approaches, we have characterized dozens of previously unknown viral species.",
-      sortOrder: 0
+      sortOrder: 0,
+      metadata: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    this.createWhatWeDoContent({
-      sectionId: researchSection.id,
+    const contentId2 = 2;
+    this.whatWeDoContents.set(contentId2, {
+      id: contentId2,
+      sectionId: researchSectionId,
       title: "Host-Pathogen Interactions",
       contentType: "text",
       content: "We study the molecular mechanisms that allow bats to harbor viruses without developing disease. Understanding these immune adaptations may provide insights for human therapeutics.",
-      sortOrder: 1
+      sortOrder: 1,
+      metadata: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    this.createWhatWeDoContent({
-      sectionId: researchSection.id,
+    const contentId3 = 3;
+    this.whatWeDoContents.set(contentId3, {
+      id: contentId3,
+      sectionId: researchSectionId,
       title: "Ecological Monitoring",
       contentType: "image",
       content: "/assets/what-we-do/ecological-monitoring.jpg",
@@ -929,20 +973,29 @@ export class MemStorage implements IStorage {
         caption: "Our team setting up acoustic monitors to track bat population movements in Southeast Asia.",
         altText: "Researchers installing bat acoustic monitoring equipment"
       }),
-      sortOrder: 2
+      sortOrder: 2,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
     // Add content for Field Work section
-    this.createWhatWeDoContent({
-      sectionId: fieldSection.id,
+    const contentId4 = 4;
+    this.whatWeDoContents.set(contentId4, {
+      id: contentId4,
+      sectionId: fieldSectionId,
       title: "Global Study Sites",
       contentType: "text",
       content: "We operate field sites in over 20 countries across Asia, Africa, and Latin America. These sites represent diverse ecological settings where bat-human interfaces occur frequently.",
-      sortOrder: 0
+      sortOrder: 0,
+      metadata: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    this.createWhatWeDoContent({
-      sectionId: fieldSection.id,
+    const contentId5 = 5;
+    this.whatWeDoContents.set(contentId5, {
+      id: contentId5,
+      sectionId: fieldSectionId,
       title: "Sampling Methods",
       contentType: "image",
       content: "/assets/what-we-do/bat-sampling.jpg",
@@ -950,16 +1003,26 @@ export class MemStorage implements IStorage {
         caption: "Our team collecting samples from a cave-dwelling bat colony in Uganda.",
         altText: "Researchers in PPE collecting bat samples"
       }),
-      sortOrder: 1
+      sortOrder: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     
-    this.createWhatWeDoContent({
-      sectionId: fieldSection.id,
+    const contentId6 = 6;
+    this.whatWeDoContents.set(contentId6, {
+      id: contentId6,
+      sectionId: fieldSectionId,
       title: "Community Engagement",
       contentType: "text",
       content: "We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.",
-      sortOrder: 2
+      sortOrder: 2,
+      metadata: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
+    
+    // Update the content ID counter
+    this.whatWeDoContentCurrentId = 7;
   }
 }
 

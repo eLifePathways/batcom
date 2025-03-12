@@ -213,6 +213,9 @@ export type IssueComment = typeof issueComments.$inferSelect;
 export const whatWeDoSections = pgTable("what_we_do_sections", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  description: text("description"),
+  imageUrl: text("image_url"),
   slug: text("slug").notNull().unique(), // For URL and tab identification
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -222,6 +225,7 @@ export const whatWeDoSections = pgTable("what_we_do_sections", {
 export const whatWeDoContent = pgTable("what_we_do_content", {
   id: serial("id").primaryKey(),
   sectionId: integer("section_id").notNull(),
+  title: text("title"),
   contentType: text("content_type").notNull(), // 'text', 'image', 'heading', 'list', etc.
   content: text("content").notNull(), // HTML content or image URL
   sortOrder: integer("sort_order").notNull().default(0),
