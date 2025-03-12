@@ -531,13 +531,15 @@ export default function TeamMembersAdmin() {
                             <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
                           </div>
                           <DialogFooter>
-                            <Button 
-                              variant="destructive" 
-                              onClick={() => deleteTeamMember.mutate(member.id)}
-                              disabled={deleteTeamMember.isPending}
-                            >
-                              {deleteTeamMember.isPending ? "Deleting..." : "Delete"}
-                            </Button>
+                            <DialogClose asChild>
+                              <Button 
+                                variant="destructive" 
+                                onClick={() => deleteTeamMember.mutate(member.id)}
+                                disabled={deleteTeamMember.isPending}
+                              >
+                                {deleteTeamMember.isPending ? "Deleting..." : "Delete"}
+                              </Button>
+                            </DialogClose>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
