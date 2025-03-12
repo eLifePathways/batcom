@@ -119,6 +119,27 @@ export class MemStorage implements IStorage {
     this.virusCategories.set(id, virusCategory);
     return virusCategory;
   }
+  
+  async updateVirusCategory(id: number, data: Partial<VirusCategory>): Promise<VirusCategory | undefined> {
+    const category = this.virusCategories.get(id);
+    if (!category) {
+      return undefined;
+    }
+    
+    const updatedCategory: VirusCategory = {
+      ...category,
+      ...data,
+      id, // Ensure id doesn't change
+      imageUrl: data.imageUrl ?? category.imageUrl
+    };
+    
+    this.virusCategories.set(id, updatedCategory);
+    return updatedCategory;
+  }
+  
+  async deleteVirusCategory(id: number): Promise<boolean> {
+    return this.virusCategories.delete(id);
+  }
 
   // Team member operations
   async getAllTeamMembers(): Promise<TeamMember[]> {

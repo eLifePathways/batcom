@@ -46,6 +46,29 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return newCategory;
   }
+  
+  async updateVirusCategory(id: number, data: Partial<VirusCategory>): Promise<VirusCategory | undefined> {
+    const existingCategory = await this.getVirusCategory(id);
+    if (!existingCategory) {
+      return undefined;
+    }
+    
+    const [updatedCategory] = await db
+      .update(virusCategories)
+      .set(data)
+      .where(eq(virusCategories.id, id))
+      .returning();
+      
+    return updatedCategory;
+  }
+  
+  async deleteVirusCategory(id: number): Promise<boolean> {
+    const result = await db
+      .delete(virusCategories)
+      .where(eq(virusCategories.id, id));
+    
+    return true; // Postgres doesn't easily return affected rows count
+  }
 
   // Team member operations
   async getAllTeamMembers(): Promise<TeamMember[]> {
