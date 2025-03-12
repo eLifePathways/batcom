@@ -32,6 +32,8 @@ const formSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   email: z.string().email({ message: "Invalid email address" }).optional().or(z.literal("")),
+  screenshotUrl: z.string().optional(),
+  consoleLog: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -114,7 +116,7 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
   }, [open, form]);
   
   const submitMutation = useMutation({
-    mutationFn: async (data: FormValues & { screenshot?: string, consoleLog?: string }) => {
+    mutationFn: async (data: FormValues) => {
       return apiRequest('/api/issues', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,7 +126,7 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
           email: data.email || undefined,
           url: window.location.href,
           pageUrl: window.location.href,
-          screenshotUrl: data.screenshot || "",  // Use the same field name in both client and server
+          screenshotUrl: data.screenshotUrl || "",  // Use consistent field names
           consoleLog: data.consoleLog,
           userAgent: navigator.userAgent,
         }),
@@ -151,11 +153,15 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
   });
   
   const onSubmit = async (data: FormValues) => {
-    submitMutation.mutate({
+    // Create a new object with the form data
+    const formData = {
       ...data,
-      screenshotUrl: screenshot || undefined, // Use consistent field name screenshotUrl
+      screenshotUrl: screenshot || undefined,
       consoleLog: consoleLog || undefined,
-    });
+    };
+    
+    // Submit the form data
+    submitMutation.mutate(formData);
   };
   
   const handleScreenshotCapture = (dataUrl: string | null) => {

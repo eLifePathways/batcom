@@ -462,7 +462,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
             </TabsContent>
             
             <TabsContent value="console" className="mt-3">
-              {issue.consoleLog && issue.consoleLog.trim() !== "" && issue.consoleLog !== "undefined" ? (
+              {issue.consoleLog && issue.consoleLog.trim() !== "" && issue.consoleLog !== "undefined" && issue.consoleLog !== "null" ? (
                 <Card>
                   <CardHeader className="py-2 px-3">
                     <CardTitle className="text-sm flex items-center">
