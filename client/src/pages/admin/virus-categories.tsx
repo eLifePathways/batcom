@@ -49,6 +49,7 @@ export default function VirusCategoriesAdmin() {
   const [selectedCategory, setSelectedCategory] = useState<VirusCategory | null>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   // Get virus categories query
   const { data: virusCategories, isLoading } = useQuery<VirusCategory[]>({
@@ -153,6 +154,7 @@ export default function VirusCategoriesAdmin() {
         title: "Success",
         description: "Virus category deleted successfully",
       });
+      setDeleteDialogOpen(false);
     },
     onError: (error) => {
       toast({
@@ -387,7 +389,15 @@ export default function VirusCategoriesAdmin() {
                       </Dialog>
                       
                       {/* Delete Dialog */}
-                      <Dialog>
+                      <Dialog
+                        open={deleteDialogOpen && selectedCategory?.id === category.id}
+                        onOpenChange={(open) => {
+                          setDeleteDialogOpen(open);
+                          if (open) {
+                            setSelectedCategory(category);
+                          }
+                        }}
+                      >
                         <DialogTrigger asChild>
                           <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
                             <Trash2 className="h-4 w-4" />
@@ -403,15 +413,21 @@ export default function VirusCategoriesAdmin() {
                             <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
                           </div>
                           <DialogFooter>
-                            <DialogClose asChild>
-                              <Button 
-                                variant="destructive" 
-                                onClick={() => deleteVirusCategory.mutate(category.id)}
-                                disabled={deleteVirusCategory.isPending}
-                              >
-                                {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
-                              </Button>
-                            </DialogClose>
+                            <Button 
+                              variant="destructive" 
+                              onClick={() => {
+                                if (selectedCategory) {
+                                  try {
+                                    deleteVirusCategory.mutate(selectedCategory.id);
+                                  } catch (error) {
+                                    console.error("Error deleting virus category:", error);
+                                  }
+                                }
+                              }}
+                              disabled={deleteVirusCategory.isPending}
+                            >
+                              {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
+                            </Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
