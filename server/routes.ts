@@ -568,8 +568,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newIssue = await storage.createIssue({
         title: issueData.title,
         description: issueData.description,
-        pageUrl: issueData.url,
-        screenshotUrl: issueData.screenshot || null,
+        pageUrl: issueData.pageUrl || issueData.url,
+        screenshotUrl: issueData.screenshotUrl || null,
         consoleLog: issueData.consoleLog || null,
         browserInfo: issueData.userAgent,
       });

@@ -124,7 +124,7 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
           email: data.email || undefined,
           url: window.location.href,
           pageUrl: window.location.href,
-          screenshotUrl: data.screenshot || "", // Use empty string for null/undefined values
+          screenshotUrl: data.screenshot || "",  // Use the same field name in both client and server
           consoleLog: data.consoleLog,
           userAgent: navigator.userAgent,
         }),
@@ -153,7 +153,7 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
   const onSubmit = async (data: FormValues) => {
     submitMutation.mutate({
       ...data,
-      screenshot: screenshot || undefined,
+      screenshotUrl: screenshot || undefined, // Use consistent field name screenshotUrl
       consoleLog: consoleLog || undefined,
     });
   };

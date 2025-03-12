@@ -422,7 +422,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
             </TabsContent>
             
             <TabsContent value="screenshot" className="mt-3">
-              {issue.screenshotUrl && issue.screenshotUrl.trim() !== "" && issue.screenshotUrl !== "undefined" ? (
+              {issue.screenshotUrl && issue.screenshotUrl.trim() !== "" && issue.screenshotUrl !== "undefined" && issue.screenshotUrl !== "null" ? (
                 <Card>
                   <CardHeader className="py-2 px-3">
                     <CardTitle className="text-sm flex items-center">
