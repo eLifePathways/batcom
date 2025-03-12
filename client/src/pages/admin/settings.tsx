@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import AdminNav from "@/components/admin/admin-nav";
 import {
   Card,
   CardContent,
@@ -191,7 +190,6 @@ export default function AdminSettings() {
   
   return (
     <>
-      <AdminNav />
       <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Settings</h1>
