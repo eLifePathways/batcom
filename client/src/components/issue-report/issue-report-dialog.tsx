@@ -124,7 +124,7 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
           description: data.description,
           email: data.email || undefined,
           url: window.location.href,
-          screenshot: data.screenshot,
+          screenshotUrl: data.screenshot, // Changed from screenshot to screenshotUrl to match the schema
           consoleLog: data.consoleLog,
           userAgent: navigator.userAgent,
         }),

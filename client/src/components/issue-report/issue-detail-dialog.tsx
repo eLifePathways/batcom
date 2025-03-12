@@ -44,7 +44,7 @@ type Issue = {
   description: string;
   email?: string;
   url: string;
-  screenshot?: string;
+  screenshotUrl?: string; // Changed from screenshot to screenshotUrl to match the schema
   consoleLog?: string;
   userAgent: string;
   status: "open" | "in_progress" | "resolved" | "closed";
