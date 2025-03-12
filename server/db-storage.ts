@@ -105,6 +105,29 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return newPublication;
   }
+  
+  async updatePublication(id: number, data: Partial<Publication>): Promise<Publication | undefined> {
+    const existingPublication = await this.getPublication(id);
+    if (!existingPublication) {
+      return undefined;
+    }
+    
+    const [updatedPublication] = await db
+      .update(publications)
+      .set(data)
+      .where(eq(publications.id, id))
+      .returning();
+      
+    return updatedPublication;
+  }
+  
+  async deletePublication(id: number): Promise<boolean> {
+    const result = await db
+      .delete(publications)
+      .where(eq(publications.id, id));
+    
+    return true; // Postgres doesn't easily return affected rows count
+  }
 
   async getPublicationsByVirusCategory(virusCategoryId: number): Promise<Publication[]> {
     return await db
@@ -183,6 +206,29 @@ export class DatabaseStorage implements IStorage {
       .values(paper)
       .returning();
     return newPaper;
+  }
+  
+  async updateBackgroundPaper(id: number, data: Partial<BackgroundPaper>): Promise<BackgroundPaper | undefined> {
+    const existingPaper = await this.getBackgroundPaper(id);
+    if (!existingPaper) {
+      return undefined;
+    }
+    
+    const [updatedPaper] = await db
+      .update(backgroundPapers)
+      .set(data)
+      .where(eq(backgroundPapers.id, id))
+      .returning();
+      
+    return updatedPaper;
+  }
+  
+  async deleteBackgroundPaper(id: number): Promise<boolean> {
+    const result = await db
+      .delete(backgroundPapers)
+      .where(eq(backgroundPapers.id, id));
+    
+    return true; // Postgres doesn't easily return affected rows count
   }
 
   async getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]> {

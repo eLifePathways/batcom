@@ -272,6 +272,28 @@ export class MemStorage implements IStorage {
     this.backgroundPapers.set(id, backgroundPaper);
     return backgroundPaper;
   }
+  
+  async updateBackgroundPaper(id: number, data: Partial<BackgroundPaper>): Promise<BackgroundPaper | undefined> {
+    const paper = this.backgroundPapers.get(id);
+    if (!paper) {
+      return undefined;
+    }
+    
+    const updatedPaper: BackgroundPaper = { 
+      ...paper,
+      ...data,
+      id, // Ensure id doesn't change
+      link: data.link ?? paper.link,
+      imageUrl: data.imageUrl ?? paper.imageUrl
+    };
+    
+    this.backgroundPapers.set(id, updatedPaper);
+    return updatedPaper;
+  }
+  
+  async deleteBackgroundPaper(id: number): Promise<boolean> {
+    return this.backgroundPapers.delete(id);
+  }
 
   async getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]> {
     return Array.from(this.backgroundPapers.values()).filter(

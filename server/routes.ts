@@ -206,15 +206,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const publicationData = req.body;
-      const publication = await storage.getPublication(id);
+      const updatedPublication = await storage.updatePublication(id, publicationData);
       
-      if (!publication) {
+      if (!updatedPublication) {
         return res.status(404).json({ message: 'Publication not found' });
       }
       
-      // For now, handle this by returning the same publication since we don't have an update method
-      // This should be replaced with proper update functionality later
-      res.json(publication);
+      res.json(updatedPublication);
     } catch (error) {
       console.error('Error updating publication:', error);
       res.status(500).json({ message: 'Failed to update publication' });
@@ -229,13 +227,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid publication ID' });
       }
       
-      // Since we don't have a delete method yet, just check if it exists
-      const publication = await storage.getPublication(id);
-      if (!publication) {
+      const success = await storage.deletePublication(id);
+      if (!success) {
         return res.status(404).json({ message: 'Publication not found' });
       }
       
-      // We'll just respond with success for now until we implement proper deletion
       res.status(204).end();
     } catch (error) {
       console.error('Error deleting publication:', error);
@@ -307,14 +303,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const paperData = req.body;
-      const paper = await storage.getBackgroundPaper(id);
+      const updatedPaper = await storage.updateBackgroundPaper(id, paperData);
       
-      if (!paper) {
+      if (!updatedPaper) {
         return res.status(404).json({ message: 'Background paper not found' });
       }
       
-      // For now, return the existing paper since we don't have a proper update method
-      res.json(paper);
+      res.json(updatedPaper);
     } catch (error) {
       console.error('Error updating background paper:', error);
       res.status(500).json({ message: 'Failed to update background paper' });
@@ -329,13 +324,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid background paper ID' });
       }
       
-      // Check if the paper exists
-      const paper = await storage.getBackgroundPaper(id);
-      if (!paper) {
+      const success = await storage.deleteBackgroundPaper(id);
+      if (!success) {
         return res.status(404).json({ message: 'Background paper not found' });
       }
       
-      // Just respond with success for now
       res.status(204).end();
     } catch (error) {
       console.error('Error deleting background paper:', error);
