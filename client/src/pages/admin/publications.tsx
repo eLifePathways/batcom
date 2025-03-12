@@ -61,6 +61,18 @@ type Publication = {
 export default function PublicationsAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  // Get the action parameter from the URL
+  const params = useParams();
+  
+  // State to control dialog visibility
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  
+  // Check if we're accessing the page with the "new" action
+  useEffect(() => {
+    if (params && params.action === "new") {
+      setIsAddDialogOpen(true);
+    }
+  }, [params]);
   
   // Form data state
   const [formData, setFormData] = useState<Partial<Publication>>({
@@ -295,7 +307,7 @@ export default function PublicationsAdmin() {
         </div>
         
         {/* Add Publication Dialog */}
-        <Dialog>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
