@@ -55,6 +55,7 @@ interface IssueDetailDialogProps {
   issue: Issue;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCommentAdded?: () => void;
 }
 
 const commentSchema = z.object({
@@ -64,7 +65,7 @@ const commentSchema = z.object({
 
 type CommentFormValues = z.infer<typeof commentSchema>;
 
-export function IssueDetailDialog({ issue, open, onOpenChange }: IssueDetailDialogProps) {
+export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }: IssueDetailDialogProps) {
   const [activeTab, setActiveTab] = useState("details");
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -105,6 +106,11 @@ export function IssueDetailDialog({ issue, open, onOpenChange }: IssueDetailDial
       queryClient.invalidateQueries({ queryKey: ['/api/issues', issue.id, 'comments'] });
       form.reset();
       toast({ title: "Comment added" });
+      
+      // Notify parent component about the new comment
+      if (onCommentAdded) {
+        onCommentAdded();
+      }
     },
     onError: (error) => {
       console.error("Error adding comment:", error);

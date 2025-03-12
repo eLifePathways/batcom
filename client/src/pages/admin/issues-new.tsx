@@ -254,7 +254,13 @@ export default function IssuesAdmin() {
               {issues.map((issue) => (
                 <TableRow key={issue.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleViewDetails(issue)}>
                   <TableCell className="font-medium truncate max-w-[280px]">
-                    {issue.title}
+                    <div className="flex items-center">
+                      {issueCommentsMap[issue.id]?.hasUnreadComments && (
+                        <span className="mr-2 h-2 w-2 rounded-full bg-blue-500 animate-pulse" 
+                              title="New comments"></span>
+                      )}
+                      {issue.title}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(issue.status)}
@@ -279,7 +285,12 @@ export default function IssuesAdmin() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleViewDetails(issue)}>
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            <div className="flex items-center">
+                              View Details
+                              {issueCommentsMap[issue.id]?.hasUnreadComments && (
+                                <span className="ml-2 h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                              )}
+                            </div>
                           </DropdownMenuItem>
                           
                           <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'open')}>
@@ -372,6 +383,35 @@ export default function IssuesAdmin() {
           issue={selectedIssue}
           open={isDetailDialogOpen}
           onOpenChange={setIsDetailDialogOpen}
+          onCommentAdded={() => {
+            // Refresh the comment status for this issue
+            const fetchComments = async () => {
+              try {
+                const comments = await apiRequest(`/api/issues/${selectedIssue.id}/comments`);
+                if (comments && comments.length > 0) {
+                  // Sort comments by date (newest first)
+                  const sortedComments = [...comments].sort((a, b) => 
+                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                  );
+                  
+                  const lastCommentDate = sortedComments[0]?.createdAt;
+                  
+                  // Update the comments map
+                  setIssueCommentsMap(prev => ({
+                    ...prev,
+                    [selectedIssue.id]: {
+                      lastCommentDate,
+                      hasUnreadComments: true
+                    }
+                  }));
+                }
+              } catch (error) {
+                console.error(`Error fetching comments for issue ${selectedIssue.id}:`, error);
+              }
+            };
+            
+            fetchComments();
+          }}
         />
       )}
     </div>
