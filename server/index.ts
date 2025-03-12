@@ -10,8 +10,9 @@ import { updateIssueCommentsSchema } from "./db-migration";
 import cookieParser from "cookie-parser";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Increase the payload size limit to handle larger screenshots (50MB)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 app.use(cookieParser());
 app.use(analyticsMiddleware);
 app.use(spaMiddleware);

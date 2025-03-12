@@ -63,8 +63,39 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
         }
       }
       
-      // Convert to dataURL and save
-      const dataUrl = canvas.toDataURL('image/png');
+      // Resize the canvas to reduce file size
+      const MAX_WIDTH = 1600;
+      const MAX_HEIGHT = 1200;
+      
+      let width = canvas.width;
+      let height = canvas.height;
+      
+      // Calculate new dimensions while maintaining aspect ratio
+      if (width > MAX_WIDTH) {
+        const ratio = MAX_WIDTH / width;
+        width = MAX_WIDTH;
+        height = height * ratio;
+      }
+      
+      if (height > MAX_HEIGHT) {
+        const ratio = MAX_HEIGHT / height;
+        height = MAX_HEIGHT;
+        width = width * ratio;
+      }
+      
+      // Create a new, smaller canvas
+      const resizedCanvas = document.createElement('canvas');
+      resizedCanvas.width = width;
+      resizedCanvas.height = height;
+      
+      // Draw original image to the resized canvas
+      const ctx = resizedCanvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(canvas, 0, 0, width, height);
+      }
+      
+      // Convert to dataURL with compression (JPEG with 0.7 quality)
+      const dataUrl = resizedCanvas.toDataURL('image/jpeg', 0.7);
       setScreenshot(dataUrl);
     } catch (error) {
       console.error('Error capturing screenshot:', error);

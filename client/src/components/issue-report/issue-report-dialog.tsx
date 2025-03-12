@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2, SendHorizontal, BugIcon } from "lucide-react";
+import { Loader2, SendHorizontal, BugIcon, Code, Trash } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -68,6 +68,42 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
       }
     }
   }, [open]);
+  
+  // Function to manually capture console logs from browser
+  const captureConsoleErrors = () => {
+    // Check if the browser has any console errors in memory
+    const errorMessages: string[] = [];
+    
+    // Add any cached errors from local storage
+    try {
+      const storedLogs = localStorage.getItem("consoleErrorLogs");
+      if (storedLogs) {
+        errorMessages.push("--- Stored Console Logs ---");
+        errorMessages.push(storedLogs);
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+    
+    // Add browser info
+    errorMessages.push("\n--- Browser Information ---");
+    errorMessages.push(`User Agent: ${navigator.userAgent}`);
+    errorMessages.push(`Platform: ${navigator.platform}`);
+    errorMessages.push(`Cookies Enabled: ${navigator.cookieEnabled}`);
+    errorMessages.push(`Language: ${navigator.language}`);
+    
+    // Add page info
+    errorMessages.push("\n--- Page Information ---");
+    errorMessages.push(`URL: ${window.location.href}`);
+    errorMessages.push(`Referrer: ${document.referrer}`);
+    errorMessages.push(`Screen Width: ${window.screen.width}px`);
+    errorMessages.push(`Screen Height: ${window.screen.height}px`);
+    errorMessages.push(`Window Width: ${window.innerWidth}px`);
+    errorMessages.push(`Window Height: ${window.innerHeight}px`);
+    
+    // Set the console log state
+    setConsoleLog(errorMessages.join("\n"));
+  };
   
   // Reset form when dialog closes
   useEffect(() => {
@@ -197,6 +233,47 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Screenshot</h3>
               <ScreenshotCapture onCapture={handleScreenshotCapture} />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium">Debug Information</h3>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={captureConsoleErrors}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Code className="h-3 w-3 mr-1" />
+                  Capture System Info
+                </Button>
+              </div>
+              
+              {consoleLog && (
+                <div className="relative border rounded-md overflow-hidden bg-gray-50">
+                  <div className="max-h-[100px] overflow-auto text-xs p-2 font-mono bg-gray-100">
+                    <pre className="whitespace-pre-wrap break-all">{consoleLog}</pre>
+                  </div>
+                  <div className="flex justify-end p-1 bg-gray-50 border-t">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => setConsoleLog(null)}
+                    >
+                      <Trash className="h-3 w-3 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {!consoleLog && (
+                <p className="text-xs text-muted-foreground">
+                  Click "Capture System Info" to include browser and system details with your report.
+                </p>
+              )}
             </div>
             
             <DialogFooter>
