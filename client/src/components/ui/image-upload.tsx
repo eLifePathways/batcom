@@ -100,58 +100,66 @@ export function ImageUpload({
       <Label htmlFor="image-upload">{label}</Label>
       <div className="grid gap-4">
         <div className="flex flex-col items-center gap-4">
+          <Input
+            id="image-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={isUploading}
+            ref={fileInputRef}
+            className="hidden"
+          />
+          
           {previewUrl ? (
-            <div className="relative rounded-md overflow-hidden border border-border shadow-sm">
+            <div 
+              className="relative rounded-md overflow-hidden border border-border shadow-sm cursor-pointer group"
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+            >
               <img 
                 src={previewUrl} 
                 alt="Preview" 
                 className="h-48 w-full object-cover"
               />
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Upload className="h-10 w-10 text-white drop-shadow-lg" />
+                </div>
+              </div>
               <Button
                 type="button"
                 variant="destructive"
                 size="icon"
-                className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                onClick={handleClearImage}
+                className="absolute top-2 right-2 h-8 w-8 rounded-full z-10"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the parent's onClick
+                  handleClearImage();
+                }}
               >
                 <X className="h-4 w-4" />
               </Button>
+              
+              {isUploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                  <Loader2 className="h-10 w-10 text-white animate-spin" />
+                </div>
+              )}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-48 w-full rounded-md border border-dashed border-border bg-muted/50 p-4 text-center">
-              <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">{description}</p>
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            <Input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              disabled={isUploading}
-              ref={fileInputRef}
-              className="hidden"
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
+            <div 
+              className="flex flex-col items-center justify-center h-48 w-full rounded-md border border-dashed border-border bg-muted/50 p-4 text-center cursor-pointer hover:bg-muted/70 transition-colors"
+              onClick={() => !isUploading && fileInputRef.current?.click()}
             >
               {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
-                </>
+                <Loader2 className="h-10 w-10 text-muted-foreground mb-2 animate-spin" />
               ) : (
                 <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  {previewUrl ? "Replace" : "Upload"}
+                  <ImageIcon className="h-10 w-10 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">{description}</p>
+                  <p className="text-xs text-muted-foreground mt-2">Click to upload</p>
                 </>
               )}
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
