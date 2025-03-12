@@ -5,7 +5,9 @@ import {
   publications, type Publication, type InsertPublication,
   backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper,
   issues, type Issue, type InsertIssue,
-  issueComments, type IssueComment, type InsertIssueComment
+  issueComments, type IssueComment, type InsertIssueComment,
+  whatWeDoSections, type WhatWeDoSection, type InsertWhatWeDoSection,
+  whatWeDoContent, type WhatWeDoContent, type InsertWhatWeDoContent
 } from "@shared/schema";
 
 export interface IStorage {
@@ -68,6 +70,22 @@ export interface IStorage {
   updateIssueComment(id: number, data: Partial<IssueComment>): Promise<IssueComment | undefined>;
   deleteIssueComment(id: number): Promise<boolean>;
   
+  // What We Do section operations
+  getAllWhatWeDoSections(): Promise<WhatWeDoSection[]>;
+  getWhatWeDoSection(id: number): Promise<WhatWeDoSection | undefined>;
+  getWhatWeDoSectionBySlug(slug: string): Promise<WhatWeDoSection | undefined>;
+  createWhatWeDoSection(section: InsertWhatWeDoSection): Promise<WhatWeDoSection>;
+  updateWhatWeDoSection(id: number, data: Partial<WhatWeDoSection>): Promise<WhatWeDoSection | undefined>;
+  deleteWhatWeDoSection(id: number): Promise<boolean>;
+  
+  // What We Do content operations
+  getWhatWeDoContentBySection(sectionId: number): Promise<WhatWeDoContent[]>;
+  getWhatWeDoContent(id: number): Promise<WhatWeDoContent | undefined>;
+  createWhatWeDoContent(content: InsertWhatWeDoContent): Promise<WhatWeDoContent>;
+  updateWhatWeDoContent(id: number, data: Partial<WhatWeDoContent>): Promise<WhatWeDoContent | undefined>;
+  deleteWhatWeDoContent(id: number): Promise<boolean>;
+  reorderWhatWeDoContent(sectionId: number, contentIds: number[]): Promise<WhatWeDoContent[]>;
+  
   // Database initialization
   initializeDatabase(): Promise<void>;
 }
@@ -80,6 +98,8 @@ export class MemStorage implements IStorage {
   private backgroundPapers: Map<number, BackgroundPaper>;
   private issues: Map<number, Issue>;
   private issueComments: Map<number, IssueComment>;
+  private whatWeDoSections: Map<number, WhatWeDoSection>;
+  private whatWeDoContents: Map<number, WhatWeDoContent>;
   
   private userCurrentId: number;
   private virusCategoryCurrentId: number;
@@ -88,6 +108,8 @@ export class MemStorage implements IStorage {
   private backgroundPaperCurrentId: number;
   private issueCurrentId: number;
   private issueCommentCurrentId: number;
+  private whatWeDoSectionCurrentId: number;
+  private whatWeDoContentCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -97,6 +119,8 @@ export class MemStorage implements IStorage {
     this.backgroundPapers = new Map();
     this.issues = new Map();
     this.issueComments = new Map();
+    this.whatWeDoSections = new Map();
+    this.whatWeDoContents = new Map();
     
     this.userCurrentId = 1;
     this.virusCategoryCurrentId = 1;
@@ -105,6 +129,8 @@ export class MemStorage implements IStorage {
     this.backgroundPaperCurrentId = 1;
     this.issueCurrentId = 1;
     this.issueCommentCurrentId = 1;
+    this.whatWeDoSectionCurrentId = 1;
+    this.whatWeDoContentCurrentId = 1;
 
     // Initialize with sample data
     this.initializeData();
@@ -503,6 +529,138 @@ export class MemStorage implements IStorage {
     return this.issueComments.delete(id);
   }
 
+  // What We Do section operations
+  async getAllWhatWeDoSections(): Promise<WhatWeDoSection[]> {
+    return Array.from(this.whatWeDoSections.values())
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+  
+  async getWhatWeDoSection(id: number): Promise<WhatWeDoSection | undefined> {
+    return this.whatWeDoSections.get(id);
+  }
+  
+  async getWhatWeDoSectionBySlug(slug: string): Promise<WhatWeDoSection | undefined> {
+    return Array.from(this.whatWeDoSections.values()).find(
+      section => section.slug === slug
+    );
+  }
+  
+  async createWhatWeDoSection(section: InsertWhatWeDoSection): Promise<WhatWeDoSection> {
+    const id = this.whatWeDoSectionCurrentId++;
+    const now = new Date();
+    
+    const newSection: WhatWeDoSection = {
+      ...section,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.whatWeDoSections.set(id, newSection);
+    return newSection;
+  }
+  
+  async updateWhatWeDoSection(id: number, data: Partial<WhatWeDoSection>): Promise<WhatWeDoSection | undefined> {
+    const section = this.whatWeDoSections.get(id);
+    if (!section) {
+      return undefined;
+    }
+    
+    const updatedSection: WhatWeDoSection = {
+      ...section,
+      ...data,
+      id, // Ensure id doesn't change
+      updatedAt: new Date(),
+      createdAt: section.createdAt // Don't allow changing the creation date
+    };
+    
+    this.whatWeDoSections.set(id, updatedSection);
+    return updatedSection;
+  }
+  
+  async deleteWhatWeDoSection(id: number): Promise<boolean> {
+    // Delete all content associated with this section first
+    Array.from(this.whatWeDoContents.values())
+      .filter(content => content.sectionId === id)
+      .forEach(content => this.whatWeDoContents.delete(content.id));
+      
+    // Then delete the section
+    return this.whatWeDoSections.delete(id);
+  }
+  
+  // What We Do content operations
+  async getWhatWeDoContentBySection(sectionId: number): Promise<WhatWeDoContent[]> {
+    return Array.from(this.whatWeDoContents.values())
+      .filter(content => content.sectionId === sectionId)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+  
+  async getWhatWeDoContent(id: number): Promise<WhatWeDoContent | undefined> {
+    return this.whatWeDoContents.get(id);
+  }
+  
+  async createWhatWeDoContent(content: InsertWhatWeDoContent): Promise<WhatWeDoContent> {
+    const id = this.whatWeDoContentCurrentId++;
+    const now = new Date();
+    
+    const newContent: WhatWeDoContent = {
+      ...content,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      metadata: content.metadata ?? null
+    };
+    
+    this.whatWeDoContents.set(id, newContent);
+    return newContent;
+  }
+  
+  async updateWhatWeDoContent(id: number, data: Partial<WhatWeDoContent>): Promise<WhatWeDoContent | undefined> {
+    const content = this.whatWeDoContents.get(id);
+    if (!content) {
+      return undefined;
+    }
+    
+    const updatedContent: WhatWeDoContent = {
+      ...content,
+      ...data,
+      id, // Ensure id doesn't change
+      sectionId: data.sectionId ?? content.sectionId,
+      updatedAt: new Date(),
+      createdAt: content.createdAt, // Don't allow changing the creation date
+      metadata: data.metadata ?? content.metadata
+    };
+    
+    this.whatWeDoContents.set(id, updatedContent);
+    return updatedContent;
+  }
+  
+  async deleteWhatWeDoContent(id: number): Promise<boolean> {
+    return this.whatWeDoContents.delete(id);
+  }
+  
+  async reorderWhatWeDoContent(sectionId: number, contentIds: number[]): Promise<WhatWeDoContent[]> {
+    // Get all content for this section
+    const sectionContent = await this.getWhatWeDoContentBySection(sectionId);
+    
+    // Map of content IDs to their current objects
+    const contentMap = new Map<number, WhatWeDoContent>();
+    sectionContent.forEach(content => contentMap.set(content.id, content));
+    
+    // Update the sort order of each content item
+    for (let i = 0; i < contentIds.length; i++) {
+      const contentId = contentIds[i];
+      const content = contentMap.get(contentId);
+      
+      if (content) {
+        await this.updateWhatWeDoContent(contentId, { sortOrder: i });
+      }
+    }
+    
+    // Return the reordered content
+    return this.getWhatWeDoContentBySection(sectionId);
+  }
+
   // Database initialization method for interface compliance
   async initializeDatabase(): Promise<void> {
     console.log("Using in-memory storage, data already initialized.");
@@ -697,6 +855,110 @@ export class MemStorage implements IStorage {
       title: "Ecological factors influencing bat-associated rhabdoviruses",
       virusCategoryId: 5, // Rhabdoviridae
       link: "https://example.com/rhabdovirus-ecology"
+    });
+    
+    // Add "What We Do" sections
+    const researchSection = this.createWhatWeDoSection({
+      title: "Research Initiatives",
+      subtitle: "Our Bat-CoV Research Initiatives",
+      description: "We study bat-borne viruses with an emphasis on understanding viral ecology, host factors, and transmission dynamics.",
+      slug: "research-initiatives",
+      imageUrl: "/assets/what-we-do/research.jpg",
+      sortOrder: 0
+    });
+    
+    const fieldSection = this.createWhatWeDoSection({
+      title: "Field Work",
+      subtitle: "Bat Population Sampling & Monitoring",
+      description: "Our field teams collect samples from bat populations across multiple continents to track viral prevalence and diversity.",
+      slug: "field-work",
+      imageUrl: "/assets/what-we-do/field-work.jpg",
+      sortOrder: 1
+    });
+    
+    const labSection = this.createWhatWeDoSection({
+      title: "Laboratory Analysis",
+      subtitle: "State-of-the-art Diagnostic Capabilities",
+      description: "We employ cutting-edge molecular techniques to identify and characterize novel viruses.",
+      slug: "laboratory-analysis",
+      imageUrl: "/assets/what-we-do/lab-analysis.jpg",
+      sortOrder: 2
+    });
+    
+    const modelingSection = this.createWhatWeDoSection({
+      title: "Epidemic Modeling",
+      subtitle: "Predicting Spillover Events",
+      description: "We develop computational models to predict viral spillover events and identify high-risk areas.",
+      slug: "epidemic-modeling",
+      imageUrl: "/assets/what-we-do/modeling.jpg",
+      sortOrder: 3
+    });
+    
+    const capacitySection = this.createWhatWeDoSection({
+      title: "Capacity Building",
+      subtitle: "Training the Next Generation",
+      description: "We train researchers and public health professionals in low and middle-income countries to enhance global surveillance capacity.",
+      slug: "capacity-building",
+      imageUrl: "/assets/what-we-do/capacity-building.jpg",
+      sortOrder: 4
+    });
+    
+    // Add content for Research Initiatives section
+    this.createWhatWeDoContent({
+      sectionId: researchSection.id,
+      title: "Viral Discovery Program",
+      contentType: "text",
+      content: "Our viral discovery program focuses on identifying novel coronaviruses and other bat-borne viruses with pandemic potential. Using metagenomic sequencing approaches, we have characterized dozens of previously unknown viral species.",
+      sortOrder: 0
+    });
+    
+    this.createWhatWeDoContent({
+      sectionId: researchSection.id,
+      title: "Host-Pathogen Interactions",
+      contentType: "text",
+      content: "We study the molecular mechanisms that allow bats to harbor viruses without developing disease. Understanding these immune adaptations may provide insights for human therapeutics.",
+      sortOrder: 1
+    });
+    
+    this.createWhatWeDoContent({
+      sectionId: researchSection.id,
+      title: "Ecological Monitoring",
+      contentType: "image",
+      content: "/assets/what-we-do/ecological-monitoring.jpg",
+      metadata: JSON.stringify({
+        caption: "Our team setting up acoustic monitors to track bat population movements in Southeast Asia.",
+        altText: "Researchers installing bat acoustic monitoring equipment"
+      }),
+      sortOrder: 2
+    });
+    
+    // Add content for Field Work section
+    this.createWhatWeDoContent({
+      sectionId: fieldSection.id,
+      title: "Global Study Sites",
+      contentType: "text",
+      content: "We operate field sites in over 20 countries across Asia, Africa, and Latin America. These sites represent diverse ecological settings where bat-human interfaces occur frequently.",
+      sortOrder: 0
+    });
+    
+    this.createWhatWeDoContent({
+      sectionId: fieldSection.id,
+      title: "Sampling Methods",
+      contentType: "image",
+      content: "/assets/what-we-do/bat-sampling.jpg",
+      metadata: JSON.stringify({
+        caption: "Our team collecting samples from a cave-dwelling bat colony in Uganda.",
+        altText: "Researchers in PPE collecting bat samples"
+      }),
+      sortOrder: 1
+    });
+    
+    this.createWhatWeDoContent({
+      sectionId: fieldSection.id,
+      title: "Community Engagement",
+      contentType: "text",
+      content: "We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.",
+      sortOrder: 2
     });
   }
 }

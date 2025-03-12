@@ -208,3 +208,44 @@ export type Issue = typeof issues.$inferSelect;
 
 export type InsertIssueComment = z.infer<typeof insertIssueCommentSchema>;
 export type IssueComment = typeof issueComments.$inferSelect;
+
+// What We Do content
+export const whatWeDoSections = pgTable("what_we_do_sections", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(), // For URL and tab identification
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const whatWeDoContent = pgTable("what_we_do_content", {
+  id: serial("id").primaryKey(),
+  sectionId: integer("section_id").notNull(),
+  contentType: text("content_type").notNull(), // 'text', 'image', 'heading', 'list', etc.
+  content: text("content").notNull(), // HTML content or image URL
+  sortOrder: integer("sort_order").notNull().default(0),
+  metadata: json("metadata"), // Additional data like image alt text, list type, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Insert schemas for What We Do content
+export const insertWhatWeDoSectionSchema = createInsertSchema(whatWeDoSections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWhatWeDoContentSchema = createInsertSchema(whatWeDoContent).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// What We Do content types
+export type InsertWhatWeDoSection = z.infer<typeof insertWhatWeDoSectionSchema>;
+export type WhatWeDoSection = typeof whatWeDoSections.$inferSelect;
+
+export type InsertWhatWeDoContent = z.infer<typeof insertWhatWeDoContentSchema>;
+export type WhatWeDoContent = typeof whatWeDoContent.$inferSelect;
