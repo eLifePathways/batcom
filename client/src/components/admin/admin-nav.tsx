@@ -37,6 +37,12 @@ export default function AdminNav() {
       active: location === "/admin/background-papers",
     },
     {
+      href: "/admin/users",
+      label: "User Management",
+      icon: <Users className="h-5 w-5" />,
+      active: location === "/admin/users",
+    },
+    {
       href: "/admin/analytics",
       label: "Analytics",
       icon: <BarChart className="h-5 w-5" />,
