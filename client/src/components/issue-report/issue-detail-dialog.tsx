@@ -45,10 +45,12 @@ type Issue = {
 type IssueComment = {
   id: number;
   issueId: number;
-  comment: string;
+  content?: string;
+  comment?: string; // For backward compatibility
   createdAt: string;
-  author: string;
-  isInternal: boolean;
+  author?: string;
+  isInternal?: boolean;
+  userId?: number | null;
 };
 
 interface IssueDetailDialogProps {
@@ -97,7 +99,10 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
+          comment: data.comment,
+          content: data.comment, // Support both field names for compatibility
+          isInternal: data.isInternal,
+          author: "Admin", // Add author explicitly
           issueId: issue.id,
         }),
       });
@@ -388,7 +393,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     <CollapsibleContent>
                       <div className="px-3 pb-3 pt-1">
                         <p className="text-sm whitespace-pre-wrap">
-                          {comment.comment}
+                          {comment.content || comment.comment}
                         </p>
                       </div>
                     </CollapsibleContent>

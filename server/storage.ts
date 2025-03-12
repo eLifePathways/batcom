@@ -489,10 +489,13 @@ export class MemStorage implements IStorage {
     const now = new Date();
     
     const comment: IssueComment = {
-      ...commentData,
       id,
+      issueId: commentData.issueId,
+      content: commentData.content,
       createdAt: now,
-      userId: commentData.userId ?? null
+      userId: commentData.userId ?? null,
+      author: commentData.author ?? "Admin",
+      isInternal: commentData.isInternal ?? false
     };
     
     this.issueComments.set(id, comment);
@@ -518,7 +521,10 @@ export class MemStorage implements IStorage {
       id, // Ensure id doesn't change
       issueId: comment.issueId, // Don't allow changing the issue
       createdAt: comment.createdAt, // Don't allow changing the creation date
-      userId: data.userId ?? comment.userId
+      userId: data.userId ?? comment.userId,
+      author: data.author ?? comment.author,
+      isInternal: data.isInternal ?? comment.isInternal,
+      content: data.content ?? comment.content
     };
     
     this.issueComments.set(id, updatedComment);
