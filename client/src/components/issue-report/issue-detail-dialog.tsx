@@ -21,10 +21,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, Send, AlertCircle, Code, Image as ImageIcon, UserRound, Link2 } from "lucide-react";
+import { Loader2, Send, AlertCircle, Code, Image as ImageIcon, UserRound, Link2, ChevronDown, ChevronUp } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type Issue = {
   id: number;
@@ -161,6 +162,17 @@ export function IssueDetailDialog({ issue, open, onOpenChange }: IssueDetailDial
     }
   };
 
+  // Track which comments are expanded
+  const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+
+  // Toggle comment expansion
+  const toggleComment = (commentId: number) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [commentId]: !prev[commentId]
+    }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
@@ -249,12 +261,22 @@ export function IssueDetailDialog({ issue, open, onOpenChange }: IssueDetailDial
           
           <TabsContent value="screenshot">
             {issue.screenshot ? (
-              <div className="border rounded-lg overflow-hidden">
-                <img 
-                  src={issue.screenshot} 
-                  alt="Issue screenshot" 
-                  className="w-full h-auto object-contain" 
-                />
+              <div className="border rounded-lg overflow-hidden bg-gray-100">
+                <a href={issue.screenshot} target="_blank" rel="noopener noreferrer">
+                  <img 
+                    src={issue.screenshot} 
+                    alt="Issue screenshot" 
+                    className="w-full h-auto max-h-[500px] object-contain cursor-pointer" 
+                  />
+                </a>
+                <div className="p-3 bg-white border-t text-center">
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={issue.screenshot} target="_blank" rel="noopener noreferrer">
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Open Full Size in New Tab
+                    </a>
+                  </Button>
+                </div>
               </div>
             ) : (
               <Card>
@@ -312,26 +334,44 @@ export function IssueDetailDialog({ issue, open, onOpenChange }: IssueDetailDial
               </div>
             ) : comments && comments.length > 0 ? (
               comments.map((comment: IssueComment) => (
-                <Card key={comment.id} className={comment.isInternal ? "border-blue-200" : ""}>
-                  <CardHeader className="pb-2 pt-3 px-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
+                <Collapsible
+                  key={comment.id}
+                  open={expandedComments[comment.id]}
+                  onOpenChange={() => toggleComment(comment.id)}
+                  className={comment.isInternal ? "border rounded-lg border-blue-200" : "border rounded-lg"}
+                >
+                  <CollapsibleTrigger asChild>
+                    <div 
+                      role="button" 
+                      className="flex justify-between items-center p-3 hover:bg-gray-50 cursor-pointer rounded-t-lg"
+                    >
+                      <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium">{comment.author || "Admin"}</p>
                         {comment.isInternal && (
-                          <Badge variant="outline" className="ml-2 text-xs bg-blue-50 text-blue-700 border-blue-200">
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                             Internal
                           </Badge>
                         )}
+                        <p className="text-xs text-muted-foreground" title={formatDate(comment.createdAt).full}>
+                          {formatDate(comment.createdAt).relative}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground" title={formatDate(comment.createdAt).full}>
-                        {formatDate(comment.createdAt).relative}
+                      {expandedComments[comment.id] ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-3 pb-3 pt-1">
+                      {/* Preview first two lines when collapsed */}
+                      <p className="text-sm whitespace-pre-wrap">
+                        {comment.comment}
                       </p>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 px-4 pb-3">
-                    <p className="text-sm whitespace-pre-wrap">{comment.comment}</p>
-                  </CardContent>
-                </Card>
+                  </CollapsibleContent>
+                </Collapsible>
               ))
             ) : (
               <div className="bg-gray-50 rounded-lg p-4 text-center">
