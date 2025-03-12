@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import AdminLayout from "@/components/layout/admin-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +29,10 @@ query IntrospectionQuery {
           type {
             name
             kind
+            ofType {
+              name
+              kind
+            }
           }
         }
         type {
@@ -42,6 +45,16 @@ query IntrospectionQuery {
         }
       }
     }
+  }
+}`,
+    variables: "{}",
+    description: "Introspects the schema structure of the GraphQL API."
+  },
+  {
+    name: "Get Types",
+    query: `
+query GetTypes {
+  __schema {
     types {
       name
       kind
@@ -53,11 +66,11 @@ query IntrospectionQuery {
     }
   }
 }`,
-    variables: "{}"
+    variables: "{}",
+    description: "Lists all available types in the GraphQL schema."
   }
 ];
 
-// Type definitions for schema information
 interface GraphQLType {
   name: string;
   kind: string;
@@ -96,145 +109,208 @@ interface DynamicQuery {
 }
 
 export default function GraphQLAdmin() {
-  // Load previously saved endpoint from localStorage if available
-  const savedEndpoint = typeof window !== 'undefined' ? localStorage.getItem('graphql_endpoint') || '' : '';
+  const { toast } = useToast();
   
-  const [activeTab, setActiveTab] = useState("connection");
-  const [endpoint, setEndpoint] = useState(savedEndpoint);
-  const [apiKey, setApiKey] = useState("");
+  // State for configuration
+  const [endpoint, setEndpoint] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("connection");
   const [schema, setSchema] = useState<any>(null);
   const [schemaTypes, setSchemaTypes] = useState<GraphQLType[]>([]);
   const [schemaQueries, setSchemaQueries] = useState<GraphQLField[]>([]);
   const [dynamicQueries, setDynamicQueries] = useState<DynamicQuery[]>(defaultQueries);
-  const [selectedQueryIndex, setSelectedQueryIndex] = useState(0);
-  const [query, setQuery] = useState(defaultQueries[0].query);
-  const [variables, setVariables] = useState(defaultQueries[0].variables);
-  const [response, setResponse] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingSchema, setIsFetchingSchema] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
   
-  // Introspect the GraphQL schema when the endpoint changes or when requested
-  const fetchSchema = async () => {
-    if (!endpoint || !endpoint.startsWith('http')) {
-      toast({
-        title: "Invalid API Endpoint",
-        description: "Please configure a valid GraphQL API endpoint first.",
-        variant: "destructive",
-      });
-      return;
+  // State for query execution
+  const [query, setQuery] = useState<string>("");
+  const [variables, setVariables] = useState<string>("{}");
+  const [response, setResponse] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFetchingSchema, setIsFetchingSchema] = useState<boolean>(false);
+  const [selectedQueryIndex, setSelectedQueryIndex] = useState<number>(0);
+  
+  // Load config from localStorage on initial render
+  useEffect(() => {
+    const savedEndpoint = localStorage.getItem("graphql_endpoint");
+    const savedApiKey = localStorage.getItem("graphql_api_key");
+    
+    if (savedEndpoint) {
+      setEndpoint(savedEndpoint);
     }
     
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+    
+    // If endpoint is available, fetch schema
+    if (savedEndpoint && savedEndpoint.startsWith('http')) {
+      fetchSchema();
+    }
+  }, []);
+  
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+  
+  // Save configuration to localStorage
+  const handleSaveConfig = () => {
+    localStorage.setItem("graphql_endpoint", endpoint);
+    localStorage.setItem("graphql_api_key", apiKey);
+    
+    toast({
+      title: "Configuration Saved",
+      description: "Your GraphQL API configuration has been saved.",
+    });
+    
+    if (endpoint) {
+      fetchSchema();
+      setActiveTab("query");
+    }
+  };
+  
+  // Fetch schema from GraphQL endpoint
+  const fetchSchema = async () => {
     setIsFetchingSchema(true);
     setError(null);
     
     try {
-      const introspectionQuery = `
-      query IntrospectionQuery {
-        __schema {
-          queryType {
-            name
-            fields {
-              name
-              description
-              args {
-                name
-                description
-                type {
-                  name
-                  kind
-                }
-              }
-              type {
-                name
-                kind
-                ofType {
-                  name
-                  kind
-                }
-              }
-            }
-          }
-          types {
-            name
-            kind
-            description
-            fields {
-              name
-              description
-            }
-          }
-        }
-      }`;
-      
-      // Build request headers
-      const headers: Record<string, string> = {};
-      if (apiKey) {
-        headers["Authorization"] = `Bearer ${apiKey}`;
-      }
-      
-      // Use our proxy endpoint
-      const response = await fetch('/api/graphql-proxy', {
+      const response = await fetch("/api/graphql-proxy", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          endpoint,
-          query: introspectionQuery,
+          query: `
+            query IntrospectionQuery {
+              __schema {
+                queryType {
+                  name
+                  fields {
+                    name
+                    description
+                    args {
+                      name
+                      description
+                      type {
+                        name
+                        kind
+                        ofType {
+                          name
+                          kind
+                        }
+                      }
+                    }
+                    type {
+                      name
+                      kind
+                      ofType {
+                        name
+                        kind
+                      }
+                    }
+                  }
+                }
+                types {
+                  name
+                  kind
+                  description
+                  fields {
+                    name
+                    description
+                    args {
+                      name
+                      description
+                      type {
+                        name
+                        kind
+                        ofType {
+                          name
+                          kind
+                        }
+                      }
+                    }
+                    type {
+                      name
+                      kind
+                      ofType {
+                        name
+                        kind
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `,
           variables: {},
-          headers
-        })
+          endpoint: endpoint,
+          apiKey: apiKey
+        }),
       });
       
-      const result = await response.json();
+      const data = await response.json();
       
-      if (result.errors) {
-        const errorMessage = Array.isArray(result.errors) 
-          ? result.errors.map((e: any) => e.message).join("\n") 
-          : result.error || "Failed to fetch schema";
-          
-        setError(`Schema introspection failed: ${errorMessage}`);
-        toast({
-          title: "Schema Introspection Failed",
-          description: "Could not fetch the GraphQL schema. Using default queries instead.",
-          variant: "destructive",
-        });
-      } else if (result.data && result.data.__schema) {
-        setSchema(result.data.__schema);
-        
-        // Extract query fields
-        const queryFields = result.data.__schema.queryType.fields || [];
-        setSchemaQueries(queryFields);
-        
-        // Extract types
-        const types = result.data.__schema.types || [];
-        setSchemaTypes(types.filter((type: GraphQLType) => 
-          !type.name.startsWith('__') && 
-          type.kind !== 'SCALAR' && 
-          type.kind !== 'INPUT_OBJECT'
-        ));
-        
-        // Generate dynamic queries based on the schema
-        const generatedQueries = generateQueriesFromSchema(queryFields, types);
-        if (generatedQueries.length > 0) {
-          setDynamicQueries(generatedQueries);
-          setSelectedQueryIndex(0);
-          setQuery(generatedQueries[0].query);
-          setVariables(generatedQueries[0].variables);
-          
-          toast({
-            title: "Schema Loaded",
-            description: `Generated ${generatedQueries.length} queries from the GraphQL schema.`,
-          });
-        }
+      if (data.errors) {
+        throw new Error(data.errors[0]?.message || "Failed to fetch schema");
       }
-    } catch (err) {
-      setError(`Failed to fetch schema: ${err instanceof Error ? err.message : "Unknown error"}`);
+      
+      const schemaData = data.data.__schema;
+      setSchema(schemaData);
+      
+      // Extract query fields
+      const queryFields = schemaData.queryType.fields || [];
+      setSchemaQueries(queryFields);
+      
+      // Filter relevant types
+      const types = schemaData.types.filter((type: GraphQLType) => 
+        !type.name.startsWith("__") && 
+        ["OBJECT", "INTERFACE", "ENUM", "SCALAR"].includes(type.kind)
+      );
+      setSchemaTypes(types);
+      
+      // Generate dynamic queries from schema
+      const generatedQueries = queryFields.map((field: GraphQLField) => {
+        // Generate argument variables
+        const argVariables: Record<string, any> = {};
+        let argString = "";
+        
+        if (field.args && field.args.length > 0) {
+          argString = "(" + field.args.map(arg => {
+            const argName = arg.name;
+            argVariables[argName] = null;
+            return `$${argName}: ${arg.type.name || "String"}`;
+          }).join(", ") + ")";
+        }
+        
+        // Create query
+        return {
+          name: field.name,
+          description: field.description || `Query ${field.name} from the API`,
+          query: `query ${field.name.charAt(0).toUpperCase() + field.name.slice(1)}${argString} {
+  ${field.name} {
+    id
+    # Add fields you want to retrieve
+  }
+}`,
+          variables: JSON.stringify(argVariables, null, 2)
+        };
+      });
+      
+      // Combine with default queries
+      setDynamicQueries([...defaultQueries, ...generatedQueries]);
+      
       toast({
-        title: "Error Fetching Schema",
-        description: "An error occurred while fetching the schema. Using default queries instead.",
+        title: "Schema Loaded",
+        description: `Successfully loaded schema with ${queryFields.length} queries and ${types.length} types.`,
+      });
+      
+    } catch (error: any) {
+      console.error("Error fetching schema:", error);
+      setError(error.message || "Failed to fetch schema");
+      toast({
+        title: "Error",
+        description: `Failed to load schema: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -242,437 +318,259 @@ export default function GraphQLAdmin() {
     }
   };
   
-  // Generate useful queries based on the schema
-  const generateQueriesFromSchema = (
-    queryFields: GraphQLField[], 
-    types: GraphQLType[]
-  ): DynamicQuery[] => {
-    const queries: DynamicQuery[] = [];
+  // Handle query selection from dropdown
+  const handleQuerySelection = (value: string) => {
+    const index = parseInt(value);
+    setSelectedQueryIndex(index);
     
-    // First, add the introspection query
-    queries.push(defaultQueries[0]);
-    
-    // For each query field, generate a basic query
-    queryFields.forEach(field => {
-      // Skip internal fields
-      if (field.name.startsWith('__')) return;
-      
-      // Get the return type
-      const returnTypeName = field.type?.name || field.type?.ofType?.name;
-      if (!returnTypeName) return;
-      
-      // Find the corresponding type in the schema
-      const returnType = types.find(t => t.name === returnTypeName);
-      
-      // Generate a query based on the type
-      let queryString = `query Get${field.name.charAt(0).toUpperCase() + field.name.slice(1)} {\n  ${field.name}`;
-      
-      // Add arguments if they exist
-      if (field.args && field.args.length > 0) {
-        queryString += `(`;
-        // We'll just include argument placeholders
-        queryString += field.args.map(arg => {
-          return `${arg.name}: $${arg.name}`;
-        }).join(', ');
-        queryString += `)`;
-      }
-      
-      // Check if this is a connection/edge type (common in GraphQL APIs)
-      const isConnection = returnTypeName.endsWith('Connection') || 
-                           returnType?.fields?.some(f => f.name === 'edges' || f.name === 'nodes');
-                           
-      if (isConnection) {
-        queryString += ` {\n    edges {\n      node {\n        id\n`;
-        
-        // Add a few common fields from the node type
-        queryString += `        # Add the fields you want to retrieve\n`;
-        queryString += `      }\n    }\n  }\n}`;
-      } else if (returnType && returnType.fields) {
-        // For non-connection types, include some of the fields
-        queryString += ` {\n`;
-        
-        // Always include ID if available
-        const hasId = returnType.fields.some(f => f.name === 'id');
-        if (hasId) {
-          queryString += `    id\n`;
-        }
-        
-        // Include a few other common fields
-        const commonFields = ['name', 'title', 'description', 'type', 'status'];
-        commonFields.forEach(fieldName => {
-          if (returnType.fields?.some(f => f.name === fieldName)) {
-            queryString += `    ${fieldName}\n`;
-          }
-        });
-        
-        // Close the query
-        queryString += `    # Add more fields as needed\n  }\n}`;
-      } else {
-        // Simple scalar return type
-        queryString += `\n}`;
-      }
-      
-      // Generate variables object if needed
-      let variablesString = "{}";
-      if (field.args && field.args.length > 0) {
-        const varsObj: Record<string, any> = {};
-        field.args.forEach(arg => {
-          // Add placeholder based on type
-          if (arg.type.kind === 'SCALAR') {
-            switch(arg.type.name) {
-              case 'Int':
-                varsObj[arg.name] = 1;
-                break;
-              case 'Float':
-                varsObj[arg.name] = 1.0;
-                break;
-              case 'Boolean':
-                varsObj[arg.name] = false;
-                break;
-              case 'ID':
-                varsObj[arg.name] = "id123";
-                break;
-              default:
-                varsObj[arg.name] = "";
-            }
-          } else {
-            varsObj[arg.name] = null;
-          }
-        });
-        variablesString = JSON.stringify(varsObj, null, 2);
-      }
-      
-      // Add the query to our collection
-      queries.push({
-        name: `Query ${field.name}`,
-        query: queryString,
-        variables: variablesString,
-        description: field.description
-      });
-    });
-    
-    return queries;
+    const selectedQuery = dynamicQueries[index];
+    if (selectedQuery) {
+      setQuery(selectedQuery.query);
+      setVariables(selectedQuery.variables);
+    }
   };
   
-  // Handle tab changes
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    setResponse(null);
-    setError(null);
-  };
-
-  // Effect to fetch schema when endpoint changes
-  useEffect(() => {
-    // When component first mounts and has a valid endpoint
-    if (endpoint && endpoint.startsWith('http')) {
-      // Auto-fetch schema when component loads with a valid endpoint
-      fetchSchema();
-    }
-  }, [endpoint]); // Re-run when endpoint changes
-  
-  // Handle API config submission
-  const handleSaveConfig = () => {
-    if (!endpoint || !endpoint.startsWith('http')) {
-      toast({
-        title: "Invalid API Endpoint",
-        description: "Please enter a valid URL for the GraphQL API endpoint.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Save to localStorage for persistence
-    try {
-      localStorage.setItem('graphql_endpoint', endpoint);
-    } catch (error) {
-      console.error('Failed to save endpoint to localStorage:', error);
-    }
-    
-    // Fetch schema from the endpoint
-    fetchSchema();
-    
-    toast({
-      title: "API Configuration Saved",
-      description: "Your GraphQL API endpoint has been configured.",
-    });
-    
-    handleTabChange("query");
-  };
-
-  // Handle query selection
-  const handleQuerySelection = (index: string) => {
-    const queryIndex = parseInt(index);
-    setSelectedQueryIndex(queryIndex);
-    setQuery(dynamicQueries[queryIndex].query);
-    setVariables(dynamicQueries[queryIndex].variables);
-  };
-
   // Execute GraphQL query
   const executeQuery = async () => {
-    if (!endpoint) {
-      toast({
-        title: "API Endpoint Required",
-        description: "Please configure the GraphQL API endpoint first.",
-        variant: "destructive",
-      });
-      handleTabChange("connection");
-      return;
-    }
-
     setIsLoading(true);
+    setResponse(null);
     setError(null);
     
     try {
-      // Safely parse variables if provided
-      let parsedVariables = {};
-      if (variables) {
-        try {
-          parsedVariables = JSON.parse(variables);
-        } catch (parseError) {
-          setError("Invalid JSON in variables field");
-          setIsLoading(false);
-          return;
-        }
-      }
+      // Validate JSON
+      const parsedVariables = variables ? JSON.parse(variables) : {};
       
-      // Build request headers for the target GraphQL API
-      const headers: Record<string, string> = {};
-      
-      // Add authorization header if API key is provided
-      if (apiKey) {
-        headers["Authorization"] = `Bearer ${apiKey}`;
-      }
-      
-      // Use our proxy endpoint instead of calling the GraphQL endpoint directly
-      // This avoids CORS issues and network errors
-      const response = await fetch('/api/graphql-proxy', {
+      const response = await fetch("/api/graphql-proxy", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          endpoint,        // Pass the target GraphQL endpoint
-          query,           // The GraphQL query
-          variables: parsedVariables, // The variables
-          headers          // Headers to be applied to the target request
-        })
+          query,
+          variables: parsedVariables,
+          endpoint,
+          apiKey
+        }),
       });
       
-      const result = await response.json();
+      const data = await response.json();
       
-      if (result.errors) {
-        setError(Array.isArray(result.errors) 
-          ? result.errors.map((e: any) => e.message).join("\n") 
-          : result.error || "Unknown error occurred");
+      if (data.errors) {
+        throw new Error(data.errors[0]?.message || "Query execution failed");
       }
       
-      setResponse(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setResponse(data);
+      
+    } catch (error: any) {
+      console.error("Error executing query:", error);
+      setError(error.message || "Failed to execute query");
+      toast({
+        title: "Error",
+        description: `Query execution failed: ${error.message}`,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <AdminLayout>
-      <div className="container mx-auto py-6">
-        <div className="flex items-center mb-6">
-          <Globe className="mr-2 h-6 w-6" />
-          <h1 className="text-3xl font-bold">GraphQL API Explorer</h1>
-        </div>
+    <div className="container mx-auto py-6">
+      <div className="flex items-center mb-6">
+        <Globe className="mr-2 h-6 w-6" />
+        <h1 className="text-3xl font-bold">GraphQL API Explorer</h1>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="connection">API Configuration</TabsTrigger>
+          <TabsTrigger value="query" disabled={!endpoint || !endpoint.startsWith('http')}>Query Explorer</TabsTrigger>
+        </TabsList>
         
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="connection">API Configuration</TabsTrigger>
-            <TabsTrigger value="query" disabled={!endpoint || !endpoint.startsWith('http')}>Query Explorer</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="connection">
-            <Card>
-              <CardHeader>
-                <CardTitle>Kotahi GraphQL API Configuration</CardTitle>
-                <CardDescription>
-                  Configure the connection to your Kotahi GraphQL API endpoint.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="endpoint">GraphQL Endpoint URL</Label>
-                    <Input 
-                      id="endpoint"
-                      placeholder="https://api.kotahi.example.com/graphql" 
-                      value={endpoint}
-                      onChange={(e) => setEndpoint(e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      The full URL of your Kotahi GraphQL API endpoint
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="apiKey">API Key (Optional)</Label>
-                    <Input 
-                      id="apiKey"
-                      type="password" 
-                      placeholder="Your API key" 
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      If the API requires authentication, provide your access token or API key
-                    </p>
-                  </div>
-                  
-                  <Button onClick={handleSaveConfig}>Save Configuration</Button>
+        <TabsContent value="connection">
+          <Card>
+            <CardHeader>
+              <CardTitle>Kotahi GraphQL API Configuration</CardTitle>
+              <CardDescription>
+                Configure the connection to your Kotahi GraphQL API endpoint.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="endpoint">GraphQL Endpoint URL</Label>
+                  <Input 
+                    id="endpoint"
+                    placeholder="https://api.kotahi.example.com/graphql" 
+                    value={endpoint}
+                    onChange={(e) => setEndpoint(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    The full URL of your Kotahi GraphQL API endpoint
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="query">
-            <Card>
-              <CardHeader>
-                <CardTitle>GraphQL Query Explorer</CardTitle>
-                <CardDescription>
-                  Execute GraphQL queries against the Kotahi API
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="apiKey">API Key (Optional)</Label>
+                  <Input 
+                    id="apiKey"
+                    type="password" 
+                    placeholder="Your API key" 
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    If the API requires authentication, provide your access token or API key
+                  </p>
+                </div>
+                
+                <Button onClick={handleSaveConfig}>Save Configuration</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="query">
+          <Card>
+            <CardHeader>
+              <CardTitle>GraphQL Query Explorer</CardTitle>
+              <CardDescription>
+                Execute GraphQL queries against the Kotahi API
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-sm font-medium">API Schema</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {schema ? 
-                            `${schemaQueries.length} API queries available` : 
-                            "No schema loaded yet"}
-                        </p>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={fetchSchema} 
-                        disabled={isFetchingSchema || !endpoint}
-                      >
-                        {isFetchingSchema ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Loading Schema...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Refresh Schema
-                          </>
-                        )}
-                      </Button>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium">API Schema</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {schema ? 
+                          `${schemaQueries.length} API queries available` : 
+                          "No schema loaded yet"}
+                      </p>
                     </div>
-                    
-                    {schema && (
-                      <div className="space-y-1 py-2">
-                        <Badge variant="outline" className="mr-1">
-                          {dynamicQueries.length} Queries
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={fetchSchema} 
+                      disabled={isFetchingSchema || !endpoint}
+                    >
+                      {isFetchingSchema ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading Schema...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Refresh Schema
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {schema && (
+                    <div className="space-y-1 py-2">
+                      <Badge variant="outline" className="mr-1">
+                        {dynamicQueries.length} Queries
+                      </Badge>
+                      {schemaTypes.length > 0 && (
+                        <Badge variant="outline">
+                          {schemaTypes.length} Types
                         </Badge>
-                        {schemaTypes.length > 0 && (
-                          <Badge variant="outline">
-                            {schemaTypes.length} Types
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                    
-                    <Separator />
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="predefinedQuery">Available Queries</Label>
-                      <Select 
-                        value={selectedQueryIndex.toString()} 
-                        onValueChange={handleQuerySelection}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a query" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {dynamicQueries.map((q: DynamicQuery, index: number) => (
-                            <SelectItem key={index} value={index.toString()}>
-                              {q.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {dynamicQueries[selectedQueryIndex]?.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {dynamicQueries[selectedQueryIndex].description}
-                        </p>
                       )}
                     </div>
-                  </div>
+                  )}
+                  
+                  <Separator />
                   
                   <div className="space-y-2">
-                    <Label htmlFor="query">GraphQL Query</Label>
-                    <Textarea
-                      id="query"
-                      rows={10}
-                      className="font-mono"
-                      placeholder="Enter your GraphQL query"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
+                    <Label htmlFor="predefinedQuery">Available Queries</Label>
+                    <Select 
+                      value={selectedQueryIndex.toString()} 
+                      onValueChange={handleQuerySelection}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a query" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dynamicQueries.map((q: DynamicQuery, index: number) => (
+                          <SelectItem key={index} value={index.toString()}>
+                            {q.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {dynamicQueries[selectedQueryIndex]?.description && (
+                      <p className="text-sm text-muted-foreground">
+                        {dynamicQueries[selectedQueryIndex].description}
+                      </p>
+                    )}
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="variables">Query Variables (JSON)</Label>
-                    <Textarea
-                      id="variables"
-                      rows={3}
-                      className="font-mono"
-                      placeholder="{}"
-                      value={variables}
-                      onChange={(e) => setVariables(e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Enter query variables as a JSON object
-                    </p>
-                  </div>
-                  
-                  <Button onClick={executeQuery} disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Executing...
-                      </>
-                    ) : "Execute Query"}
-                  </Button>
                 </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="query">GraphQL Query</Label>
+                  <Textarea
+                    id="query"
+                    rows={10}
+                    className="font-mono"
+                    placeholder="Enter your GraphQL query"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="variables">Query Variables (JSON)</Label>
+                  <Textarea
+                    id="variables"
+                    rows={3}
+                    className="font-mono"
+                    placeholder="{}"
+                    value={variables}
+                    onChange={(e) => setVariables(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Enter query variables as a JSON object
+                  </p>
+                </div>
+                
+                <Button onClick={executeQuery} disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Executing...
+                    </>
+                  ) : "Execute Query"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {(response || error) && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle>Query Response</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded mb-4 whitespace-pre-wrap font-mono text-sm">
+                    {error}
+                  </div>
+                )}
+                
+                {response && (
+                  <pre className="bg-gray-50 p-4 rounded border overflow-auto max-h-96 text-sm">
+                    {JSON.stringify(response, null, 2)}
+                  </pre>
+                )}
               </CardContent>
             </Card>
-            
-            {(response || error) && (
-              <Card className="mt-4">
-                <CardHeader>
-                  <CardTitle>Query Response</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded mb-4 whitespace-pre-wrap font-mono text-sm">
-                      {error}
-                    </div>
-                  )}
-                  
-                  {response && (
-                    <pre className="bg-gray-50 p-4 rounded border overflow-auto max-h-96 text-sm">
-                      {JSON.stringify(response, null, 2)}
-                    </pre>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    </AdminLayout>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
