@@ -31,7 +31,7 @@ import { formatDistanceToNow } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layout/admin-layout";
-import { IssueDetailDialog } from "@/components/issue-report";
+import { IssueDetailDialog } from "@/components/issue-report/issue-detail-dialog";
 
 type Issue = {
   id: number;

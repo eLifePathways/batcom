@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ScreenshotCapture } from ".";
+import { ScreenshotCapture } from "./screenshot-capture";
 import { apiRequest } from "@/lib/queryClient";
 
 const formSchema = z.object({
