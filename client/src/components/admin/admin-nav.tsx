@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Home, Users, BookOpen, FileText, Bug, Settings } from "lucide-react";
+import { Home, Users, BookOpen, FileText, Bug, Settings, BarChart } from "lucide-react";
 
 export default function AdminNav() {
   const [location] = useLocation();
@@ -35,6 +35,12 @@ export default function AdminNav() {
       label: "Background Papers",
       icon: <FileText className="h-5 w-5" />,
       active: location === "/admin/background-papers",
+    },
+    {
+      href: "/admin/analytics",
+      label: "Analytics",
+      icon: <BarChart className="h-5 w-5" />,
+      active: location === "/admin/analytics",
     },
     {
       href: "/admin/settings",

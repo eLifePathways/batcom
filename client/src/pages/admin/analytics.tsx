@@ -284,7 +284,7 @@ export default function AnalyticsDashboard() {
                 <CardContent>
                   {isDeviceDataLoading ? (
                     <Skeleton className="h-[250px] w-full" />
-                  ) : (
+                  ) : deviceData && (
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
@@ -318,7 +318,7 @@ export default function AnalyticsDashboard() {
                 <CardContent>
                   {isSourceDataLoading ? (
                     <Skeleton className="h-[250px] w-full" />
-                  ) : (
+                  ) : sourceData && (
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
@@ -387,7 +387,7 @@ export default function AnalyticsDashboard() {
                 <CardContent>
                   {isPopularPagesLoading ? (
                     <Skeleton className="h-[400px] w-full" />
-                  ) : (
+                  ) : popularPagesData && (
                     <div className="rounded-md border">
                       <div className="grid grid-cols-10 p-4 bg-muted text-sm font-medium">
                         <div className="col-span-4">Page</div>
