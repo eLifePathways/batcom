@@ -41,15 +41,37 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       // Wait a small delay for the UI to update
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      // Capture the screen with improved quality
+      // IMPROVED APPROACH: Use more compatible settings for html2canvas
       const canvas = await html2canvas(document.body, {
         allowTaint: true,
         useCORS: true,
         logging: false,
-        scale: window.devicePixelRatio,
-        backgroundColor: null, // Don't use a background color to preserve transparency
-        foreignObjectRendering: false, // Better compatibility
-        imageTimeout: 0, // Don't timeout on images
+        scale: window.devicePixelRatio > 1 ? 1 : window.devicePixelRatio, // Better for different displays
+        backgroundColor: '#ffffff', // Use explicit white background
+        foreignObjectRendering: false,
+        imageTimeout: 0,
+        removeContainer: true, // Clean up temporary elements
+        onclone: (documentClone) => {
+          // Fix potential styling issues in the cloned document
+          const styleSheets = Array.from(document.styleSheets);
+          styleSheets.forEach(styleSheet => {
+            try {
+              const rules = Array.from(styleSheet.cssRules || []);
+              const styleElement = documentClone.createElement('style');
+              styleElement.type = 'text/css';
+              rules.forEach(rule => {
+                styleElement.appendChild(documentClone.createTextNode(rule.cssText));
+              });
+              documentClone.head.appendChild(styleElement);
+            } catch (e) {
+              console.warn('Could not access rules from stylesheet', e);
+            }
+          });
+        },
+        ignoreElements: (element) => {
+          // Ignore dialog elements in the screenshot
+          return element.hasAttribute('data-screenshot-temp');
+        }
       });
       
       // Restore scroll position if needed
@@ -66,9 +88,9 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
         }
       }
       
-      // Resize the canvas to reduce file size
-      const MAX_WIDTH = 1600;
-      const MAX_HEIGHT = 1200;
+      // Use a smaller maximum size to reduce file size
+      const MAX_WIDTH = 1280;
+      const MAX_HEIGHT = 960;
       
       let width = canvas.width;
       let height = canvas.height;
@@ -77,36 +99,41 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       if (width > MAX_WIDTH) {
         const ratio = MAX_WIDTH / width;
         width = MAX_WIDTH;
-        height = height * ratio;
+        height = Math.round(height * ratio);
       }
       
       if (height > MAX_HEIGHT) {
         const ratio = MAX_HEIGHT / height;
         height = MAX_HEIGHT;
-        width = width * ratio;
+        width = Math.round(width * ratio);
       }
       
-      // Create a new, smaller canvas
+      // Create a new canvas for the resized image
       const resizedCanvas = document.createElement('canvas');
       resizedCanvas.width = width;
       resizedCanvas.height = height;
       
-      // Draw original image to the resized canvas with improved quality
-      const ctx = resizedCanvas.getContext('2d', { alpha: true });
+      // Get context and draw with vibrant colors
+      const ctx = resizedCanvas.getContext('2d');
       if (ctx) {
-        // Set high quality image rendering
+        // Make sure we're drawing at high quality
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         
-        // Use a white background to ensure colors are vibrant
+        // Fill with white background first
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
         
-        // Draw the image on top
+        // Draw the captured image on top
         ctx.drawImage(canvas, 0, 0, width, height);
+        
+        // Add a subtle border to ensure visibility
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0, 0, width, height);
       }
       
-      // Convert to PNG format for better quality and colors (no compression artifacts)
+      // Convert to PNG for better quality
       const dataUrl = resizedCanvas.toDataURL('image/png');
       setScreenshot(dataUrl);
     } catch (error) {
@@ -125,13 +152,13 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       {screenshot ? (
         <div className="space-y-3">
           <div className="relative border rounded-md overflow-hidden bg-gray-50">
-            <div className="max-h-[180px] overflow-hidden relative">
+            <div className="max-h-[240px] overflow-auto relative bg-white border-b">
               <img 
                 src={screenshot} 
                 alt="Page screenshot" 
                 className="w-full h-auto object-contain"
+                style={{ imageRendering: 'auto' }}
               />
-              {/* No gradient overlay to ensure we see the actual colors */}
             </div>
             <div className="flex justify-between items-center p-2 bg-gray-50 border-t">
               <a 
