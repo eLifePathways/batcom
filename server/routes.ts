@@ -563,6 +563,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const issueData = req.body;
       
+      console.log("Creating issue with data:", JSON.stringify(issueData, null, 2));
+      
       const newIssue = await storage.createIssue({
         title: issueData.title,
         description: issueData.description,
