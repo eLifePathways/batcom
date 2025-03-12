@@ -68,6 +68,106 @@ query GetTypes {
 }`,
     variables: "{}",
     description: "Lists all available types in the GraphQL schema."
+  },
+  {
+    name: "Last Manuscript",
+    query: `
+query LastManuscript {
+  paginatedManuscripts(first: 1) {
+    totalCount
+    edges {
+      node {
+        id
+        meta {
+          title
+          abstract
+        }
+        submission {
+          id
+          submitter {
+            name
+            email
+          }
+          status
+        }
+        created
+        updated
+      }
+    }
+  }
+}`,
+    variables: "{}",
+    description: "Fetches the latest manuscript from the database."
+  },
+  {
+    name: "Manuscripts By Status",
+    query: `
+query ManuscriptsByStatus($status: String!) {
+  paginatedManuscripts(first: 5, filter: { status: $status }) {
+    totalCount
+    edges {
+      node {
+        id
+        meta {
+          title
+        }
+        submission {
+          status
+          submitter {
+            name
+          }
+        }
+        created
+      }
+    }
+  }
+}`,
+    variables: `{
+  "status": "submitted"
+}`,
+    description: "Fetches manuscripts filtered by submission status."
+  },
+  {
+    name: "Manuscript Details",
+    query: `
+query ManuscriptDetails($id: ID!) {
+  manuscript(id: $id) {
+    id
+    meta {
+      title
+      abstract
+      keywords
+    }
+    submission {
+      id
+      status
+      submitter {
+        name
+        email
+      }
+      reviews {
+        id
+        recommendation
+        comments
+        reviewer {
+          name
+        }
+      }
+    }
+    files {
+      id
+      name
+      url
+      mimeType
+    }
+    created
+    updated
+  }
+}`,
+    variables: `{
+  "id": "manuscript-1"
+}`,
+    description: "Fetches detailed information about a specific manuscript."
   }
 ];
 
