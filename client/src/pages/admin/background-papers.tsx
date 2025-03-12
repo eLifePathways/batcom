@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AdminNav from "@/components/admin/admin-nav";
@@ -54,6 +55,14 @@ type BackgroundPaper = {
 export default function BackgroundPapersAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get URL query parameters
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1]);
+  const action = searchParams.get('action');
+  
+  // State to control dialog visibility
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(action === "new");
   
   // Form data state
   const [formData, setFormData] = useState<Partial<BackgroundPaper>>({
@@ -265,7 +274,7 @@ export default function BackgroundPapersAdmin() {
           </div>
           
           {/* Add Background Paper Dialog */}
-          <Dialog>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
