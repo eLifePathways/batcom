@@ -703,6 +703,217 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // What We Do Sections API
+  app.get('/api/what-we-do/sections', async (req: Request, res: Response) => {
+    try {
+      const sections = await storage.getAllWhatWeDoSections();
+      res.json(sections);
+    } catch (error) {
+      console.error('Error fetching what we do sections:', error);
+      res.status(500).json({ message: 'Failed to fetch what we do sections' });
+    }
+  });
+  
+  app.get('/api/what-we-do/sections/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid section ID' });
+      }
+      
+      const section = await storage.getWhatWeDoSection(id);
+      
+      if (!section) {
+        return res.status(404).json({ message: 'Section not found' });
+      }
+      
+      res.json(section);
+    } catch (error) {
+      console.error('Error fetching what we do section:', error);
+      res.status(500).json({ message: 'Failed to fetch what we do section' });
+    }
+  });
+  
+  app.get('/api/what-we-do/sections/slug/:slug', async (req: Request, res: Response) => {
+    try {
+      const slug = req.params.slug;
+      
+      if (!slug) {
+        return res.status(400).json({ message: 'Slug is required' });
+      }
+      
+      const section = await storage.getWhatWeDoSectionBySlug(slug);
+      
+      if (!section) {
+        return res.status(404).json({ message: 'Section not found' });
+      }
+      
+      res.json(section);
+    } catch (error) {
+      console.error('Error fetching what we do section by slug:', error);
+      res.status(500).json({ message: 'Failed to fetch what we do section' });
+    }
+  });
+  
+  app.post('/api/what-we-do/sections', async (req: Request, res: Response) => {
+    try {
+      const section = await storage.createWhatWeDoSection(req.body);
+      res.status(201).json(section);
+    } catch (error) {
+      console.error('Error creating what we do section:', error);
+      res.status(500).json({ message: 'Failed to create what we do section' });
+    }
+  });
+  
+  app.put('/api/what-we-do/sections/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid section ID' });
+      }
+      
+      const updatedSection = await storage.updateWhatWeDoSection(id, req.body);
+      
+      if (!updatedSection) {
+        return res.status(404).json({ message: 'Section not found' });
+      }
+      
+      res.json(updatedSection);
+    } catch (error) {
+      console.error('Error updating what we do section:', error);
+      res.status(500).json({ message: 'Failed to update what we do section' });
+    }
+  });
+  
+  app.delete('/api/what-we-do/sections/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid section ID' });
+      }
+      
+      const deleted = await storage.deleteWhatWeDoSection(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: 'Section not found' });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting what we do section:', error);
+      res.status(500).json({ message: 'Failed to delete what we do section' });
+    }
+  });
+  
+  // What We Do Content API
+  app.get('/api/what-we-do/content/section/:sectionId', async (req: Request, res: Response) => {
+    try {
+      const sectionId = parseInt(req.params.sectionId);
+      
+      if (isNaN(sectionId)) {
+        return res.status(400).json({ message: 'Invalid section ID' });
+      }
+      
+      const content = await storage.getWhatWeDoContentBySection(sectionId);
+      res.json(content);
+    } catch (error) {
+      console.error('Error fetching what we do content:', error);
+      res.status(500).json({ message: 'Failed to fetch what we do content' });
+    }
+  });
+  
+  app.get('/api/what-we-do/content/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid content ID' });
+      }
+      
+      const content = await storage.getWhatWeDoContent(id);
+      
+      if (!content) {
+        return res.status(404).json({ message: 'Content not found' });
+      }
+      
+      res.json(content);
+    } catch (error) {
+      console.error('Error fetching what we do content:', error);
+      res.status(500).json({ message: 'Failed to fetch what we do content' });
+    }
+  });
+  
+  app.post('/api/what-we-do/content', async (req: Request, res: Response) => {
+    try {
+      const content = await storage.createWhatWeDoContent(req.body);
+      res.status(201).json(content);
+    } catch (error) {
+      console.error('Error creating what we do content:', error);
+      res.status(500).json({ message: 'Failed to create what we do content' });
+    }
+  });
+  
+  app.put('/api/what-we-do/content/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid content ID' });
+      }
+      
+      const updatedContent = await storage.updateWhatWeDoContent(id, req.body);
+      
+      if (!updatedContent) {
+        return res.status(404).json({ message: 'Content not found' });
+      }
+      
+      res.json(updatedContent);
+    } catch (error) {
+      console.error('Error updating what we do content:', error);
+      res.status(500).json({ message: 'Failed to update what we do content' });
+    }
+  });
+  
+  app.delete('/api/what-we-do/content/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid content ID' });
+      }
+      
+      const deleted = await storage.deleteWhatWeDoContent(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: 'Content not found' });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting what we do content:', error);
+      res.status(500).json({ message: 'Failed to delete what we do content' });
+    }
+  });
+  
+  app.post('/api/what-we-do/content/reorder', async (req: Request, res: Response) => {
+    try {
+      const { sectionId, contentIds } = req.body;
+      
+      if (!sectionId || !contentIds || !Array.isArray(contentIds)) {
+        return res.status(400).json({ message: 'Invalid request parameters' });
+      }
+      
+      const reorderedContent = await storage.reorderWhatWeDoContent(sectionId, contentIds);
+      res.json(reorderedContent);
+    } catch (error) {
+      console.error('Error reordering what we do content:', error);
+      res.status(500).json({ message: 'Failed to reorder what we do content' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
