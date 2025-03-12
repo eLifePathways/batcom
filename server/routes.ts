@@ -642,7 +642,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid issue ID' });
       }
       
-      const { comment, isInternal } = req.body;
+      console.log('Received comment data:', req.body);
+      const { comment, content, isInternal } = req.body;
+      const commentText = comment || content;
+      
+      if (!commentText) {
+        return res.status(400).json({ message: 'Comment content is required' });
+      }
       
       // Make sure the issue exists
       const issue = await storage.getIssue(issueId);
@@ -652,8 +658,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newComment = await storage.createIssueComment({
         issueId,
-        content: comment,
-        userId: null,
+        content: commentText,
+        author: 'Admin',
+        isInternal: isInternal || false,
       });
       
       res.status(201).json(newComment);

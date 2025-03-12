@@ -186,6 +186,8 @@ export const issueComments = pgTable("issue_comments", {
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   userId: integer("user_id"), // Optional, for when user authentication is implemented
+  author: text("author").default("Admin"),
+  isInternal: boolean("is_internal").default(true),
 });
 
 // Insert schemas for issue reporting

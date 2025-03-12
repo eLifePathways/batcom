@@ -268,27 +268,29 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
             
             <TabsContent value="screenshot">
               {issue.screenshot ? (
-                <div className="border rounded-lg overflow-hidden bg-gray-100">
-                  <a href={issue.screenshot} target="_blank" rel="noopener noreferrer">
-                    <img 
-                      src={issue.screenshot} 
-                      alt="Issue screenshot" 
-                      className="w-full h-auto max-h-[600px] object-contain cursor-pointer" 
-                    />
-                  </a>
-                  <div className="p-3 bg-white border-t text-center">
-                    <Button variant="outline" size="sm" asChild>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center">
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Screenshot
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      A screenshot was provided with this issue report.
+                    </p>
+                    <Button variant="outline" asChild className="w-full">
                       <a href={issue.screenshot} target="_blank" rel="noopener noreferrer">
                         <ImageIcon className="h-4 w-4 mr-2" />
-                        Open Full Size in New Tab
+                        View Screenshot in New Tab
                       </a>
                     </Button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className="text-base flex items-center">
                       <ImageIcon className="h-5 w-5 mr-2" />
                       No Screenshot Available
                     </CardTitle>
@@ -309,16 +311,29 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                       Console Log
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-xs">
-                      {issue.consoleLog.split("\\n").join("\n")}
-                    </pre>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Console logs were captured with this issue report.
+                    </p>
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Code className="h-4 w-4 mr-2" />
+                          View Console Logs
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3">
+                        <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-xs">
+                          {issue.consoleLog.split("\\n").join("\n")}
+                        </pre>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </CardContent>
                 </Card>
               ) : (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center">
+                    <CardTitle className="text-base flex items-center">
                       <Code className="h-5 w-5 mr-2" />
                       No Console Logs Available
                     </CardTitle>
