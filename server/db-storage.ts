@@ -3,7 +3,9 @@ import {
   virusCategories, type VirusCategory, type InsertVirusCategory,
   teamMembers, type TeamMember, type InsertTeamMember,
   publications, type Publication, type InsertPublication,
-  backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper
+  backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper,
+  issues, type Issue, type InsertIssue,
+  issueComments, type IssueComment, type InsertIssueComment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, and, gte, lte, or } from "drizzle-orm";
@@ -304,6 +306,131 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(backgroundPapers)
       .where(eq(backgroundPapers.virusCategoryId, virusCategoryId));
+  }
+
+  // Issue operations
+  async getAllIssues(): Promise<Issue[]> {
+    return await db.select().from(issues);
+  }
+
+  async getIssue(id: number): Promise<Issue | undefined> {
+    const [issue] = await db.select().from(issues).where(eq(issues.id, id));
+    return issue || undefined;
+  }
+
+  async createIssue(issueData: InsertIssue): Promise<Issue> {
+    const [newIssue] = await db
+      .insert(issues)
+      .values({
+        ...issueData,
+        status: "open",
+        priority: "medium",
+        submittedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    return newIssue;
+  }
+
+  async updateIssue(id: number, data: Partial<Issue>): Promise<Issue | undefined> {
+    const existingIssue = await this.getIssue(id);
+    if (!existingIssue) {
+      return undefined;
+    }
+    
+    const [updatedIssue] = await db
+      .update(issues)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(issues.id, id))
+      .returning();
+      
+    return updatedIssue;
+  }
+
+  async deleteIssue(id: number): Promise<boolean> {
+    // First delete all comments associated with this issue
+    await db
+      .delete(issueComments)
+      .where(eq(issueComments.issueId, id));
+      
+    // Then delete the issue
+    const result = await db
+      .delete(issues)
+      .where(eq(issues.id, id));
+    
+    return true;
+  }
+
+  async getIssuesByStatus(status: string): Promise<Issue[]> {
+    return await db
+      .select()
+      .from(issues)
+      .where(eq(issues.status, status));
+  }
+
+  async getIssuesByPriority(priority: string): Promise<Issue[]> {
+    return await db
+      .select()
+      .from(issues)
+      .where(eq(issues.priority, priority));
+  }
+
+  // Issue comment operations
+  async getIssueComments(issueId: number): Promise<IssueComment[]> {
+    return await db
+      .select()
+      .from(issueComments)
+      .where(eq(issueComments.issueId, issueId));
+  }
+
+  async createIssueComment(commentData: InsertIssueComment): Promise<IssueComment> {
+    const [newComment] = await db
+      .insert(issueComments)
+      .values(commentData)
+      .returning();
+    
+    // Update the issue's updatedAt timestamp
+    await db
+      .update(issues)
+      .set({ updatedAt: new Date() })
+      .where(eq(issues.id, commentData.issueId));
+    
+    return newComment;
+  }
+
+  async updateIssueComment(id: number, data: Partial<IssueComment>): Promise<IssueComment | undefined> {
+    const [comment] = await db
+      .select()
+      .from(issueComments)
+      .where(eq(issueComments.id, id));
+      
+    if (!comment) {
+      return undefined;
+    }
+    
+    // Don't allow changing the issue
+    const updatedData = { ...data };
+    delete updatedData.issueId;
+    delete updatedData.createdAt;
+    
+    const [updatedComment] = await db
+      .update(issueComments)
+      .set(updatedData)
+      .where(eq(issueComments.id, id))
+      .returning();
+      
+    return updatedComment;
+  }
+
+  async deleteIssueComment(id: number): Promise<boolean> {
+    const result = await db
+      .delete(issueComments)
+      .where(eq(issueComments.id, id));
+    
+    return true;
   }
 
   // Database initialization

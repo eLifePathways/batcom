@@ -378,6 +378,131 @@ export class MemStorage implements IStorage {
     );
   }
 
+  // Issue operations
+  async getAllIssues(): Promise<Issue[]> {
+    return Array.from(this.issues.values());
+  }
+
+  async getIssue(id: number): Promise<Issue | undefined> {
+    return this.issues.get(id);
+  }
+
+  async createIssue(issueData: InsertIssue): Promise<Issue> {
+    const id = this.issueCurrentId++;
+    const now = new Date();
+    
+    const issue: Issue = {
+      ...issueData,
+      id,
+      status: "open",
+      priority: "medium",
+      submittedAt: now,
+      updatedAt: now,
+      screenshotUrl: issueData.screenshotUrl ?? null,
+      consoleLog: issueData.consoleLog ?? null,
+      userId: issueData.userId ?? null,
+      browserInfo: issueData.browserInfo ?? null
+    };
+    
+    this.issues.set(id, issue);
+    return issue;
+  }
+
+  async updateIssue(id: number, data: Partial<Issue>): Promise<Issue | undefined> {
+    const issue = this.issues.get(id);
+    if (!issue) {
+      return undefined;
+    }
+    
+    const updatedIssue: Issue = {
+      ...issue,
+      ...data,
+      id, // Ensure id doesn't change
+      updatedAt: new Date(),
+      screenshotUrl: data.screenshotUrl ?? issue.screenshotUrl,
+      consoleLog: data.consoleLog ?? issue.consoleLog,
+      userId: data.userId ?? issue.userId,
+      browserInfo: data.browserInfo ?? issue.browserInfo
+    };
+    
+    this.issues.set(id, updatedIssue);
+    return updatedIssue;
+  }
+
+  async deleteIssue(id: number): Promise<boolean> {
+    // Delete all comments associated with this issue
+    Array.from(this.issueComments.values())
+      .filter(comment => comment.issueId === id)
+      .forEach(comment => this.issueComments.delete(comment.id));
+    
+    // Then delete the issue
+    return this.issues.delete(id);
+  }
+
+  async getIssuesByStatus(status: string): Promise<Issue[]> {
+    return Array.from(this.issues.values()).filter(
+      issue => issue.status === status
+    );
+  }
+
+  async getIssuesByPriority(priority: string): Promise<Issue[]> {
+    return Array.from(this.issues.values()).filter(
+      issue => issue.priority === priority
+    );
+  }
+
+  // Issue comment operations
+  async getIssueComments(issueId: number): Promise<IssueComment[]> {
+    return Array.from(this.issueComments.values()).filter(
+      comment => comment.issueId === issueId
+    );
+  }
+
+  async createIssueComment(commentData: InsertIssueComment): Promise<IssueComment> {
+    const id = this.issueCommentCurrentId++;
+    const now = new Date();
+    
+    const comment: IssueComment = {
+      ...commentData,
+      id,
+      createdAt: now,
+      userId: commentData.userId ?? null
+    };
+    
+    this.issueComments.set(id, comment);
+    
+    // Update the issue's updatedAt timestamp
+    const issue = this.issues.get(commentData.issueId);
+    if (issue) {
+      this.updateIssue(issue.id, { updatedAt: now });
+    }
+    
+    return comment;
+  }
+
+  async updateIssueComment(id: number, data: Partial<IssueComment>): Promise<IssueComment | undefined> {
+    const comment = this.issueComments.get(id);
+    if (!comment) {
+      return undefined;
+    }
+    
+    const updatedComment: IssueComment = {
+      ...comment,
+      ...data,
+      id, // Ensure id doesn't change
+      issueId: comment.issueId, // Don't allow changing the issue
+      createdAt: comment.createdAt, // Don't allow changing the creation date
+      userId: data.userId ?? comment.userId
+    };
+    
+    this.issueComments.set(id, updatedComment);
+    return updatedComment;
+  }
+
+  async deleteIssueComment(id: number): Promise<boolean> {
+    return this.issueComments.delete(id);
+  }
+
   // Database initialization method for interface compliance
   async initializeDatabase(): Promise<void> {
     console.log("Using in-memory storage, data already initialized.");
