@@ -224,10 +224,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBackgroundPaper(paper: InsertBackgroundPaper): Promise<BackgroundPaper> {
+    // Properly handle the description field
+    const paperData = { ...paper };
+    if (paperData.description === '') {
+      paperData.description = null;
+    }
+    
+    console.log('Creating background paper with data:', paperData);
+    
     const [newPaper] = await db
       .insert(backgroundPapers)
-      .values(paper)
+      .values(paperData)
       .returning();
+      
+    console.log('Created background paper result:', newPaper);
+    
     return newPaper;
   }
   
@@ -237,11 +248,21 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
     
+    // Properly handle the description field to avoid 's' character issue
+    const updatedData = { ...data };
+    if (updatedData.description === '') {
+      updatedData.description = null;
+    }
+    
+    console.log('DB storage update paper data:', updatedData);
+    
     const [updatedPaper] = await db
       .update(backgroundPapers)
-      .set(data)
+      .set(updatedData)
       .where(eq(backgroundPapers.id, id))
       .returning();
+    
+    console.log('DB storage updated paper result:', updatedPaper);
       
     return updatedPaper;
   }

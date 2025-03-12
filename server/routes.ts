@@ -358,7 +358,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const paperData = req.body;
+      console.log('Updating background paper ID:', id);
+      console.log('Request body:', JSON.stringify(paperData, null, 2));
+      console.log('Description field:', paperData.description);
+      
+      // Ensure description is properly set
+      if (paperData.description === '') {
+        paperData.description = null;
+      }
+      
       const updatedPaper = await storage.updateBackgroundPaper(id, paperData);
+      console.log('Updated paper result:', JSON.stringify(updatedPaper, null, 2));
       
       if (!updatedPaper) {
         return res.status(404).json({ message: 'Background paper not found' });

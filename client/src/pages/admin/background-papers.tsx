@@ -218,18 +218,24 @@ export default function BackgroundPapersAdmin() {
       return;
     }
     
+    // Fix issue with empty strings becoming 's' in database
+    // Proper handling of description field
+    const descriptionValue = formData.description?.trim() || null;
+    
     // Prepare data for submission
     const data = {
       title: formData.title,
       virusCategoryId: formData.virusCategoryId,
       link: formData.link || "",
       imageUrl: formData.imageUrl || "",
-      description: formData.description || ""
+      description: descriptionValue
     };
     
     // Enhanced debug logs
     console.log("Submitting background paper data:", data);
+    console.log("Description value type:", typeof formData.description);
     console.log("Description value:", formData.description);
+    console.log("Processed description value:", descriptionValue);
     
     // Update or add
     if (selectedPaper) {
