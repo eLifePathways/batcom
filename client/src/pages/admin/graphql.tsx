@@ -65,8 +65,11 @@ query {
 ];
 
 export default function GraphQLAdmin() {
+  // Load previously saved endpoint from localStorage if available
+  const savedEndpoint = typeof window !== 'undefined' ? localStorage.getItem('graphql_endpoint') || '' : '';
+  
   const [activeTab, setActiveTab] = useState("connection");
-  const [endpoint, setEndpoint] = useState("https://kotahi-instance.example.org/graphql");
+  const [endpoint, setEndpoint] = useState(savedEndpoint);
   const [apiKey, setApiKey] = useState("");
   const [selectedQueryIndex, setSelectedQueryIndex] = useState(0);
   const [query, setQuery] = useState(predefinedQueries[0].query);
@@ -92,6 +95,13 @@ export default function GraphQLAdmin() {
         variant: "destructive",
       });
       return;
+    }
+    
+    // Save to localStorage for persistence
+    try {
+      localStorage.setItem('graphql_endpoint', endpoint);
+    } catch (error) {
+      console.error('Failed to save endpoint to localStorage:', error);
     }
     
     toast({
