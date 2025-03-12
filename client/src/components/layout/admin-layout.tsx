@@ -10,7 +10,8 @@ import {
   Settings, 
   BarChart,
   ArrowLeft,
-  UserCog
+  UserCog,
+  AlertCircle
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -52,6 +53,12 @@ const AdminSidebar = () => {
       label: "User Management",
       icon: <UserCog className="h-5 w-5" />,
       active: location === "/admin/users" || location.startsWith("/admin/users/"),
+    },
+    {
+      href: "/admin/issues",
+      label: "Issue Reports",
+      icon: <AlertCircle className="h-5 w-5" />,
+      active: location === "/admin/issues" || location.startsWith("/admin/issues/"),
     },
     {
       href: "/admin/analytics",

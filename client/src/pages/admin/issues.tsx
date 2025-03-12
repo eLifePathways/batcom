@@ -170,8 +170,8 @@ export default function IssuesAdmin() {
   };
 
   return (
-    <>
-      <div className="container mx-auto py-6 space-y-6">
+    <AdminLayout>
+      <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Issue Reports</h1>
         </div>
@@ -318,6 +318,6 @@ export default function IssuesAdmin() {
           onOpenChange={setIsDetailDialogOpen}
         />
       ) : null}
-    </>
+    </AdminLayout>
   );
 }

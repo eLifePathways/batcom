@@ -1,6 +1,16 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Home, Users, BookOpen, FileText, Bug, Settings, BarChart, UserCog, AlertCircle } from "lucide-react";
+import { 
+  Home, 
+  Users, 
+  BookOpen, 
+  FileText, 
+  Bug, 
+  Settings, 
+  BarChart, 
+  UserCog, 
+  AlertCircle 
+} from "lucide-react";
 
 export default function AdminNav() {
   const [location] = useLocation();
@@ -10,55 +20,55 @@ export default function AdminNav() {
       href: "/admin",
       label: "Dashboard",
       icon: <Home className="h-5 w-5" />,
-      active: location === "/admin",
+      active: location === "/admin" || location === "/admin/",
     },
     {
       href: "/admin/team",
       label: "Team Members",
       icon: <Users className="h-5 w-5" />,
-      active: location.startsWith("/admin/team"),
+      active: location === "/admin/team" || location.startsWith("/admin/team/"),
     },
     {
       href: "/admin/virus-categories",
       label: "Virus Categories",
       icon: <Bug className="h-5 w-5" />,
-      active: location.startsWith("/admin/virus-categories"),
+      active: location === "/admin/virus-categories" || location.startsWith("/admin/virus-categories/"),
     },
     {
       href: "/admin/publications",
       label: "Publications",
       icon: <BookOpen className="h-5 w-5" />,
-      active: location.startsWith("/admin/publications"),
+      active: location === "/admin/publications" || location.startsWith("/admin/publications/"),
     },
     {
       href: "/admin/background-papers",
       label: "Background Papers",
       icon: <FileText className="h-5 w-5" />,
-      active: location.startsWith("/admin/background-papers"),
+      active: location === "/admin/background-papers" || location.startsWith("/admin/background-papers/"),
     },
     {
       href: "/admin/users",
       label: "User Management",
       icon: <UserCog className="h-5 w-5" />,
-      active: location.startsWith("/admin/users"),
+      active: location === "/admin/users" || location.startsWith("/admin/users/"),
     },
     {
       href: "/admin/issues",
       label: "Issue Reports",
       icon: <AlertCircle className="h-5 w-5" />,
-      active: location.startsWith("/admin/issues"),
+      active: location === "/admin/issues" || location.startsWith("/admin/issues/"),
     },
     {
       href: "/admin/analytics",
       label: "Analytics",
       icon: <BarChart className="h-5 w-5" />,
-      active: location.startsWith("/admin/analytics"),
+      active: location === "/admin/analytics" || location.startsWith("/admin/analytics/"),
     },
     {
       href: "/admin/settings",
       label: "Settings",
       icon: <Settings className="h-5 w-5" />,
-      active: location.startsWith("/admin/settings"),
+      active: location === "/admin/settings" || location.startsWith("/admin/settings/"),
     },
   ];
 
