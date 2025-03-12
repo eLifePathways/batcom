@@ -21,11 +21,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, Send, AlertCircle, Code, Image as ImageIcon, UserRound, Link2, ChevronDown, ChevronUp } from "lucide-react";
+import { 
+  Loader2, Send, AlertCircle, Code, Image as ImageIcon, UserRound, 
+  Link2, ChevronDown, ChevronUp, CheckCircle2, Clock, AlertTriangle, 
+  XCircle, Flag
+} from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 type Issue = {
   id: number;
@@ -69,13 +80,42 @@ type CommentFormValues = z.infer<typeof commentSchema>;
 
 export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }: IssueDetailDialogProps) {
   const [activeTab, setActiveTab] = useState("details");
+  const [localIssue, setLocalIssue] = useState<Issue>(issue);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Update local issue when the prop changes
+  useEffect(() => {
+    setLocalIssue(issue);
+  }, [issue]);
   
   const { data: comments, isLoading: isLoadingComments } = useQuery({
     queryKey: ['/api/issues', issue.id, 'comments'],
     queryFn: () => apiRequest(`/api/issues/${issue.id}/comments`),
     enabled: open,
+  });
+  
+  // Mutation for updating issue status and priority
+  const updateIssueMutation = useMutation({
+    mutationFn: async (data: Partial<Issue>) => {
+      return apiRequest(`/api/issues/${issue.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/issues'] });
+      setLocalIssue(prev => ({ ...prev, ...data }));
+      toast({ title: "Issue updated successfully" });
+    },
+    onError: (error) => {
+      console.error("Error updating issue:", error);
+      toast({ 
+        title: "Failed to update issue", 
+        variant: "destructive" 
+      });
+    }
   });
   
   const form = useForm<CommentFormValues>({
@@ -202,9 +242,82 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
         <DialogHeader className="pb-2">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">{issue.title}</DialogTitle>
-            <div className="flex gap-2">
-              {getStatusBadge(issue.status)}
-              {getPriorityBadge(issue.priority)}
+            <div className="flex gap-2 items-center">
+              {/* Status Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="cursor-pointer">
+                    {getStatusBadge(localIssue.status)}
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem 
+                    onClick={() => updateIssueMutation.mutate({ status: 'open' })}
+                    className="flex items-center"
+                  >
+                    <AlertCircle className="h-4 w-4 mr-2 text-blue-600" />
+                    <span>Open</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => updateIssueMutation.mutate({ status: 'in_progress' })}
+                    className="flex items-center"
+                  >
+                    <Clock className="h-4 w-4 mr-2 text-yellow-600" />
+                    <span>In Progress</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => updateIssueMutation.mutate({ status: 'resolved' })}
+                    className="flex items-center"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                    <span>Resolved</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => updateIssueMutation.mutate({ status: 'closed' })}
+                    className="flex items-center"
+                  >
+                    <XCircle className="h-4 w-4 mr-2 text-gray-600" />
+                    <span>Closed</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Priority Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="cursor-pointer">
+                    {getPriorityBadge(localIssue.priority)}
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem 
+                    onClick={() => updateIssueMutation.mutate({ priority: 'high' })}
+                    className="flex items-center"
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-red-600" />
+                    <span>High Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => updateIssueMutation.mutate({ priority: 'medium' })}
+                    className="flex items-center"
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-orange-600" />
+                    <span>Medium Priority</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => updateIssueMutation.mutate({ priority: 'low' })}
+                    className="flex items-center"
+                  >
+                    <Flag className="h-4 w-4 mr-2 text-green-600" />
+                    <span>Low Priority</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Loading indicator */}
+              {updateIssueMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin text-primary ml-1" />
+              )}
             </div>
           </div>
         </DialogHeader>
