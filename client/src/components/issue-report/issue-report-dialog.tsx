@@ -59,12 +59,13 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
     if (open) {
       // Try to get console logs from browser storage (if they've been saved)
       try {
-        const logs = localStorage.getItem("consoleErrorLogs");
-        if (logs) {
-          setConsoleLog(logs);
+        // Use getFormattedErrorLogs from the error-tracking utility
+        const formattedLogs = getFormattedErrorLogs();
+        if (formattedLogs && formattedLogs !== "No error logs found") {
+          setConsoleLog(formattedLogs);
         }
       } catch (e) {
-        // Ignore any errors
+        console.error("Error getting formatted logs:", e);
       }
     }
   }, [open]);
