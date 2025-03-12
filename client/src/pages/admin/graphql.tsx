@@ -138,29 +138,35 @@ export default function GraphQLAdmin() {
         }
       }
       
-      // Build request headers
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json"
-      };
+      // Build request headers for the target GraphQL API
+      const headers: Record<string, string> = {};
       
       // Add authorization header if API key is provided
       if (apiKey) {
         headers["Authorization"] = `Bearer ${apiKey}`;
       }
       
-      const response = await fetch(endpoint, {
+      // Use our proxy endpoint instead of calling the GraphQL endpoint directly
+      // This avoids CORS issues and network errors
+      const response = await fetch('/api/graphql-proxy', {
         method: "POST",
-        headers,
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-          query,
-          variables: parsedVariables
+          endpoint,        // Pass the target GraphQL endpoint
+          query,           // The GraphQL query
+          variables: parsedVariables, // The variables
+          headers          // Headers to be applied to the target request
         })
       });
       
       const result = await response.json();
       
       if (result.errors) {
-        setError(result.errors.map((e: any) => e.message).join("\n"));
+        setError(Array.isArray(result.errors) 
+          ? result.errors.map((e: any) => e.message).join("\n") 
+          : result.error || "Unknown error occurred");
       }
       
       setResponse(result);

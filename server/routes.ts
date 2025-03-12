@@ -947,6 +947,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GraphQL API proxy endpoint to avoid CORS issues
+  app.post('/api/graphql-proxy', async (req: Request, res: Response) => {
+    try {
+      const { endpoint, query, variables, headers = {} } = req.body;
+      
+      if (!endpoint || !query) {
+        return res.status(400).json({ 
+          error: 'Missing required parameters', 
+          message: 'Both endpoint and query are required' 
+        });
+      }
+
+      // Validate endpoint is a URL
+      try {
+        new URL(endpoint);
+      } catch (error) {
+        return res.status(400).json({ 
+          error: 'Invalid endpoint URL', 
+          message: 'The endpoint must be a valid URL' 
+        });
+      }
+
+      // Import node-fetch dynamically
+      const fetch = (await import('node-fetch')).default;
+
+      // Set up request headers
+      const requestHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...headers
+      };
+
+      // Make request to GraphQL endpoint
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: requestHeaders,
+        body: JSON.stringify({
+          query,
+          variables: variables || {}
+        })
+      });
+
+      // Get response as JSON
+      const data = await response.json();
+      
+      // Return the response
+      res.status(response.status).json(data);
+    } catch (error) {
+      console.error("Error proxying GraphQL request:", error);
+      res.status(500).json({ 
+        error: "Failed to proxy GraphQL request", 
+        message: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
