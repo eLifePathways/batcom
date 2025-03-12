@@ -26,7 +26,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Edit, Trash2, Image } from "lucide-react";
-import AdminLayout from "@/components/layout/admin-layout";
 import { ImageUpload } from "@/components/ui/image-upload";
 
 type VirusCategory = {
@@ -65,118 +64,81 @@ export default function VirusCategoriesAdmin() {
       imageUrl: ""
     });
   };
-
-  // Function to handle dialog state with URL updates
-  const handleDialogState = (dialogType: string, isOpen: boolean) => {
-    switch(dialogType) {
-      case 'add':
-        setAddDialogOpen(isOpen);
-        if (isOpen) {
-          setLocation('/admin/virus-categories?action=new', { replace: true });
-        } else {
-          setLocation('/admin/virus-categories', { replace: true });
-        }
-        break;
-      case 'edit':
-        setEditDialogOpen(isOpen);
-        break;
-      case 'delete':
-        setDeleteDialogOpen(isOpen);
-        break;
-    }
+  
+  // Load category data for editing
+  const loadCategoryData = (category: VirusCategory) => {
+    setFormData({
+      name: category.name,
+      description: category.description,
+      imageUrl: category.imageUrl
+    });
   };
   
-  // Watch for URL changes to sync dialog state
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.split('?')[1]);
-    const action = searchParams.get('action');
-    
-    if (action === 'new') {
-      setAddDialogOpen(true);
-      resetFormData();
-      setSelectedCategory(null);
-    }
-  }, [location]);
-  
-  // Get virus categories query
-  const { data: virusCategories, isLoading } = useQuery<VirusCategory[]>({
-    queryKey: ['/api/virus-categories'],
-  });
-  
-  // Form change handler
+  // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
   
-  // Load virus category data for edit form
-  const loadCategoryData = (category: VirusCategory) => {
-    setSelectedCategory(category);
-    setFormData({
-      name: category.name,
-      description: category.description,
-      imageUrl: category.imageUrl || ""
-    });
-  };
+  // Fetch virus categories
+  const { data: categories, isLoading } = useQuery<VirusCategory[]>({
+    queryKey: ['/api/virus-categories'],
+  });
   
-  // Add virus category mutation
-  const addVirusCategory = useMutation({
-    mutationFn: async (data: any) => {
+  // Create virus category mutation
+  const createVirusCategory = useMutation({
+    mutationFn: async (categoryData: Partial<VirusCategory>) => {
       return apiRequest('/api/virus-categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(categoryData)
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
       toast({
         title: "Success",
-        description: "Virus category added successfully",
+        description: "Virus category created successfully!",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
+      setAddDialogOpen(false);
       resetFormData();
-      handleDialogState('add', false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to add virus category",
+        description: error.message || "Failed to create virus category.",
         variant: "destructive",
       });
-      console.error("Error adding virus category:", error);
-    },
+    }
   });
   
   // Update virus category mutation
   const updateVirusCategory = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+    mutationFn: async ({ id, data }: { id: number, data: Partial<VirusCategory> }) => {
       return apiRequest(`/api/virus-categories/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
       toast({
         title: "Success",
-        description: "Virus category updated successfully",
+        description: "Virus category updated successfully!",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
+      setEditDialogOpen(false);
       setSelectedCategory(null);
       resetFormData();
-      setEditDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to update virus category",
+        description: error.message || "Failed to update virus category.",
         variant: "destructive",
       });
-      console.error("Error updating virus category:", error);
-    },
+    }
   });
   
   // Delete virus category mutation
@@ -187,241 +149,244 @@ export default function VirusCategoriesAdmin() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
       toast({
         title: "Success",
-        description: "Virus category deleted successfully",
+        description: "Virus category deleted successfully!",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
       setDeleteDialogOpen(false);
+      setSelectedCategory(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to delete virus category",
+        description: error.message || "Failed to delete virus category.",
         variant: "destructive",
       });
-      console.error("Error deleting virus category:", error);
-    },
+    }
   });
   
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle form submission for creating a new category
+  const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
     if (!formData.name || !formData.description) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
     
-    // Prepare data for submission
-    const data = {
-      name: formData.name,
-      description: formData.description,
-      imageUrl: formData.imageUrl || ""
-    };
-    
-    // Update or add
-    if (selectedCategory) {
-      updateVirusCategory.mutate({ id: selectedCategory.id, data });
-    } else {
-      addVirusCategory.mutate(data);
-    }
+    createVirusCategory.mutate(formData);
   };
   
+  // Handle form submission for updating a category
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCategory || !formData.name || !formData.description) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    updateVirusCategory.mutate({
+      id: selectedCategory.id,
+      data: formData
+    });
+  };
+  
+  // Handle category deletion
+  const handleDelete = () => {
+    if (selectedCategory) {
+      deleteVirusCategory.mutate(selectedCategory.id);
+    }
+  };
+
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">Virus Categories</h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
-                Manage virus categories and taxonomic groups.
-              </p>
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Virus Categories</h1>
+        <Button onClick={() => {
+          resetFormData();
+          setAddDialogOpen(true);
+        }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Category
+        </Button>
+      </div>
+      
+      {/* Add Category Dialog */}
+      <Dialog
+        open={addDialogOpen}
+        onOpenChange={(open) => {
+          setAddDialogOpen(open);
+          if (!open) {
+            // Reset form data when dialog is closed
+            resetFormData();
+            // Also clear the URL if it has the 'new' action
+            if (action === 'new') {
+              setLocation('/admin/virus-categories');
+            }
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Virus Category</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Category Name *</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Textarea 
+                  id="description" 
+                  name="description" 
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={4}
+                  required
+                />
+              </div>
+              
+              <ImageUpload
+                currentImageUrl={formData.imageUrl}
+                onImageUploaded={(imageUrl) => {
+                  setFormData(prev => ({ ...prev, imageUrl }));
+                }}
+                label="Category Image"
+                description="Upload an image for this virus category (PNG, JPG up to 5MB)"
+              />
             </div>
-            
-            {/* Add Virus Category Dialog */}
-            <Dialog 
-              open={addDialogOpen} 
-              onOpenChange={(open) => {
-                handleDialogState('add', open);
-                // Reset form data and selected category when opening the Add dialog
-                if (open) {
-                  resetFormData();
-                  setSelectedCategory(null);
-                }
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Category
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Add New Virus Category</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Category Name *</Label>
-                    <Input 
-                      id="name" 
-                      name="name" 
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="e.g., Coronaviridae"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description *</Label>
-                    <Textarea 
-                      id="description" 
-                      name="description" 
-                      value={formData.description}
-                      onChange={handleChange}
-                      placeholder="Brief description of this virus category"
-                      rows={4}
-                      required
-                    />
-                  </div>
-                  
-                  <ImageUpload
-                    currentImageUrl={formData.imageUrl}
-                    onImageUploaded={(imageUrl) => {
-                      setFormData(prev => ({ ...prev, imageUrl }));
-                    }}
-                    label="Category Image"
-                    description="Upload an image for this virus category (PNG, JPG up to 5MB)"
-                  />
-                  
-                  <DialogFooter>
-                    <Button type="submit" disabled={addVirusCategory.isPending || updateVirusCategory.isPending}>
-                      {addVirusCategory.isPending || updateVirusCategory.isPending ? "Saving..." : "Save Category"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          {/* Virus Categories Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
+            <DialogFooter>
+              <Button type="submit" disabled={createVirusCategory.isPending}>
+                {createVirusCategory.isPending ? "Creating..." : "Create Category"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      <div className="bg-white rounded-lg shadow">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Image</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
                 <TableRow>
-                  <TableHead className="w-[60px]"></TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={4}>
+                    <div className="space-y-2">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading && (
-                  Array(5).fill(0).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[300px]" /></TableCell>
-                      <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
-                    </TableRow>
-                  ))
-                )}
-                
-                {!isLoading && virusCategories?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                      No virus categories found. Add your first category to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-                
-                {!isLoading && [...(virusCategories || [])].sort((a, b) => a.id - b.id).map((category) => (
+              ) : categories && categories.length > 0 ? (
+                categories.map((category) => (
                   <TableRow key={category.id}>
                     <TableCell>
                       {category.imageUrl ? (
-                        <img 
-                          src={category.imageUrl} 
-                          alt={category.name} 
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
+                        <div className="relative h-12 w-12 rounded overflow-hidden">
+                          <img
+                            src={category.imageUrl}
+                            alt={category.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <Image className="h-5 w-5 text-gray-500" />
+                        <div className="flex items-center justify-center h-12 w-12 bg-gray-100 rounded">
+                          <Image className="h-6 w-6 text-gray-400" />
                         </div>
                       )}
                     </TableCell>
                     <TableCell className="font-medium">{category.name}</TableCell>
-                    <TableCell className="max-w-[400px] truncate">{category.description}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="max-w-md">
+                      <div className="truncate">{category.description}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
                         {/* Edit Dialog */}
-                        <Dialog 
+                        <Dialog
                           open={editDialogOpen && selectedCategory?.id === category.id}
                           onOpenChange={(open) => {
                             setEditDialogOpen(open);
                             if (open) {
+                              setSelectedCategory(category);
                               loadCategoryData(category);
                             }
                           }}
                         >
                           <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="icon"
-                            >
+                            <Button variant="outline" size="icon">
                               <Edit className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
+                          <DialogContent>
                             <DialogHeader>
                               <DialogTitle>Edit Virus Category</DialogTitle>
                             </DialogHeader>
-                            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-name">Category Name *</Label>
-                                <Input 
-                                  id="edit-name" 
-                                  name="name" 
-                                  value={formData.name}
-                                  onChange={handleChange}
-                                  required
+                            <form onSubmit={handleEditSubmit}>
+                              <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="edit-name">Category Name *</Label>
+                                  <Input 
+                                    id="edit-name" 
+                                    name="name" 
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
+                                  />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <Label htmlFor="edit-description">Description *</Label>
+                                  <Textarea 
+                                    id="edit-description" 
+                                    name="description" 
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    rows={4}
+                                    required
+                                  />
+                                </div>
+                                
+                                <ImageUpload
+                                  currentImageUrl={formData.imageUrl}
+                                  onImageUploaded={(imageUrl) => {
+                                    setFormData(prev => ({ ...prev, imageUrl }));
+                                  }}
+                                  label="Category Image"
+                                  description="Upload an image for this virus category (PNG, JPG up to 5MB)"
                                 />
+                                
+                                <DialogFooter>
+                                  <Button type="submit" disabled={updateVirusCategory.isPending}>
+                                    {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
+                                  </Button>
+                                </DialogFooter>
                               </div>
-                              
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-description">Description *</Label>
-                                <Textarea 
-                                  id="edit-description" 
-                                  name="description" 
-                                  value={formData.description}
-                                  onChange={handleChange}
-                                  rows={4}
-                                  required
-                                />
-                              </div>
-                              
-                              <ImageUpload
-                                currentImageUrl={formData.imageUrl}
-                                onImageUploaded={(imageUrl) => {
-                                  setFormData(prev => ({ ...prev, imageUrl }));
-                                }}
-                                label="Category Image"
-                                description="Upload an image for this virus category (PNG, JPG up to 5MB)"
-                              />
-                              
-                              <DialogFooter>
-                                <Button type="submit" disabled={updateVirusCategory.isPending}>
-                                  {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
-                                </Button>
-                              </DialogFooter>
                             </form>
                           </DialogContent>
                         </Dialog>
@@ -448,20 +413,17 @@ export default function VirusCategoriesAdmin() {
                             <div className="py-4">
                               <p>Are you sure you want to delete <span className="font-semibold">{category.name}</span>?</p>
                               <p className="text-sm text-gray-500 mt-2">This will also delete any associated publications and background papers.</p>
-                              <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
                             </div>
                             <DialogFooter>
-                              <Button 
-                                variant="destructive" 
-                                onClick={() => {
-                                  if (selectedCategory) {
-                                    try {
-                                      deleteVirusCategory.mutate(selectedCategory.id);
-                                    } catch (error) {
-                                      console.error("Error deleting virus category:", error);
-                                    }
-                                  }
-                                }}
+                              <Button
+                                variant="outline"
+                                onClick={() => setDeleteDialogOpen(false)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={handleDelete}
                                 disabled={deleteVirusCategory.isPending}
                               >
                                 {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
@@ -472,12 +434,18 @@ export default function VirusCategoriesAdmin() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                    No virus categories found. Click "Add Category" to create one.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
-    </AdminLayout>
+    </div>
   );
 }

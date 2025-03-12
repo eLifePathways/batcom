@@ -27,40 +27,29 @@ import { apiRequest } from "@/lib/queryClient";
 import { Edit, Plus, Trash2, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeamMember } from "@shared/schema";
-import AdminLayout from "@/components/layout/admin-layout";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 export default function TeamMembersAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location, setLocation] = useLocation();
   
-  // Get URL query parameters
-  const [location] = useLocation();
-  const searchParams = new URLSearchParams(location.split('?')[1]);
-  const action = searchParams.get('action');
-  
-  // Fetch team members
-  const { data: teamMembers, isLoading } = useQuery<TeamMember[]>({
-    queryKey: ['/api/team-members'],
-  });
-  
-  // State for selected team member (for edit modal)
-  const [selectedTeamMember, setSelectedTeamMember] = useState<TeamMember | null>(null);
-  
-  // State for dialog open/close
-  const [addDialogOpen, setAddDialogOpen] = useState(action === 'new');
-  const [editMemberId, setEditMemberId] = useState<number | null>(null);
-  
-  // Form state for new/edit team member
+  // Form states
   const [formData, setFormData] = useState({
     name: "",
     title: "",
     institution: "",
     description: "",
-    imageUrl: "",
     email: "",
     website: "",
-    socialMedia: ""
+    socialMedia: "",
+    imageUrl: "",
   });
+  
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   // Reset form data
   const resetFormData = () => {
@@ -69,367 +58,347 @@ export default function TeamMembersAdmin() {
       title: "",
       institution: "",
       description: "",
-      imageUrl: "",
       email: "",
       website: "",
-      socialMedia: ""
+      socialMedia: "",
+      imageUrl: "",
     });
   };
   
-  // Load team member data into form
+  // Load team member data for editing
   const loadTeamMemberData = (member: TeamMember) => {
     setFormData({
       name: member.name,
       title: member.title,
       institution: member.institution,
       description: member.description,
-      imageUrl: member.imageUrl || "",
       email: member.email || "",
       website: member.website || "",
-      socialMedia: member.socialMedia || ""
+      socialMedia: member.socialMedia || "",
+      imageUrl: member.imageUrl,
     });
-    setSelectedTeamMember(member);
   };
   
-  // Handle input change
+  // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
   
-  // Add team member mutation
-  const addTeamMember = useMutation({
+  // Fetch team members
+  const { 
+    data: teamMembers,
+    isLoading: teamMembersLoading 
+  } = useQuery<TeamMember[]>({
+    queryKey: ['/api/team-members'],
+  });
+  
+  // Create team member mutation
+  const createTeamMember = useMutation({
     mutationFn: async (data: any) => {
       return apiRequest('/api/team-members', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
       toast({
         title: "Success",
-        description: "Team member added successfully",
+        description: "Team member added successfully!",
       });
-      resetFormData();
+      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
       setAddDialogOpen(false);
+      resetFormData();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to add team member",
+        description: error.message || "Failed to add team member.",
         variant: "destructive",
       });
-      console.error("Error adding team member:", error);
-    },
+    }
   });
   
   // Update team member mutation
   const updateTeamMember = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
       return apiRequest(`/api/team-members/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        body: JSON.stringify(data)
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
       toast({
         title: "Success",
-        description: "Team member updated successfully",
+        description: "Team member updated successfully!",
       });
-      setSelectedTeamMember(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
+      setEditDialogOpen(false);
+      setSelectedMember(null);
       resetFormData();
-      setEditMemberId(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to update team member",
+        description: error.message || "Failed to update team member.",
         variant: "destructive",
       });
-      console.error("Error updating team member:", error);
-    },
+    }
   });
   
   // Delete team member mutation
   const deleteTeamMember = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest<any>(`/api/team-members/${id}`, {
+      return apiRequest(`/api/team-members/${id}`, {
         method: 'DELETE'
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
       toast({
         title: "Success",
-        description: "Team member deleted successfully",
+        description: "Team member deleted successfully!",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
+      setDeleteDialogOpen(false);
+      setSelectedMember(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to delete team member",
+        description: error.message || "Failed to delete team member.",
         variant: "destructive",
       });
-      console.error("Error deleting team member:", error);
-    },
+    }
   });
   
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle form submission for creating a new team member
+  const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
     if (!formData.name || !formData.title || !formData.institution || !formData.description) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
     
-    // Prepare data for submission
-    const data = {
-      name: formData.name,
-      title: formData.title,
-      institution: formData.institution,
-      description: formData.description,
-      imageUrl: formData.imageUrl || "https://via.placeholder.com/150",
-      email: formData.email || "",
-      website: formData.website || "",
-      socialMedia: formData.socialMedia || ""
-    };
-    
-    // Update or add
-    if (selectedTeamMember) {
-      updateTeamMember.mutate({ id: selectedTeamMember.id, data });
-    } else {
-      addTeamMember.mutate(data);
+    createTeamMember.mutate(formData);
+  };
+  
+  // Handle form submission for updating a team member
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMember || !formData.name || !formData.title || !formData.institution || !formData.description) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    updateTeamMember.mutate({
+      id: selectedMember.id,
+      data: formData
+    });
   };
   
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">Team Members</h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
-                Manage research team profiles and information.
-              </p>
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Team Members</h1>
+        <Button onClick={() => {
+          resetFormData();
+          setAddDialogOpen(true);
+        }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Team Member
+        </Button>
+      </div>
+      
+      {/* Add Team Member Dialog */}
+      <Dialog
+        open={addDialogOpen}
+        onOpenChange={(open) => {
+          setAddDialogOpen(open);
+          if (!open) {
+            resetFormData();
+          }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Team Member</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="title">Title/Position *</Label>
+                <Input 
+                  id="title" 
+                  name="title" 
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="institution">Institution/Organization *</Label>
+                <Input 
+                  id="institution" 
+                  name="institution" 
+                  value={formData.institution}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">Bio/Description *</Label>
+                <Textarea 
+                  id="description" 
+                  name="description" 
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={4}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input 
+                  id="email" 
+                  name="email" 
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="website">Website URL</Label>
+                <Input 
+                  id="website" 
+                  name="website" 
+                  value={formData.website}
+                  onChange={handleChange}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="socialMedia">Social Media</Label>
+                <Input 
+                  id="socialMedia" 
+                  name="socialMedia" 
+                  value={formData.socialMedia}
+                  onChange={handleChange}
+                  placeholder="Twitter or LinkedIn URL"
+                />
+              </div>
+              
+              <ImageUpload
+                currentImageUrl={formData.imageUrl}
+                onImageUploaded={(imageUrl) => {
+                  setFormData(prev => ({ ...prev, imageUrl }));
+                }}
+                label="Profile Image"
+                description="Upload a profile image (PNG, JPG up to 5MB)"
+              />
             </div>
-            
-            {/* Add Member Dialog */}
-            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  className="flex items-center gap-2"
-                  onClick={() => {
-                    resetFormData();
-                    setSelectedTeamMember(null);
-                    setAddDialogOpen(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Member
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Add New Team Member</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name *</Label>
-                      <Input 
-                        id="name" 
-                        name="name" 
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="John Doe"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Title/Position *</Label>
-                      <Input 
-                        id="title" 
-                        name="title" 
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="Professor of Virology"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="institution">Institution *</Label>
-                      <Input 
-                        id="institution" 
-                        name="institution" 
-                        value={formData.institution}
-                        onChange={handleChange}
-                        placeholder="Johns Hopkins University"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="imageUrl">Image URL</Label>
-                      <Input 
-                        id="imageUrl" 
-                        name="imageUrl" 
-                        value={formData.imageUrl}
-                        onChange={handleChange}
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description/Bio *</Label>
-                    <Textarea 
-                      id="description" 
-                      name="description" 
-                      value={formData.description}
-                      onChange={handleChange}
-                      placeholder="Brief biography and research interests"
-                      rows={4}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input 
-                        id="email" 
-                        name="email" 
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="email@example.com"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="website">Website</Label>
-                      <Input 
-                        id="website" 
-                        name="website" 
-                        value={formData.website}
-                        onChange={handleChange}
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="socialMedia">Social Media</Label>
-                      <Input 
-                        id="socialMedia" 
-                        name="socialMedia" 
-                        value={formData.socialMedia}
-                        onChange={handleChange}
-                        placeholder="Twitter, LinkedIn URL"
-                      />
-                    </div>
-                  </div>
-                  
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="submit" disabled={addTeamMember.isPending || updateTeamMember.isPending}>
-                        {addTeamMember.isPending || updateTeamMember.isPending ? "Saving..." : "Save Member"}
-                      </Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          {/* Team Members Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
+            <DialogFooter>
+              <Button type="submit" disabled={createTeamMember.isPending}>
+                {createTeamMember.isPending ? "Creating..." : "Create Team Member"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      <div className="bg-white rounded-lg shadow">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Photo</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Institution</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {teamMembersLoading ? (
                 <TableRow>
-                  <TableHead className="w-[60px]"></TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Institution</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={5}>
+                    <div className="space-y-2">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading && (
-                  Array(5).fill(0).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                      <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
-                    </TableRow>
-                  ))
-                )}
-                
-                {!isLoading && teamMembers?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                      No team members found. Add your first team member to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-                
-                {!isLoading && [...(teamMembers || [])].sort((a, b) => a.id - b.id).map((member) => (
+              ) : teamMembers && teamMembers.length > 0 ? (
+                teamMembers.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell>
                       {member.imageUrl ? (
-                        <img 
-                          src={member.imageUrl} 
-                          alt={member.name} 
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
+                        <div className="relative h-12 w-12 rounded-full overflow-hidden">
+                          <img
+                            src={member.imageUrl}
+                            alt={member.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <User className="h-5 w-5 text-gray-500" />
+                        <div className="flex items-center justify-center h-12 w-12 bg-gray-100 rounded-full">
+                          <User className="h-6 w-6 text-gray-400" />
                         </div>
                       )}
                     </TableCell>
                     <TableCell className="font-medium">{member.name}</TableCell>
                     <TableCell>{member.title}</TableCell>
                     <TableCell>{member.institution}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell>
+                      <div className="flex items-center gap-2">
                         {/* Edit Dialog */}
-                        <Dialog 
-                          open={editMemberId === member.id} 
-                          onOpenChange={(open) => open ? setEditMemberId(member.id) : setEditMemberId(null)}
+                        <Dialog
+                          open={editDialogOpen && selectedMember?.id === member.id}
+                          onOpenChange={(open) => {
+                            setEditDialogOpen(open);
+                            if (open) {
+                              setSelectedMember(member);
+                              loadTeamMemberData(member);
+                            }
+                          }}
                         >
                           <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
-                              onClick={() => {
-                                loadTeamMemberData(member);
-                                setEditMemberId(member.id);
-                              }}
-                            >
+                            <Button variant="outline" size="icon">
                               <Edit className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
+                          <DialogContent className="max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle>Edit Team Member</DialogTitle>
                             </DialogHeader>
-                            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <form onSubmit={handleEditSubmit}>
+                              <div className="space-y-4 py-4">
                                 <div className="space-y-2">
                                   <Label htmlFor="edit-name">Name *</Label>
                                   <Input 
@@ -440,6 +409,7 @@ export default function TeamMembersAdmin() {
                                     required
                                   />
                                 </div>
+                                
                                 <div className="space-y-2">
                                   <Label htmlFor="edit-title">Title/Position *</Label>
                                   <Input 
@@ -450,11 +420,9 @@ export default function TeamMembersAdmin() {
                                     required
                                   />
                                 </div>
-                              </div>
-                              
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                
                                 <div className="space-y-2">
-                                  <Label htmlFor="edit-institution">Institution *</Label>
+                                  <Label htmlFor="edit-institution">Institution/Organization *</Label>
                                   <Input 
                                     id="edit-institution" 
                                     name="institution" 
@@ -463,32 +431,21 @@ export default function TeamMembersAdmin() {
                                     required
                                   />
                                 </div>
+                                
                                 <div className="space-y-2">
-                                  <Label htmlFor="edit-imageUrl">Image URL</Label>
-                                  <Input 
-                                    id="edit-imageUrl" 
-                                    name="imageUrl" 
-                                    value={formData.imageUrl}
+                                  <Label htmlFor="edit-description">Bio/Description *</Label>
+                                  <Textarea 
+                                    id="edit-description" 
+                                    name="description" 
+                                    value={formData.description}
                                     onChange={handleChange}
+                                    rows={4}
+                                    required
                                   />
                                 </div>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-description">Description/Bio *</Label>
-                                <Textarea 
-                                  id="edit-description" 
-                                  name="description" 
-                                  value={formData.description}
-                                  onChange={handleChange}
-                                  rows={4}
-                                  required
-                                />
-                              </div>
-                              
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                
                                 <div className="space-y-2">
-                                  <Label htmlFor="edit-email">Email</Label>
+                                  <Label htmlFor="edit-email">Email Address</Label>
                                   <Input 
                                     id="edit-email" 
                                     name="email" 
@@ -497,8 +454,9 @@ export default function TeamMembersAdmin() {
                                     onChange={handleChange}
                                   />
                                 </div>
+                                
                                 <div className="space-y-2">
-                                  <Label htmlFor="edit-website">Website</Label>
+                                  <Label htmlFor="edit-website">Website URL</Label>
                                   <Input 
                                     id="edit-website" 
                                     name="website" 
@@ -506,6 +464,7 @@ export default function TeamMembersAdmin() {
                                     onChange={handleChange}
                                   />
                                 </div>
+                                
                                 <div className="space-y-2">
                                   <Label htmlFor="edit-socialMedia">Social Media</Label>
                                   <Input 
@@ -513,29 +472,40 @@ export default function TeamMembersAdmin() {
                                     name="socialMedia" 
                                     value={formData.socialMedia}
                                     onChange={handleChange}
+                                    placeholder="Twitter or LinkedIn URL"
                                   />
                                 </div>
+                                
+                                <ImageUpload
+                                  currentImageUrl={formData.imageUrl}
+                                  onImageUploaded={(imageUrl) => {
+                                    setFormData(prev => ({ ...prev, imageUrl }));
+                                  }}
+                                  label="Profile Image"
+                                  description="Upload a profile image (PNG, JPG up to 5MB)"
+                                />
                               </div>
-                              
                               <DialogFooter>
-                                <DialogClose asChild>
-                                  <Button type="submit" disabled={updateTeamMember.isPending}>
-                                    {updateTeamMember.isPending ? "Saving..." : "Save Changes"}
-                                  </Button>
-                                </DialogClose>
+                                <Button type="submit" disabled={updateTeamMember.isPending}>
+                                  {updateTeamMember.isPending ? "Saving..." : "Save Changes"}
+                                </Button>
                               </DialogFooter>
                             </form>
                           </DialogContent>
                         </Dialog>
                         
                         {/* Delete Dialog */}
-                        <Dialog>
+                        <Dialog
+                          open={deleteDialogOpen && selectedMember?.id === member.id}
+                          onOpenChange={(open) => {
+                            setDeleteDialogOpen(open);
+                            if (open) {
+                              setSelectedMember(member);
+                            }
+                          }}
+                        >
                           <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
-                              className="text-red-500 hover:text-red-600"
-                            >
+                            <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
@@ -548,6 +518,11 @@ export default function TeamMembersAdmin() {
                               <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
                             </div>
                             <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline">
+                                  Cancel
+                                </Button>
+                              </DialogClose>
                               <DialogClose asChild>
                                 <Button 
                                   variant="destructive" 
@@ -563,12 +538,18 @@ export default function TeamMembersAdmin() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    No team members found. Click "Add Team Member" to create one.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
-    </AdminLayout>
+    </div>
   );
 }
