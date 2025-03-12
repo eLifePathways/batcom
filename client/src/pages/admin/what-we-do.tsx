@@ -165,7 +165,13 @@ const SectionForm = ({
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input 
+                  {...field} 
+                  onChange={(e) => {
+                    field.onChange(e);
+                    autoGenerateSlug(e.target.value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
