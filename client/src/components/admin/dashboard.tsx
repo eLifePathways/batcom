@@ -328,8 +328,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statsCards.map((card) => (
           <Link key={card.title} href={card.href}>
-            <a>
-              <Card className="hover:shadow-md transition-shadow">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-lg">{card.title}</CardTitle>
@@ -343,7 +342,6 @@ export default function AdminDashboard() {
                   <p className="text-3xl font-bold">{card.value}</p>
                 </CardContent>
               </Card>
-            </a>
           </Link>
         ))}
       </div>
