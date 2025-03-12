@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -441,9 +442,11 @@ export default function PublicationsAdmin() {
               </div>
               
               <DialogFooter>
-                <Button type="submit" disabled={addPublication.isPending || updatePublication.isPending}>
-                  {addPublication.isPending || updatePublication.isPending ? "Saving..." : "Save Publication"}
-                </Button>
+                <DialogClose asChild>
+                  <Button type="submit" disabled={addPublication.isPending || updatePublication.isPending}>
+                    {addPublication.isPending || updatePublication.isPending ? "Saving..." : "Save Publication"}
+                  </Button>
+                </DialogClose>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -664,9 +667,11 @@ export default function PublicationsAdmin() {
                           </div>
                           
                           <DialogFooter>
-                            <Button type="submit" disabled={updatePublication.isPending}>
-                              {updatePublication.isPending ? "Saving..." : "Save Changes"}
-                            </Button>
+                            <DialogClose asChild>
+                              <Button type="submit" disabled={updatePublication.isPending}>
+                                {updatePublication.isPending ? "Saving..." : "Save Changes"}
+                              </Button>
+                            </DialogClose>
                           </DialogFooter>
                         </form>
                       </DialogContent>
@@ -689,13 +694,15 @@ export default function PublicationsAdmin() {
                           <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
                         </div>
                         <DialogFooter>
-                          <Button 
-                            variant="destructive" 
-                            onClick={() => deletePublication.mutate(publication.id)}
-                            disabled={deletePublication.isPending}
-                          >
-                            {deletePublication.isPending ? "Deleting..." : "Delete"}
-                          </Button>
+                          <DialogClose asChild>
+                            <Button 
+                              variant="destructive" 
+                              onClick={() => deletePublication.mutate(publication.id)}
+                              disabled={deletePublication.isPending}
+                            >
+                              {deletePublication.isPending ? "Deleting..." : "Delete"}
+                            </Button>
+                          </DialogClose>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
