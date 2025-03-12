@@ -40,8 +40,8 @@ export default function VirusCategoriesAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Get URL query parameters
-  const [location] = useLocation();
+  // Get URL query parameters and location control
+  const [location, setLocation] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1]);
   const action = searchParams.get('action');
   
@@ -56,6 +56,26 @@ export default function VirusCategoriesAdmin() {
   const [addDialogOpen, setAddDialogOpen] = useState(action === 'new');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  
+  // Function to handle dialog state with URL updates
+  const handleDialogState = (dialogType: string, isOpen: boolean) => {
+    switch(dialogType) {
+      case 'add':
+        setAddDialogOpen(isOpen);
+        if (isOpen) {
+          setLocation('/admin/virus-categories?action=new', { replace: true });
+        } else {
+          setLocation('/admin/virus-categories', { replace: true });
+        }
+        break;
+      case 'edit':
+        setEditDialogOpen(isOpen);
+        break;
+      case 'delete':
+        setDeleteDialogOpen(isOpen);
+        break;
+    }
+  };
   
   // Get virus categories query
   const { data: virusCategories, isLoading } = useQuery<VirusCategory[]>({
@@ -106,7 +126,7 @@ export default function VirusCategoriesAdmin() {
         description: "Virus category added successfully",
       });
       resetFormData();
-      setAddDialogOpen(false);
+      handleDialogState('add', false);
     },
     onError: (error) => {
       toast({
@@ -217,7 +237,7 @@ export default function VirusCategoriesAdmin() {
           <Dialog 
             open={addDialogOpen} 
             onOpenChange={(open) => {
-              setAddDialogOpen(open);
+              handleDialogState('add', open);
               // Reset form data and selected category when opening the Add dialog
               if (open) {
                 resetFormData();
