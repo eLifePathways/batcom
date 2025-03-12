@@ -758,11 +758,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/what-we-do/sections', async (req: Request, res: Response) => {
     try {
-      const section = await storage.createWhatWeDoSection(req.body);
+      console.log('Creating what-we-do section with data:', req.body);
+      
+      // Validate required fields
+      if (!req.body.title || !req.body.slug) {
+        return res.status(400).json({ 
+          message: 'Title and slug are required fields',
+          receivedData: req.body
+        });
+      }
+      
+      // Ensure proper types and required fields
+      const sectionData = {
+        title: String(req.body.title).trim(),
+        slug: String(req.body.slug).trim(),
+        subtitle: req.body.subtitle || null,
+        description: req.body.description || null,
+        imageUrl: req.body.imageUrl || null,
+        sortOrder: parseInt(req.body.sortOrder) || 0
+      };
+      
+      const section = await storage.createWhatWeDoSection(sectionData);
+      console.log('Successfully created section:', section);
       res.status(201).json(section);
     } catch (error) {
       console.error('Error creating what we do section:', error);
-      res.status(500).json({ message: 'Failed to create what we do section' });
+      res.status(500).json({ 
+        message: 'Failed to create what we do section',
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   

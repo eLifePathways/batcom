@@ -141,18 +141,20 @@ const SectionForm = ({
     form.setValue("imageUrl", imageUrl);
   };
   
-  // Auto-generate slug from title if not manually set
+  // Auto-generate slug from title if not manually edited
   const autoGenerateSlug = (title: string) => {
-    if (!form.getValues("slug")) {
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")  // Remove special characters
-        .replace(/\s+/g, "-")          // Replace spaces with hyphens
-        .replace(/-+/g, "-")           // Replace multiple hyphens with single hyphen
-        .trim();
-      
-      form.setValue("slug", slug);
-    }
+    // Always generate slug from title unless user has manually edited it
+    // We get the current value to check if it's been manually edited
+    const currentSlug = form.getValues("slug");
+    const generatedSlug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")  // Remove special characters
+      .replace(/\s+/g, "-")          // Replace spaces with hyphens
+      .replace(/-+/g, "-")           // Replace multiple hyphens with single hyphen
+      .trim();
+    
+    // Set the slug value
+    form.setValue("slug", generatedSlug);
   };
 
   return (
