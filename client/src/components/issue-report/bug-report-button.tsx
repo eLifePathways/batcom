@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BugIcon } from "lucide-react";
-import { IssueReportDialog } from ".";
+import { IssueReportDialog } from "./issue-report-dialog";
 
 export const BugReportButton = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
