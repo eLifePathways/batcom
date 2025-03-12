@@ -227,6 +227,9 @@ export default function BackgroundPapersAdmin() {
       description: formData.description || ""
     };
     
+    // Debug log
+    console.log("Submitting background paper data:", data);
+    
     // Update or add
     if (selectedPaper) {
       updateBackgroundPaper.mutate({ id: selectedPaper.id, data });

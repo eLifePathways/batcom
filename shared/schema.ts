@@ -41,6 +41,7 @@ export const backgroundPapers = pgTable("background_papers", {
   virusCategoryId: integer("virus_category_id").notNull(),
   link: text("link"),
   imageUrl: text("image_url"),
+  description: text("description"),
 });
 
 export const users = pgTable("users", {
