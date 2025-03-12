@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -57,6 +57,15 @@ export default function VirusCategoriesAdmin() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
+  // Reset form data
+  const resetFormData = () => {
+    setFormData({
+      name: "",
+      description: "",
+      imageUrl: ""
+    });
+  };
+
   // Function to handle dialog state with URL updates
   const handleDialogState = (dialogType: string, isOpen: boolean) => {
     switch(dialogType) {
@@ -77,19 +86,22 @@ export default function VirusCategoriesAdmin() {
     }
   };
   
+  // Watch for URL changes to sync dialog state
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.split('?')[1]);
+    const action = searchParams.get('action');
+    
+    if (action === 'new') {
+      setAddDialogOpen(true);
+      resetFormData();
+      setSelectedCategory(null);
+    }
+  }, [location]);
+  
   // Get virus categories query
   const { data: virusCategories, isLoading } = useQuery<VirusCategory[]>({
     queryKey: ['/api/virus-categories'],
   });
-  
-  // Reset form data
-  const resetFormData = () => {
-    setFormData({
-      name: "",
-      description: "",
-      imageUrl: ""
-    });
-  };
   
   // Form change handler
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
