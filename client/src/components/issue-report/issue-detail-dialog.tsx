@@ -173,8 +173,20 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
     }
   };
 
-  // Track which comments are expanded
+  // Initialize comments as expanded by default
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  
+  // When comments load, set all to expanded by default
+  useEffect(() => {
+    if (comments && comments.length > 0) {
+      const initialExpanded = comments.reduce((acc: Record<number, boolean>, comment: IssueComment) => {
+        acc[comment.id] = true; // Default to expanded
+        return acc;
+      }, {} as Record<number, boolean>);
+      
+      setExpandedComments(initialExpanded);
+    }
+  }, [comments]);
 
   // Toggle comment expansion
   const toggleComment = (commentId: number) => {
@@ -186,120 +198,149 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[1200px] h-[90vh] max-h-[90vh] flex flex-col p-6">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{issue.title}</DialogTitle>
-          <div className="flex gap-2 mt-2">
-            {getStatusBadge(issue.status)}
-            {getPriorityBadge(issue.priority)}
+      <DialogContent className="w-[95vw] max-w-[1200px] h-[95vh] max-h-[95vh] flex flex-col p-4">
+        <DialogHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl">{issue.title}</DialogTitle>
+            <div className="flex gap-2">
+              {getStatusBadge(issue.status)}
+              {getPriorityBadge(issue.priority)}
+            </div>
           </div>
         </DialogHeader>
         
         <div className="flex-grow overflow-y-auto pr-2 -mr-2">
-          <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3">
+          <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="mb-3">
+            <TabsList className="grid grid-cols-3 w-full">
               <TabsTrigger value="details">Issue Details</TabsTrigger>
               <TabsTrigger value="screenshot">Screenshot</TabsTrigger>
               <TabsTrigger value="console">Console Log</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="details" className="space-y-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Description</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap">{issue.description}</p>
-                </CardContent>
-              </Card>
-              
-              <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="details" className="space-y-2 mt-3">
+              {/* Compact details grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="col-span-2">
+                  <CardHeader className="py-2 px-3">
+                    <CardTitle className="text-sm">Description</CardTitle>
+                  </CardHeader>
+                  <CardContent className="py-2 px-3">
+                    <p className="whitespace-pre-wrap text-sm">{issue.description}</p>
+                  </CardContent>
+                </Card>
+                
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center">
-                      <Link2 className="h-4 w-4 mr-2" />
+                  <CardHeader className="py-2 px-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <Link2 className="h-3 w-3 mr-1" />
                       URL
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm break-all">{issue.url}</p>
+                  <CardContent className="py-2 px-3">
+                    <p className="text-xs break-all">{issue.url}</p>
+                  </CardContent>
+                </Card>
+                
+                {issue.email ? (
+                  <Card>
+                    <CardHeader className="py-2 px-3">
+                      <CardTitle className="text-sm flex items-center">
+                        <UserRound className="h-3 w-3 mr-1" />
+                        Contact Email
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2 px-3">
+                      <p className="text-xs">{issue.email}</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader className="py-2 px-3">
+                      <CardTitle className="text-sm">Timing</CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2 px-3 flex justify-between">
+                      <div>
+                        <p className="text-xs font-medium">Submitted</p>
+                        <p className="text-xs text-muted-foreground" title={formatDate(issue.submittedAt).full}>
+                          {formatDate(issue.submittedAt).relative}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium">Updated</p>
+                        <p className="text-xs text-muted-foreground" title={formatDate(issue.updatedAt).full}>
+                          {formatDate(issue.updatedAt).relative}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                <Card className="col-span-2">
+                  <CardHeader className="py-2 px-3">
+                    <CardTitle className="text-sm">User Agent</CardTitle>
+                  </CardHeader>
+                  <CardContent className="py-2 px-3">
+                    <p className="text-xs font-mono break-all">{issue.userAgent}</p>
                   </CardContent>
                 </Card>
                 
                 {issue.email && (
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center">
-                        <UserRound className="h-4 w-4 mr-2" />
-                        Contact Email
-                      </CardTitle>
+                  <Card className="col-span-2">
+                    <CardHeader className="py-2 px-3">
+                      <CardTitle className="text-sm">Timing</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">{issue.email}</p>
+                    <CardContent className="py-2 px-3 flex justify-between">
+                      <div>
+                        <p className="text-xs font-medium">Submitted</p>
+                        <p className="text-xs text-muted-foreground" title={formatDate(issue.submittedAt).full}>
+                          {formatDate(issue.submittedAt).relative}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium">Updated</p>
+                        <p className="text-xs text-muted-foreground" title={formatDate(issue.updatedAt).full}>
+                          {formatDate(issue.updatedAt).relative}
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
               </div>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">User Agent</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm font-mono break-all">{issue.userAgent}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Timing</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <p className="text-sm font-medium">Submitted</p>
-                    <p className="text-sm text-muted-foreground" title={formatDate(issue.submittedAt).full}>
-                      {formatDate(issue.submittedAt).relative}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Last Updated</p>
-                    <p className="text-sm text-muted-foreground" title={formatDate(issue.updatedAt).full}>
-                      {formatDate(issue.updatedAt).relative}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
             
-            <TabsContent value="screenshot">
+            <TabsContent value="screenshot" className="mt-3">
               {issue.screenshot ? (
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center">
-                      <ImageIcon className="h-4 w-4 mr-2" />
+                  <CardHeader className="py-2 px-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <ImageIcon className="h-3 w-3 mr-1" />
                       Screenshot
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      A screenshot was provided with this issue report.
-                    </p>
-                    <Button variant="outline" asChild className="w-full">
+                  <CardContent className="pt-1 pb-3 px-3">
+                    <div className="relative h-[300px] mb-3 border rounded overflow-hidden">
+                      <img 
+                        src={issue.screenshot} 
+                        alt="Screenshot" 
+                        className="w-full h-full object-contain" 
+                      />
+                    </div>
+                    <Button variant="outline" asChild size="sm" className="w-full">
                       <a href={issue.screenshot} target="_blank" rel="noopener noreferrer">
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        View Screenshot in New Tab
+                        <ImageIcon className="h-3 w-3 mr-1" />
+                        View Full Size in New Tab
                       </a>
                     </Button>
                   </CardContent>
                 </Card>
               ) : (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center">
-                      <ImageIcon className="h-5 w-5 mr-2" />
+                  <CardHeader className="p-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <ImageIcon className="h-4 w-4 mr-1" />
                       No Screenshot Available
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs">
                       The user did not provide a screenshot with this issue report.
                     </CardDescription>
                   </CardHeader>
@@ -307,42 +348,29 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
               )}
             </TabsContent>
             
-            <TabsContent value="console">
+            <TabsContent value="console" className="mt-3">
               {issue.consoleLog ? (
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center">
-                      <Code className="h-4 w-4 mr-2" />
+                  <CardHeader className="py-2 px-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <Code className="h-3 w-3 mr-1" />
                       Console Log
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Console logs were captured with this issue report.
-                    </p>
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                          <Code className="h-4 w-4 mr-2" />
-                          View Console Logs
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-3">
-                        <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto text-xs">
-                          {issue.consoleLog.split("\\n").join("\n")}
-                        </pre>
-                      </CollapsibleContent>
-                    </Collapsible>
+                  <CardContent className="p-3 pt-1">
+                    <pre className="bg-gray-100 p-3 rounded-md overflow-x-auto text-xs max-h-[400px] whitespace-pre-wrap">
+                      {issue.consoleLog.split("\\n").join("\n")}
+                    </pre>
                   </CardContent>
                 </Card>
               ) : (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center">
-                      <Code className="h-5 w-5 mr-2" />
+                  <CardHeader className="p-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <Code className="h-4 w-4 mr-1" />
                       No Console Logs Available
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-xs">
                       No console logs were captured with this issue report.
                     </CardDescription>
                   </CardHeader>
@@ -351,13 +379,18 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
             </TabsContent>
           </Tabs>
           
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-3">Comments</h3>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-base font-medium">Comments</h3>
+              <div className="text-xs text-muted-foreground">
+                {comments?.length || 0} comment{comments?.length !== 1 ? 's' : ''}
+              </div>
+            </div>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               {isLoadingComments ? (
-                <div className="flex justify-center p-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <div className="flex justify-center p-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 </div>
               ) : comments && comments.length > 0 ? (
                 comments.map((comment: IssueComment) => (
@@ -365,34 +398,34 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     key={comment.id}
                     open={expandedComments[comment.id]}
                     onOpenChange={() => toggleComment(comment.id)}
-                    className={comment.isInternal ? "border rounded-lg border-blue-200" : "border rounded-lg"}
+                    className={comment.isInternal ? "border rounded border-blue-200" : "border rounded"}
                   >
                     <CollapsibleTrigger asChild>
                       <div 
                         role="button" 
-                        className="flex justify-between items-center p-3 hover:bg-gray-50 cursor-pointer rounded-t-lg"
+                        className="flex justify-between items-center p-2 hover:bg-gray-50 cursor-pointer rounded-t"
                       >
                         <div className="flex items-center space-x-2">
-                          <p className="text-sm font-medium">{comment.author || "Admin"}</p>
+                          <p className="text-xs font-medium">{comment.author || "Admin"}</p>
                           {comment.isInternal && (
-                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            <Badge variant="outline" className="text-[10px] py-0 px-1 h-4 bg-blue-50 text-blue-700 border-blue-200">
                               Internal
                             </Badge>
                           )}
-                          <p className="text-xs text-muted-foreground" title={formatDate(comment.createdAt).full}>
+                          <p className="text-[10px] text-muted-foreground" title={formatDate(comment.createdAt).full}>
                             {formatDate(comment.createdAt).relative}
                           </p>
                         </div>
                         {expandedComments[comment.id] ? (
-                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          <ChevronUp className="h-3 w-3 text-muted-foreground" />
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          <ChevronDown className="h-3 w-3 text-muted-foreground" />
                         )}
                       </div>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <div className="px-3 pb-3 pt-1">
-                        <p className="text-sm whitespace-pre-wrap">
+                      <div className="px-2 pb-2">
+                        <p className="text-xs whitespace-pre-wrap">
                           {comment.content || comment.comment}
                         </p>
                       </div>
@@ -400,26 +433,26 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                   </Collapsible>
                 ))
               ) : (
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <AlertCircle className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">No comments yet</p>
+                <div className="bg-gray-50 rounded p-2 text-center">
+                  <AlertCircle className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">No comments yet</p>
                 </div>
               )}
             </div>
             
-            <div className="mt-4">
+            <div className="mt-3">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
                   <FormField
                     control={form.control}
                     name="comment"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Add Comment</FormLabel>
+                        <FormLabel className="text-sm">Add Comment</FormLabel>
                         <FormControl>
                           <Textarea 
                             placeholder="Add a comment about this issue..." 
-                            className="min-h-[80px]"
+                            className="min-h-[60px] text-sm"
                             {...field} 
                           />
                         </FormControl>
@@ -427,40 +460,41 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     )}
                   />
                   
-                  <FormField
-                    control={form.control}
-                    name="isInternal"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
-                          />
-                        </FormControl>
-                        <label className="text-sm font-medium leading-none cursor-pointer">
-                          Internal comment (only visible to administrators)
-                        </label>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="flex justify-end">
+                  <div className="flex justify-between items-center">
+                    <FormField
+                      control={form.control}
+                      name="isInternal"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              className="h-3 w-3 text-primary rounded border-gray-300 focus:ring-primary"
+                            />
+                          </FormControl>
+                          <label className="text-xs font-medium leading-none cursor-pointer">
+                            Internal only
+                          </label>
+                        </FormItem>
+                      )}
+                    />
+                    
                     <Button 
                       type="submit" 
+                      size="sm"
                       disabled={addCommentMutation.isPending}
                       className="flex items-center"
                     >
                       {addCommentMutation.isPending ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                           Posting...
                         </>
                       ) : (
                         <>
-                          <Send className="mr-2 h-4 w-4" />
+                          <Send className="mr-1 h-3 w-3" />
                           Post Comment
                         </>
                       )}
