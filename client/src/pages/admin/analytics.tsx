@@ -147,9 +147,9 @@ export default function AnalyticsDashboard() {
   const summaryMetrics = calculateSummaryMetrics();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <AdminNav />
-      <div className="flex-1 p-8">
+      <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6">Analytics Dashboard</h1>
         
         <div className="mb-6 flex items-center justify-between">
