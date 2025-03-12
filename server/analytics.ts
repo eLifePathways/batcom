@@ -3,7 +3,7 @@ import { db } from "./db";
 import { pageViews, sessions } from "@shared/schema";
 import { v4 as uuidv4 } from "uuid";
 import { UAParser } from "ua-parser-js";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 const SESSION_COOKIE = "bat_com_session";
 const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -121,13 +121,21 @@ export const analyticsMiddleware = async (req: Request, res: Response, next: Nex
       });
     } else {
       // Update existing session
-      await db.update(sessions)
-        .set({ 
-          totalPageViews: sessions.totalPageViews + 1,
-          endedAt: new Date(), // Update the last activity time
-          exitPage: path // Update exit page (will be overwritten if user continues browsing)
-        })
-        .where(eq(sessions.id, sessionId));
+      const sessionData = await db.select()
+        .from(sessions)
+        .where(eq(sessions.id, sessionId))
+        .limit(1);
+        
+      if (sessionData.length > 0) {
+        const pageViews = sessionData[0].totalPageViews || 0;
+        await db.update(sessions)
+          .set({ 
+            totalPageViews: pageViews + 1,
+            endedAt: new Date(), // Update the last activity time
+            exitPage: path // Update exit page (will be overwritten if user continues browsing)
+          })
+          .where(eq(sessions.id, sessionId));
+      }
     }
 
     // Record page view
@@ -135,7 +143,7 @@ export const analyticsMiddleware = async (req: Request, res: Response, next: Nex
       path,
       sessionId,
       deviceType,
-      referrer,
+      referrer: referrer || null,
       // Location info can be added here if available
     });
 
@@ -145,7 +153,7 @@ export const analyticsMiddleware = async (req: Request, res: Response, next: Nex
       const recentPageViews = await db.select()
         .from(pageViews)
         .where(eq(pageViews.sessionId, sessionId))
-        .orderBy(pageViews.visitedAt, 'desc')
+        .orderBy(desc(pageViews.visitedAt))
         .limit(2);
       
       if (recentPageViews.length > 1) {
@@ -171,15 +179,20 @@ export const analyticsMiddleware = async (req: Request, res: Response, next: Nex
 export const trackScrollDepth = async (sessionId: string, path: string, scrollDepth: number) => {
   try {
     // Find the most recent page view for this session and path
-    const recentPageViews = await db.select()
+    const recentPageViews = await db
+      .select()
       .from(pageViews)
-      .where(eq(pageViews.sessionId, sessionId))
-      .where(eq(pageViews.path, path))
+      .where(
+        eq(pageViews.sessionId, sessionId)
+      )
       .orderBy(pageViews.visitedAt, 'desc')
       .limit(1);
     
-    if (recentPageViews.length > 0) {
-      const pageView = recentPageViews[0];
+    // Filter by path in JavaScript since we're already limiting to 1 record
+    const filteredViews = recentPageViews.filter(view => view.path === path);
+    
+    if (filteredViews.length > 0) {
+      const pageView = filteredViews[0];
       
       // Update the scroll depth if it's higher than what was previously recorded
       if (!pageView.scrollDepth || scrollDepth > pageView.scrollDepth) {
@@ -197,15 +210,20 @@ export const trackScrollDepth = async (sessionId: string, path: string, scrollDe
 export const trackTimeOnPage = async (sessionId: string, path: string, timeOnPage: number) => {
   try {
     // Find the most recent page view for this session and path
-    const recentPageViews = await db.select()
+    const recentPageViews = await db
+      .select()
       .from(pageViews)
-      .where(eq(pageViews.sessionId, sessionId))
-      .where(eq(pageViews.path, path))
+      .where(
+        eq(pageViews.sessionId, sessionId)
+      )
       .orderBy(pageViews.visitedAt, 'desc')
       .limit(1);
     
-    if (recentPageViews.length > 0) {
-      const pageView = recentPageViews[0];
+    // Filter by path in JavaScript since we're already limiting to 1 record
+    const filteredViews = recentPageViews.filter(view => view.path === path);
+    
+    if (filteredViews.length > 0) {
+      const pageView = filteredViews[0];
       
       await db.update(pageViews)
         .set({ timeOnPage })

@@ -4,6 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { initDatabase } from "./db";
 import { storage } from "./storage";
 import { DatabaseStorage } from "./db-storage";
+import { analyticsMiddleware } from "./analytics";
+import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.json());
