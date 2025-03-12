@@ -114,6 +114,7 @@ export default function GraphQLAdmin() {
   // State for configuration
   const [endpoint, setEndpoint] = useState<string>("");
   const [apiKey, setApiKey] = useState<string>("");
+  const [groupId, setGroupId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("connection");
   const [schema, setSchema] = useState<any>(null);
   const [schemaTypes, setSchemaTypes] = useState<GraphQLType[]>([]);
@@ -133,6 +134,7 @@ export default function GraphQLAdmin() {
   useEffect(() => {
     const savedEndpoint = localStorage.getItem("graphql_endpoint");
     const savedApiKey = localStorage.getItem("graphql_api_key");
+    const savedGroupId = localStorage.getItem("graphql_group_id");
     
     if (savedEndpoint) {
       setEndpoint(savedEndpoint);
@@ -140,6 +142,10 @@ export default function GraphQLAdmin() {
     
     if (savedApiKey) {
       setApiKey(savedApiKey);
+    }
+    
+    if (savedGroupId) {
+      setGroupId(savedGroupId);
     }
     
     // If endpoint is available, fetch schema
@@ -157,6 +163,7 @@ export default function GraphQLAdmin() {
   const handleSaveConfig = () => {
     localStorage.setItem("graphql_endpoint", endpoint);
     localStorage.setItem("graphql_api_key", apiKey);
+    localStorage.setItem("graphql_group_id", groupId);
     
     toast({
       title: "Configuration Saved",
@@ -245,7 +252,8 @@ export default function GraphQLAdmin() {
           `,
           variables: {},
           endpoint: endpoint,
-          apiKey: apiKey
+          apiKey: apiKey,
+          groupId: groupId
         }),
       });
       
@@ -349,7 +357,8 @@ export default function GraphQLAdmin() {
           query,
           variables: parsedVariables,
           endpoint,
-          apiKey
+          apiKey,
+          groupId
         }),
       });
       
@@ -421,6 +430,19 @@ export default function GraphQLAdmin() {
                   />
                   <p className="text-sm text-muted-foreground">
                     If the API requires authentication, provide your access token or API key
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="groupId">Group ID (Optional)</Label>
+                  <Input 
+                    id="groupId"
+                    placeholder="Your Kotahi Group ID" 
+                    value={groupId}
+                    onChange={(e) => setGroupId(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Specify a Group ID for Kotahi team access
                   </p>
                 </div>
                 
