@@ -21,6 +21,7 @@ import AdminUsers from "@/pages/admin/users";
 import AdminSettings from "@/pages/admin/settings";
 import AdminAnalytics from "@/pages/admin/analytics";
 import AdminIssues from "@/pages/admin/issues-new";
+import AdminWhatWeDo from "@/pages/admin/what-we-do";
 
 import AdminLayout from "@/components/layout/admin-layout";
 import { BugReportButton } from "@/components/issue-report";
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/users/:action" component={AdminUsers} />
           <Route path="/admin/issues" component={AdminIssues} />
+          <Route path="/admin/what-we-do" component={AdminWhatWeDo} />
           <Route path="/admin/settings" component={AdminSettings} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
           <Route component={NotFound} />
