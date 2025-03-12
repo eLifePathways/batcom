@@ -444,26 +444,24 @@ export default function BackgroundPapersAdmin() {
                               </Select>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-link">Resource Link</Label>
-                                <Input 
-                                  id="edit-link" 
-                                  name="link" 
-                                  value={formData.link}
-                                  onChange={handleChange}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-imageUrl">Image URL</Label>
-                                <Input 
-                                  id="edit-imageUrl" 
-                                  name="imageUrl" 
-                                  value={formData.imageUrl}
-                                  onChange={handleChange}
-                                />
-                              </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-link">Resource Link</Label>
+                              <Input 
+                                id="edit-link" 
+                                name="link" 
+                                value={formData.link}
+                                onChange={handleChange}
+                              />
                             </div>
+                            
+                            <ImageUpload
+                              currentImageUrl={formData.imageUrl}
+                              onImageUploaded={(imageUrl) => {
+                                setFormData(prev => ({ ...prev, imageUrl }));
+                              }}
+                              label="Paper Image"
+                              description="Upload an image for this background paper (PNG, JPG up to 5MB)"
+                            />
                             
                             <div className="space-y-2">
                               <Label htmlFor="edit-description">Description</Label>
