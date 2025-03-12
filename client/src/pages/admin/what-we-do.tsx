@@ -805,7 +805,7 @@ export default function WhatWeDoAdmin() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">What We Do - Administration</h1>
@@ -1122,6 +1122,6 @@ export default function WhatWeDoAdmin() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }
