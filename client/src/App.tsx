@@ -24,7 +24,6 @@ import AdminIssues from "@/pages/admin/issues-new";
 import AdminWhatWeDo from "@/pages/admin/what-we-do";
 
 import AdminLayout from "@/components/layout/admin-layout";
-import AdminRouter from "@/components/admin/admin-router";
 import { BugReportButton } from "@/components/issue-report";
 
 function Router() {
@@ -84,7 +83,6 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AdminRouter />
       <Router />
       <BugReportButton />
       <Toaster />
