@@ -950,7 +950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GraphQL API proxy endpoint to avoid CORS issues
   app.post('/api/graphql-proxy', async (req: Request, res: Response) => {
     try {
-      const { endpoint, query, variables, headers = {} } = req.body;
+      const { endpoint, query, variables, apiKey, groupId, headers = {} } = req.body;
       
       if (!endpoint || !query) {
         return res.status(400).json({ 
@@ -972,11 +972,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import node-fetch dynamically
       const fetch = (await import('node-fetch')).default;
 
-      // Set up request headers
+      // Set up request headers with proper authentication
       const requestHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
         ...headers
       };
+
+      // Add API key to headers if provided
+      if (apiKey) {
+        requestHeaders['Authorization'] = `Bearer ${apiKey}`;
+      }
+      
+      // Add Group ID to headers if provided
+      if (groupId) {
+        requestHeaders['X-Group-ID'] = groupId;
+      }
 
       // Make request to GraphQL endpoint
       const response = await fetch(endpoint, {

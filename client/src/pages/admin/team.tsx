@@ -75,7 +75,7 @@ export default function TeamMembersAdmin() {
       email: member.email || "",
       website: member.website || "",
       socialMedia: member.socialMedia || "",
-      imageUrl: member.imageUrl,
+      imageUrl: member.imageUrl || "",
     });
   };
   
