@@ -1,7 +1,8 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import { upload, handleUploadErrors, getUploadedFileUrl } from "./upload";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes
@@ -387,6 +388,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting background paper:', error);
       res.status(500).json({ message: 'Failed to delete background paper' });
+    }
+  });
+
+  // File upload endpoint
+  app.post('/api/upload', upload.single('image'), handleUploadErrors, (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: true, message: 'No file uploaded' });
+      }
+      
+      // Get the file URL path that can be used on the frontend
+      const fileUrl = getUploadedFileUrl(req.file.filename);
+      
+      // Return the file URL to the client
+      res.json({
+        success: true,
+        fileUrl: fileUrl,
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error('Error handling file upload:', error);
+      res.status(500).json({ error: true, message: 'Server error during file upload' });
     }
   });
 
