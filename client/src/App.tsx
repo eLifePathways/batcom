@@ -14,13 +14,13 @@ import Contact from "@/pages/contact";
 import NotFound from "@/pages/not-found";
 import AdminPage from "@/pages/admin/index";
 import AdminTeam from "@/pages/admin/team";
-import AdminPublications from "@/pages/admin/publications";
+import AdminPublications from "@/pages/admin/publications-new";
 import AdminBackgroundPapers from "@/pages/admin/background-papers";
 import AdminVirusCategories from "@/pages/admin/virus-categories";
 import AdminUsers from "@/pages/admin/users";
 import AdminSettings from "@/pages/admin/settings";
 import AdminAnalytics from "@/pages/admin/analytics";
-import AdminIssues from "@/pages/admin/issues";
+import AdminIssues from "@/pages/admin/issues-new";
 
 import AdminLayout from "@/components/layout/admin-layout";
 import { BugReportButton } from "@/components/issue-report";

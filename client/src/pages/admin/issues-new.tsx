@@ -30,7 +30,6 @@ import { Loader2, MoreHorizontal, Eye, XCircle, Check, AlertTriangle } from "luc
 import { formatDistanceToNow } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import AdminLayout from "@/components/layout/admin-layout";
 import { IssueDetailDialog } from "@/components/issue-report/issue-detail-dialog";
 
 type Issue = {
@@ -170,116 +169,115 @@ export default function IssuesAdmin() {
   };
 
   return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Issue Reports</h1>
-        </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : issues && issues.length > 0 ? (
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Last Updated</TableHead>
-                  <TableHead className="w-16">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {issues.map((issue) => (
-                  <TableRow key={issue.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleViewDetails(issue)}>
-                    <TableCell className="font-medium truncate max-w-[280px]">
-                      {issue.title}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(issue.status)}
-                    </TableCell>
-                    <TableCell>
-                      {getPriorityBadge(issue.priority)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(issue.submittedAt)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(issue.updatedAt)}
-                    </TableCell>
-                    <TableCell>
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(issue)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'open')}>
-                              <AlertTriangle className="h-4 w-4 mr-2 text-blue-600" />
-                              Mark as Open
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'in_progress')}>
-                              <AlertTriangle className="h-4 w-4 mr-2 text-yellow-600" />
-                              Mark as In Progress
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'resolved')}>
-                              <Check className="h-4 w-4 mr-2 text-green-600" />
-                              Mark as Resolved
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'closed')}>
-                              <XCircle className="h-4 w-4 mr-2 text-gray-600" />
-                              Mark as Closed
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => handlePriorityChange(issue.id, 'low')}>
-                              Set Low Priority
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => handlePriorityChange(issue.id, 'medium')}>
-                              Set Medium Priority
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => handlePriorityChange(issue.id, 'high')}>
-                              Set High Priority
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteClick(issue)}
-                              className="text-red-600"
-                            >
-                              Delete Issue
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <h3 className="text-lg font-medium mb-2">No issues reported</h3>
-            <p className="text-muted-foreground">
-              When users report issues, they will appear here.
-            </p>
-          </div>
-        )}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Issue Reports</h1>
       </div>
+      
+      {isLoading ? (
+        <div className="flex justify-center items-center h-40">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : issues && issues.length > 0 ? (
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Priority</TableHead>
+                <TableHead>Submitted</TableHead>
+                <TableHead>Last Updated</TableHead>
+                <TableHead className="w-16">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {issues.map((issue) => (
+                <TableRow key={issue.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleViewDetails(issue)}>
+                  <TableCell className="font-medium truncate max-w-[280px]">
+                    {issue.title}
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(issue.status)}
+                  </TableCell>
+                  <TableCell>
+                    {getPriorityBadge(issue.priority)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(issue.submittedAt)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(issue.updatedAt)}
+                  </TableCell>
+                  <TableCell>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewDetails(issue)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'open')}>
+                            <AlertTriangle className="h-4 w-4 mr-2 text-blue-600" />
+                            Mark as Open
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'in_progress')}>
+                            <AlertTriangle className="h-4 w-4 mr-2 text-yellow-600" />
+                            Mark as In Progress
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'resolved')}>
+                            <Check className="h-4 w-4 mr-2 text-green-600" />
+                            Mark as Resolved
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handleStatusChange(issue.id, 'closed')}>
+                            <XCircle className="h-4 w-4 mr-2 text-gray-600" />
+                            Mark as Closed
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handlePriorityChange(issue.id, 'low')}>
+                            Set Low Priority
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handlePriorityChange(issue.id, 'medium')}>
+                            Set Medium Priority
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem onClick={() => handlePriorityChange(issue.id, 'high')}>
+                            Set High Priority
+                          </DropdownMenuItem>
+                          
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteClick(issue)}
+                            className="text-red-600"
+                          >
+                            Delete Issue
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <h3 className="text-lg font-medium mb-2">No issues reported</h3>
+          <p className="text-muted-foreground">
+            When users report issues, they will appear here.
+          </p>
+        </div>
+      )}
       
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -310,12 +308,13 @@ export default function IssuesAdmin() {
       </AlertDialog>
       
       {/* Issue Detail Dialog */}
-      {selectedIssue ? (
+      {selectedIssue && (
         <IssueDetailDialog
           issue={selectedIssue}
           open={isDetailDialogOpen}
           onOpenChange={setIsDetailDialogOpen}
         />
-      ) : null}
+      )}
+    </div>
   );
 }
