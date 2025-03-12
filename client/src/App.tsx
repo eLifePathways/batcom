@@ -18,6 +18,7 @@ import AdminPublications from "@/pages/admin/publications";
 import AdminBackgroundPapers from "@/pages/admin/background-papers";
 import AdminVirusCategories from "@/pages/admin/virus-categories";
 import AdminSettings from "@/pages/admin/settings";
+import AdminAnalytics from "@/pages/admin/analytics";
 
 function Router() {
   const [location] = useLocation();
@@ -38,6 +39,7 @@ function Router() {
         <Route path="/admin/virus-categories/:action" component={AdminVirusCategories} />
         <Route path="/admin/team/:action" component={AdminTeam} />
         <Route path="/admin/settings" component={AdminSettings} />
+        <Route path="/admin/analytics" component={AdminAnalytics} />
         <Route component={NotFound} />
       </Switch>
     );
