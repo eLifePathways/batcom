@@ -51,6 +51,7 @@ function Router() {
           <Route path="/admin/what-we-do" component={AdminWhatWeDo} />
           <Route path="/admin/settings" component={AdminSettings} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
+          <Route path="/admin/*" component={AdminPage} />
           <Route component={NotFound} />
         </Switch>
       </AdminLayout>
@@ -70,6 +71,7 @@ function Router() {
           <Route path="/what-we-do" component={WhatWeDo} />
           <Route path="/search" component={Search} />
           <Route path="/contact" component={Contact} />
+          <Route path="/admin/*" component={AdminPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

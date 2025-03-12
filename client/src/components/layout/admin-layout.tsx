@@ -126,6 +126,16 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  const [location, navigate] = useLocation();
+  
+  // If we're at exactly /admin without trailing slash, redirect to /admin/
+  React.useEffect(() => {
+    if (location === "/admin") {
+      // Make sure we're on the admin dashboard route
+      navigate("/admin/");
+    }
+  }, [location, navigate]);
+  
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
