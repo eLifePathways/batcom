@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Edit, Trash2, Image } from "lucide-react";
 import AdminNav from "@/components/admin/admin-nav";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 type VirusCategory = {
   id: number;
@@ -83,7 +84,11 @@ export default function VirusCategoriesAdmin() {
   // Add virus category mutation
   const addVirusCategory = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/virus-categories', data);
+      return apiRequest('/api/virus-categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
@@ -106,7 +111,11 @@ export default function VirusCategoriesAdmin() {
   // Update virus category mutation
   const updateVirusCategory = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest('PUT', `/api/virus-categories/${id}`, data);
+      return apiRequest(`/api/virus-categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
@@ -130,7 +139,9 @@ export default function VirusCategoriesAdmin() {
   // Delete virus category mutation
   const deleteVirusCategory = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/virus-categories/${id}`);
+      return apiRequest(`/api/virus-categories/${id}`, {
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
@@ -167,7 +178,7 @@ export default function VirusCategoriesAdmin() {
     const data = {
       name: formData.name,
       description: formData.description,
-      imageUrl: formData.imageUrl || "https://via.placeholder.com/150"
+      imageUrl: formData.imageUrl || ""
     };
     
     // Update or add
@@ -228,16 +239,14 @@ export default function VirusCategoriesAdmin() {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input 
-                    id="imageUrl" 
-                    name="imageUrl" 
-                    value={formData.imageUrl}
-                    onChange={handleChange}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
+                <ImageUpload
+                  currentImageUrl={formData.imageUrl}
+                  onImageUploaded={(imageUrl) => {
+                    setFormData(prev => ({ ...prev, imageUrl }));
+                  }}
+                  label="Category Image"
+                  description="Upload an image for this virus category (PNG, JPG up to 5MB)"
+                />
                 
                 <DialogFooter>
                   <DialogClose asChild>
@@ -340,15 +349,14 @@ export default function VirusCategoriesAdmin() {
                               />
                             </div>
                             
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-imageUrl">Image URL</Label>
-                              <Input 
-                                id="edit-imageUrl" 
-                                name="imageUrl" 
-                                value={formData.imageUrl}
-                                onChange={handleChange}
-                              />
-                            </div>
+                            <ImageUpload
+                              currentImageUrl={formData.imageUrl}
+                              onImageUploaded={(imageUrl) => {
+                                setFormData(prev => ({ ...prev, imageUrl }));
+                              }}
+                              label="Category Image"
+                              description="Upload an image for this virus category (PNG, JPG up to 5MB)"
+                            />
                             
                             <DialogFooter>
                               <DialogClose asChild>

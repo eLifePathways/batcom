@@ -58,18 +58,18 @@ export function ImageUpload({
       formData.append("image", file);
 
       // Upload the file
-      const response = await apiRequest<{ fileUrl: string }>("/api/upload", {
+      const response = await apiRequest<{ fileUrl: string, success: boolean }>("/api/upload", {
         method: "POST",
         body: formData,
-        headers: {
-          // Don't set Content-Type header when using FormData
-          // The browser will set it automatically with the boundary parameter
-        },
+        // Don't set Content-Type header when using FormData
+        // The browser will set it automatically with the boundary parameter
       });
 
       // Set the preview and notify parent component
-      setPreviewUrl(response.fileUrl);
-      onImageUploaded(response.fileUrl);
+      if (response.success && response.fileUrl) {
+        setPreviewUrl(response.fileUrl);
+        onImageUploaded(response.fileUrl);
+      }
       
       toast({
         title: "Image uploaded",
