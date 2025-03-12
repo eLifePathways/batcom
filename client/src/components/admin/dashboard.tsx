@@ -131,7 +131,7 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Link href="/admin/team/new">
+            <Link href="/admin/team?action=new">
               <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                 <div className="p-2 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 mr-3">
                   <Users className="h-5 w-5" />
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
               </a>
             </Link>
             
-            <Link href="/admin/publications/new">
+            <Link href="/admin/publications?action=new">
               <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                 <div className="p-2 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 mr-3">
                   <BookOpen className="h-5 w-5" />
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
               </a>
             </Link>
             
-            <Link href="/admin/background-papers/new">
+            <Link href="/admin/background-papers?action=new">
               <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                 <div className="p-2 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 mr-3">
                   <FileText className="h-5 w-5" />

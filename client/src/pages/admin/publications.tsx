@@ -61,18 +61,16 @@ type Publication = {
 export default function PublicationsAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  // Get the action parameter from the URL
-  const params = useParams();
+  // Get URL query parameters
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1]);
+  const action = searchParams.get('action');
   
   // State to control dialog visibility
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(action === "new");
   
-  // Check if we're accessing the page with the "new" action
-  useEffect(() => {
-    if (params && params.action === "new") {
-      setIsAddDialogOpen(true);
-    }
-  }, [params]);
+  // Get path parameters
+  const params = useParams();
   
   // Form data state
   const [formData, setFormData] = useState<Partial<Publication>>({

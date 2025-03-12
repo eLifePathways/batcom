@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Table, 
   TableBody, 
@@ -33,6 +33,11 @@ export default function TeamMembersAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Get URL query parameters
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1]);
+  const action = searchParams.get('action');
+  
   // Fetch team members
   const { data: teamMembers, isLoading } = useQuery<TeamMember[]>({
     queryKey: ['/api/team-members'],
@@ -42,7 +47,7 @@ export default function TeamMembersAdmin() {
   const [selectedTeamMember, setSelectedTeamMember] = useState<TeamMember | null>(null);
   
   // State for dialog open/close
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(action === 'new');
   const [editMemberId, setEditMemberId] = useState<number | null>(null);
   
   // Form state for new/edit team member
