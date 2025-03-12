@@ -3,7 +3,9 @@ import {
   virusCategories, type VirusCategory, type InsertVirusCategory,
   teamMembers, type TeamMember, type InsertTeamMember,
   publications, type Publication, type InsertPublication,
-  backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper
+  backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper,
+  issues, type Issue, type InsertIssue,
+  issueComments, type IssueComment, type InsertIssueComment
 } from "@shared/schema";
 
 export interface IStorage {
@@ -51,6 +53,21 @@ export interface IStorage {
   deleteBackgroundPaper(id: number): Promise<boolean>;
   getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]>;
   
+  // Issue reporting operations
+  getAllIssues(): Promise<Issue[]>;
+  getIssue(id: number): Promise<Issue | undefined>;
+  createIssue(issue: InsertIssue): Promise<Issue>;
+  updateIssue(id: number, data: Partial<Issue>): Promise<Issue | undefined>;
+  deleteIssue(id: number): Promise<boolean>;
+  getIssuesByStatus(status: string): Promise<Issue[]>;
+  getIssuesByPriority(priority: string): Promise<Issue[]>;
+  
+  // Issue comment operations
+  getIssueComments(issueId: number): Promise<IssueComment[]>;
+  createIssueComment(comment: InsertIssueComment): Promise<IssueComment>;
+  updateIssueComment(id: number, data: Partial<IssueComment>): Promise<IssueComment | undefined>;
+  deleteIssueComment(id: number): Promise<boolean>;
+  
   // Database initialization
   initializeDatabase(): Promise<void>;
 }
@@ -61,12 +78,16 @@ export class MemStorage implements IStorage {
   private teamMembers: Map<number, TeamMember>;
   private publications: Map<number, Publication>;
   private backgroundPapers: Map<number, BackgroundPaper>;
+  private issues: Map<number, Issue>;
+  private issueComments: Map<number, IssueComment>;
   
   private userCurrentId: number;
   private virusCategoryCurrentId: number;
   private teamMemberCurrentId: number;
   private publicationCurrentId: number;
   private backgroundPaperCurrentId: number;
+  private issueCurrentId: number;
+  private issueCommentCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -74,12 +95,16 @@ export class MemStorage implements IStorage {
     this.teamMembers = new Map();
     this.publications = new Map();
     this.backgroundPapers = new Map();
+    this.issues = new Map();
+    this.issueComments = new Map();
     
     this.userCurrentId = 1;
     this.virusCategoryCurrentId = 1;
     this.teamMemberCurrentId = 1;
     this.publicationCurrentId = 1;
     this.backgroundPaperCurrentId = 1;
+    this.issueCurrentId = 1;
+    this.issueCommentCurrentId = 1;
 
     // Initialize with sample data
     this.initializeData();

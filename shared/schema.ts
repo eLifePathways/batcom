@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, date, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, date, timestamp, index, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -157,3 +157,54 @@ export type PageView = typeof pageViews.$inferSelect;
 
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type Session = typeof sessions.$inferSelect;
+
+// Issue reporting system
+export const issues = pgTable("issues", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  screenshotUrl: text("screenshot_url"),
+  consoleLog: text("console_log"),
+  status: text("status").notNull().default("open"), // 'open', 'in-progress', 'resolved'
+  priority: text("priority").notNull().default("medium"), // 'low', 'medium', 'high'
+  pageUrl: text("page_url").notNull(),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  userId: integer("user_id"), // Optional, for when user authentication is implemented
+  browserInfo: json("browser_info"), // Browser, OS, screen size, etc.
+}, (table) => {
+  return {
+    statusIdx: index("issues_status_idx").on(table.status),
+    priorityIdx: index("issues_priority_idx").on(table.priority),
+    dateIdx: index("issues_date_idx").on(table.submittedAt),
+  }
+});
+
+export const issueComments = pgTable("issue_comments", {
+  id: serial("id").primaryKey(),
+  issueId: integer("issue_id").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  userId: integer("user_id"), // Optional, for when user authentication is implemented
+});
+
+// Insert schemas for issue reporting
+export const insertIssueSchema = createInsertSchema(issues).omit({
+  id: true,
+  submittedAt: true,
+  updatedAt: true,
+  status: true,
+  priority: true,
+});
+
+export const insertIssueCommentSchema = createInsertSchema(issueComments).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Issue reporting types
+export type InsertIssue = z.infer<typeof insertIssueSchema>;
+export type Issue = typeof issues.$inferSelect;
+
+export type InsertIssueComment = z.infer<typeof insertIssueCommentSchema>;
+export type IssueComment = typeof issueComments.$inferSelect;
