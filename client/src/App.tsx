@@ -23,7 +23,7 @@ import AdminAnalytics from "@/pages/admin/analytics";
 import AdminIssues from "@/pages/admin/issues";
 
 import AdminLayout from "@/components/layout/admin-layout";
-import { BugReportButton } from "@/components/issue-report";
+import { BugReportButton } from "@/components/issue-report/bug-report-button";
 
 function Router() {
   const [location] = useLocation();
@@ -46,6 +46,7 @@ function Router() {
           <Route path="/admin/team/:action" component={AdminTeam} />
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/users/:action" component={AdminUsers} />
+          <Route path="/admin/issues" component={AdminIssues} />
           <Route path="/admin/settings" component={AdminSettings} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
           <Route component={NotFound} />
@@ -79,6 +80,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router />
+      <BugReportButton />
       <Toaster />
     </QueryClientProvider>
   );
