@@ -16,6 +16,8 @@ export interface IStorage {
   getAllVirusCategories(): Promise<VirusCategory[]>;
   getVirusCategory(id: number): Promise<VirusCategory | undefined>;
   createVirusCategory(category: InsertVirusCategory): Promise<VirusCategory>;
+  updateVirusCategory(id: number, data: Partial<VirusCategory>): Promise<VirusCategory | undefined>;
+  deleteVirusCategory(id: number): Promise<boolean>;
 
   // Team member operations
   getAllTeamMembers(): Promise<TeamMember[]>;

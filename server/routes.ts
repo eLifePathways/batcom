@@ -36,6 +36,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch virus category' });
     }
   });
+  
+  // Create virus category
+  app.post('/api/virus-categories', async (req: Request, res: Response) => {
+    try {
+      const categoryData = req.body;
+      const newCategory = await storage.createVirusCategory(categoryData);
+      res.json(newCategory);
+    } catch (error) {
+      console.error('Error creating virus category:', error);
+      res.status(500).json({ message: 'Failed to create virus category' });
+    }
+  });
+  
+  // Update virus category
+  app.put('/api/virus-categories/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid virus category ID' });
+      }
+      
+      const categoryData = req.body;
+      const updatedCategory = await storage.updateVirusCategory(id, categoryData);
+      
+      if (!updatedCategory) {
+        return res.status(404).json({ message: 'Virus category not found' });
+      }
+      
+      res.json(updatedCategory);
+    } catch (error) {
+      console.error('Error updating virus category:', error);
+      res.status(500).json({ message: 'Failed to update virus category' });
+    }
+  });
+  
+  // Delete virus category
+  app.delete('/api/virus-categories/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid virus category ID' });
+      }
+      
+      const success = await storage.deleteVirusCategory(id);
+      if (!success) {
+        return res.status(404).json({ message: 'Virus category not found' });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting virus category:', error);
+      res.status(500).json({ message: 'Failed to delete virus category' });
+    }
+  });
 
   // Team Members endpoints
   app.get('/api/team-members', async (req: Request, res: Response) => {
