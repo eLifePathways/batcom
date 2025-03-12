@@ -47,6 +47,8 @@ export default function VirusCategoriesAdmin() {
   });
   
   const [selectedCategory, setSelectedCategory] = useState<VirusCategory | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   
   // Get virus categories query
   const { data: virusCategories, isLoading } = useQuery<VirusCategory[]>({
@@ -97,6 +99,7 @@ export default function VirusCategoriesAdmin() {
         description: "Virus category added successfully",
       });
       resetFormData();
+      setAddDialogOpen(false);
     },
     onError: (error) => {
       toast({
@@ -125,6 +128,7 @@ export default function VirusCategoriesAdmin() {
       });
       setSelectedCategory(null);
       resetFormData();
+      setEditDialogOpen(false);
     },
     onError: (error) => {
       toast({
@@ -202,13 +206,17 @@ export default function VirusCategoriesAdmin() {
           </div>
           
           {/* Add Virus Category Dialog */}
-          <Dialog onOpenChange={(open) => {
-            // Reset form data and selected category when opening the Add dialog
-            if (open) {
-              resetFormData();
-              setSelectedCategory(null);
-            }
-          }}>
+          <Dialog 
+            open={addDialogOpen} 
+            onOpenChange={(open) => {
+              setAddDialogOpen(open);
+              // Reset form data and selected category when opening the Add dialog
+              if (open) {
+                resetFormData();
+                setSelectedCategory(null);
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
@@ -255,11 +263,9 @@ export default function VirusCategoriesAdmin() {
                 />
                 
                 <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="submit" disabled={addVirusCategory.isPending || updateVirusCategory.isPending}>
-                      {addVirusCategory.isPending || updateVirusCategory.isPending ? "Saving..." : "Save Category"}
-                    </Button>
-                  </DialogClose>
+                  <Button type="submit" disabled={addVirusCategory.isPending || updateVirusCategory.isPending}>
+                    {addVirusCategory.isPending || updateVirusCategory.isPending ? "Saving..." : "Save Category"}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -317,11 +323,15 @@ export default function VirusCategoriesAdmin() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {/* Edit Dialog */}
-                      <Dialog onOpenChange={(open) => {
-                        if (open) {
-                          loadCategoryData(category);
-                        }
-                      }}>
+                      <Dialog 
+                        open={editDialogOpen && selectedCategory?.id === category.id}
+                        onOpenChange={(open) => {
+                          setEditDialogOpen(open);
+                          if (open) {
+                            loadCategoryData(category);
+                          }
+                        }}
+                      >
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
@@ -368,11 +378,9 @@ export default function VirusCategoriesAdmin() {
                             />
                             
                             <DialogFooter>
-                              <DialogClose asChild>
-                                <Button type="submit" disabled={updateVirusCategory.isPending}>
-                                  {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
-                                </Button>
-                              </DialogClose>
+                              <Button type="submit" disabled={updateVirusCategory.isPending}>
+                                {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
+                              </Button>
                             </DialogFooter>
                           </form>
                         </DialogContent>
