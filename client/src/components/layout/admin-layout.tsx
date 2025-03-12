@@ -75,6 +75,12 @@ const AdminSidebar = () => {
       active: location === "/admin/analytics" || location.startsWith("/admin/analytics/"),
     },
     {
+      href: "/admin/graphql",
+      label: "GraphQL API",
+      icon: <Globe className="h-5 w-5" />,
+      active: location === "/admin/graphql" || location.startsWith("/admin/graphql/"),
+    },
+    {
       href: "/admin/settings",
       label: "Settings",
       icon: <Settings className="h-5 w-5" />,
