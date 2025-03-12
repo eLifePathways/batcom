@@ -22,46 +22,25 @@ export default function AdminDashboard() {
     queryKey: ['/api/virus-categories'],
   });
   
-  // Get actual years from publications
-  const publishedYears = publications && Array.isArray(publications)
-    ? publications.map(pub => typeof pub.year === 'number' ? pub.year : parseInt(String(pub.year)))
+  // Prepare data for publications by year chart - using real database values
+  const publicationsByYear = publications && Array.isArray(publications) 
+    ? Object.entries(
+        publications.reduce((acc: Record<string, number>, pub: any) => {
+          // Ensure we're working with numeric year values
+          const year = typeof pub.year === 'number' ? pub.year.toString() : String(pub.year);
+          acc[year] = (acc[year] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      )
+      .map(([year, count]) => ({ 
+        year: year,  // Keep year as string for display
+        count: count // Actual count from database
+      }))
+      .sort((a, b) => parseInt(a.year) - parseInt(b.year)) 
     : [];
-  
-  // Create more realistic publication data distribution for the chart
-  // This is for visualization purposes only - doesn't affect the actual database
-  const augmentedPublicationData = [
-    { year: "2000", count: 3 },
-    { year: "2001", count: 1 },
-    { year: "2002", count: 2 },
-    { year: "2003", count: 1 },
-    { year: "2004", count: 3 },
-    { year: "2005", count: 4 },
-    { year: "2006", count: 2 },
-    { year: "2007", count: 2 },
-    { year: "2008", count: 2 },
-    { year: "2009", count: 3 },
-    { year: "2010", count: 4 },
-    { year: "2011", count: 3 },
-    { year: "2012", count: 5 },
-    { year: "2013", count: 6 },
-    { year: "2014", count: 7 },
-    { year: "2015", count: 5 },
-    { year: "2016", count: 8 },
-    { year: "2017", count: 8 },
-    { year: "2018", count: 10 },
-    { year: "2019", count: 9 },
-    { year: "2020", count: 12 },
-    { year: "2021", count: 15 },
-    { year: "2022", count: 18 },
-    { year: "2023", count: 22 },
-    { year: "2024", count: 8 }
-  ];
-  
-  // For the actual database data we collected
-  console.log('Actual publication years in database:', publishedYears);
-  
-  // Use the augmented data for visualization
-  const publicationsByYear = augmentedPublicationData;
+    
+  // Log the actual data we're using for the chart
+  console.log('Publication chart data (from database):', publicationsByYear);
   
   // Stats cards data
   const statsCards = [
