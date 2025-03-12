@@ -1,4 +1,5 @@
 import { client } from './db';
+import { sql } from 'drizzle-orm';
 
 /**
  * Script to update the issue_comments table with new columns
@@ -11,7 +12,7 @@ export async function updateIssueCommentsSchema() {
     const authorColumnExists = await checkColumnExists('issue_comments', 'author');
     if (!authorColumnExists) {
       console.log('Adding author column to issue_comments table...');
-      await client.query(`
+      await client.execute(sql`
         ALTER TABLE issue_comments 
         ADD COLUMN author TEXT DEFAULT 'Admin'
       `);
@@ -24,7 +25,7 @@ export async function updateIssueCommentsSchema() {
     const isInternalColumnExists = await checkColumnExists('issue_comments', 'is_internal');
     if (!isInternalColumnExists) {
       console.log('Adding is_internal column to issue_comments table...');
-      await client.query(`
+      await client.execute(sql`
         ALTER TABLE issue_comments 
         ADD COLUMN is_internal BOOLEAN DEFAULT false
       `);
@@ -39,14 +40,14 @@ export async function updateIssueCommentsSchema() {
     
     if (commentColumnExists && !contentColumnExists) {
       console.log('Renaming comment column to content in issue_comments table...');
-      await client.query(`
+      await client.execute(sql`
         ALTER TABLE issue_comments 
         RENAME COLUMN comment TO content
       `);
       console.log('Successfully renamed comment column to content');
     } else if (!contentColumnExists) {
       console.log('Adding content column to issue_comments table...');
-      await client.query(`
+      await client.execute(sql`
         ALTER TABLE issue_comments 
         ADD COLUMN content TEXT
       `);
@@ -67,16 +68,16 @@ export async function updateIssueCommentsSchema() {
  */
 async function checkColumnExists(tableName: string, columnName: string): Promise<boolean> {
   try {
-    const result = await client.query(`
+    const result = await client.execute(sql`
       SELECT EXISTS (
         SELECT 1 
         FROM information_schema.columns 
-        WHERE table_name = $1 
-        AND column_name = $2
+        WHERE table_name = ${tableName}
+        AND column_name = ${columnName}
       )
-    `, [tableName, columnName]);
+    `);
     
-    return result[0].exists;
+    return result[0]?.exists ?? false;
   } catch (error) {
     console.error(`Error checking if column ${columnName} exists in table ${tableName}:`, error);
     throw error;

@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { DatabaseStorage } from "./db-storage";
 import { analyticsMiddleware } from "./analytics";
 import { spaMiddleware } from "./spa-middleware";
+import { updateIssueCommentsSchema } from "./db-migration";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -51,6 +52,15 @@ app.use((req, res, next) => {
     if (process.env.DATABASE_URL) {
       console.log("Initializing database...");
       await initDatabase();
+      
+      // Run migration scripts to update database schema
+      try {
+        console.log("Running database migrations...");
+        await updateIssueCommentsSchema();
+      } catch (migrationError) {
+        console.error("Error during database migration:", migrationError);
+        // Continue with server startup even if migrations fail
+      }
       
       // If we're using PostgreSQL storage, initialize sample data
       if (storage instanceof DatabaseStorage) {
