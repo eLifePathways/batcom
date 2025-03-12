@@ -29,6 +29,30 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
+    const existingUser = await this.getUser(id);
+    if (!existingUser) {
+      return undefined;
+    }
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    return result.count > 0;
+  }
+
   // Virus category operations
   async getAllVirusCategories(): Promise<VirusCategory[]> {
     return await db.select().from(virusCategories);
