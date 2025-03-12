@@ -234,9 +234,8 @@ export default function VirusCategoriesAdmin() {
   };
   
   return (
-    <div>
-      <AdminNav />
-      <div className="p-8">
+    <div className="space-y-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Virus Categories</h1>

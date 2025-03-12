@@ -293,447 +293,448 @@ export default function PublicationsAdmin() {
   };
   
   return (
-    <>
-      <AdminNav />
-      <div className="p-8">
+    <div className="space-y-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-8">
           <div>
-          <h1 className="text-3xl font-bold">Publications</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Manage research publications and articles.
-          </p>
+            <h1 className="text-3xl font-bold">Publications</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">
+              Manage research publications and articles.
+            </p>
+          </div>
+          
+          {/* Add Publication Dialog */}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add Publication
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Add New Publication</DialogTitle>
+                <DialogDescription>
+                  Add details about a research publication related to bat viruses.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title *</Label>
+                  <Input 
+                    id="title" 
+                    name="title" 
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="Publication title"
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="authors">Authors *</Label>
+                    <Input 
+                      id="authors" 
+                      name="authors" 
+                      value={formData.authors}
+                      onChange={handleChange}
+                      placeholder="Smith J, et al."
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="year">Year *</Label>
+                    <Input 
+                      id="year" 
+                      name="year" 
+                      type="number"
+                      value={formData.year}
+                      onChange={handleChange}
+                      placeholder="2023"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="evidenceQuality">Evidence Quality *</Label>
+                    <Select 
+                      value={formData.evidenceQuality} 
+                      onValueChange={(value) => handleSelectChange("evidenceQuality", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select quality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="evidenceType">Evidence Type *</Label>
+                    <Select 
+                      value={formData.evidenceType} 
+                      onValueChange={(value) => handleSelectChange("evidenceType", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="infection">Infection</SelectItem>
+                        <SelectItem value="spillover">Spillover</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="virusCategoryId">Virus Category *</Label>
+                    <Select 
+                      value={formData.virusCategoryId?.toString()} 
+                      onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select virus category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {virusCategories?.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="region">Region *</Label>
+                    <Input 
+                      id="region" 
+                      name="region" 
+                      value={formData.region}
+                      onChange={handleChange}
+                      placeholder="Asia, Africa, Global, etc."
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="publicationDate">Publication Date *</Label>
+                    <Input 
+                      id="publicationDate" 
+                      name="publicationDate" 
+                      type="date"
+                      value={formData.publicationDate}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="link">Link</Label>
+                    <Input 
+                      id="link" 
+                      name="link" 
+                      value={formData.link}
+                      onChange={handleChange}
+                      placeholder="https://doi.org/..."
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="abstract">Abstract *</Label>
+                  <Textarea 
+                    id="abstract" 
+                    name="abstract" 
+                    value={formData.abstract}
+                    onChange={handleChange}
+                    placeholder="Publication abstract"
+                    rows={5}
+                    required
+                  />
+                </div>
+                
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="submit" disabled={addPublication.isPending || updatePublication.isPending}>
+                      {addPublication.isPending || updatePublication.isPending ? "Saving..." : "Save Publication"}
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
-        
-        {/* Add Publication Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Publication
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Add New Publication</DialogTitle>
-              <DialogDescription>
-                Add details about a research publication related to bat viruses.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input 
-                  id="title" 
-                  name="title" 
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="Publication title"
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="authors">Authors *</Label>
-                  <Input 
-                    id="authors" 
-                    name="authors" 
-                    value={formData.authors}
-                    onChange={handleChange}
-                    placeholder="Smith J, et al."
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="year">Year *</Label>
-                  <Input 
-                    id="year" 
-                    name="year" 
-                    type="number"
-                    value={formData.year}
-                    onChange={handleChange}
-                    placeholder="2023"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="evidenceQuality">Evidence Quality *</Label>
-                  <Select 
-                    value={formData.evidenceQuality} 
-                    onValueChange={(value) => handleSelectChange("evidenceQuality", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select quality" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="evidenceType">Evidence Type *</Label>
-                  <Select 
-                    value={formData.evidenceType} 
-                    onValueChange={(value) => handleSelectChange("evidenceType", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="infection">Infection</SelectItem>
-                      <SelectItem value="spillover">Spillover</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="virusCategoryId">Virus Category *</Label>
-                  <Select 
-                    value={formData.virusCategoryId?.toString()} 
-                    onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select virus category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {virusCategories?.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="region">Region *</Label>
-                  <Input 
-                    id="region" 
-                    name="region" 
-                    value={formData.region}
-                    onChange={handleChange}
-                    placeholder="Asia, Africa, Global, etc."
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="publicationDate">Publication Date *</Label>
-                  <Input 
-                    id="publicationDate" 
-                    name="publicationDate" 
-                    type="date"
-                    value={formData.publicationDate}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="link">Link</Label>
-                  <Input 
-                    id="link" 
-                    name="link" 
-                    value={formData.link}
-                    onChange={handleChange}
-                    placeholder="https://doi.org/..."
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="abstract">Abstract *</Label>
-                <Textarea 
-                  id="abstract" 
-                  name="abstract" 
-                  value={formData.abstract}
-                  onChange={handleChange}
-                  placeholder="Publication abstract"
-                  rows={5}
-                  required
-                />
-              </div>
-              
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="submit" disabled={addPublication.isPending || updatePublication.isPending}>
-                    {addPublication.isPending || updatePublication.isPending ? "Saving..." : "Save Publication"}
-                  </Button>
-                </DialogClose>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
       
       {/* Publications Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Authors</TableHead>
-              <TableHead>Year</TableHead>
-              <TableHead>Virus Category</TableHead>
-              <TableHead>Quality</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && (
-              Array(5).fill(0).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-[80px]" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
-                </TableRow>
-              ))
-            )}
-            
-            {!isLoading && publications?.length === 0 && (
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  No publications found. Add your first publication to get started.
-                </TableCell>
+                <TableHead>Title</TableHead>
+                <TableHead>Authors</TableHead>
+                <TableHead>Year</TableHead>
+                <TableHead>Virus Category</TableHead>
+                <TableHead>Quality</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            )}
-            
-            {!isLoading && [...(publications || [])].sort((a, b) => a.id - b.id).map((publication) => (
-              <TableRow key={publication.id}>
-                <TableCell className="font-medium max-w-[300px] truncate">
-                  {publication.title}
-                </TableCell>
-                <TableCell className="max-w-[200px] truncate">{publication.authors}</TableCell>
-                <TableCell>{publication.year}</TableCell>
-                <TableCell>{getVirusCategoryName(publication.virusCategoryId)}</TableCell>
-                <TableCell>
-                  <Badge className={getQualityBadgeColor(publication.evidenceQuality)}>
-                    {publication.evidenceQuality}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {/* External Link */}
-                    {publication.link && (
-                      <a 
-                        href={publication.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                    
-                    {/* Edit Dialog */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => loadPublicationData(publication)}
+            </TableHeader>
+            <TableBody>
+              {isLoading && (
+                Array(5).fill(0).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-[80px]" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
+                  </TableRow>
+                ))
+              )}
+              
+              {!isLoading && publications?.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    No publications found. Add your first publication to get started.
+                  </TableCell>
+                </TableRow>
+              )}
+              
+              {!isLoading && [...(publications || [])].sort((a, b) => a.id - b.id).map((publication) => (
+                <TableRow key={publication.id}>
+                  <TableCell className="font-medium max-w-[300px] truncate">
+                    {publication.title}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate">{publication.authors}</TableCell>
+                  <TableCell>{publication.year}</TableCell>
+                  <TableCell>{getVirusCategoryName(publication.virusCategoryId)}</TableCell>
+                  <TableCell>
+                    <Badge className={getQualityBadgeColor(publication.evidenceQuality)}>
+                      {publication.evidenceQuality}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {/* External Link */}
+                      {publication.link && (
+                        <a 
+                          href={publication.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                         >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-3xl">
-                        <DialogHeader>
-                          <DialogTitle>Edit Publication</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-title">Title *</Label>
-                            <Input 
-                              id="edit-title" 
-                              name="title" 
-                              value={formData.title}
-                              onChange={handleChange}
-                              required
-                            />
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      )}
+                      
+                      {/* Edit Dialog */}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => loadPublicationData(publication)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                          <DialogHeader>
+                            <DialogTitle>Edit Publication</DialogTitle>
+                          </DialogHeader>
+                          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                             <div className="space-y-2">
-                              <Label htmlFor="edit-authors">Authors *</Label>
+                              <Label htmlFor="edit-title">Title *</Label>
                               <Input 
-                                id="edit-authors" 
-                                name="authors" 
-                                value={formData.authors}
+                                id="edit-title" 
+                                name="title" 
+                                value={formData.title}
                                 onChange={handleChange}
                                 required
                               />
                             </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-authors">Authors *</Label>
+                                <Input 
+                                  id="edit-authors" 
+                                  name="authors" 
+                                  value={formData.authors}
+                                  onChange={handleChange}
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-year">Year *</Label>
+                                <Input 
+                                  id="edit-year" 
+                                  name="year" 
+                                  type="number"
+                                  value={formData.year}
+                                  onChange={handleChange}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-evidenceQuality">Evidence Quality *</Label>
+                                <Select 
+                                  value={formData.evidenceQuality} 
+                                  onValueChange={(value) => handleSelectChange("evidenceQuality", value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select quality" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="high">High</SelectItem>
+                                    <SelectItem value="medium">Medium</SelectItem>
+                                    <SelectItem value="low">Low</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-evidenceType">Evidence Type *</Label>
+                                <Select 
+                                  value={formData.evidenceType} 
+                                  onValueChange={(value) => handleSelectChange("evidenceType", value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="infection">Infection</SelectItem>
+                                    <SelectItem value="spillover">Spillover</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-virusCategoryId">Virus Category *</Label>
+                                <Select 
+                                  value={formData.virusCategoryId?.toString()} 
+                                  onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select virus category" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {virusCategories?.map((category) => (
+                                      <SelectItem key={category.id} value={category.id.toString()}>
+                                        {category.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-region">Region *</Label>
+                                <Input 
+                                  id="edit-region" 
+                                  name="region" 
+                                  value={formData.region}
+                                  onChange={handleChange}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-publicationDate">Publication Date *</Label>
+                                <Input 
+                                  id="edit-publicationDate" 
+                                  name="publicationDate" 
+                                  type="date"
+                                  value={formData.publicationDate}
+                                  onChange={handleChange}
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="edit-link">Link</Label>
+                                <Input 
+                                  id="edit-link" 
+                                  name="link" 
+                                  value={formData.link}
+                                  onChange={handleChange}
+                                  placeholder="https://doi.org/..."
+                                />
+                              </div>
+                            </div>
+                            
                             <div className="space-y-2">
-                              <Label htmlFor="edit-year">Year *</Label>
-                              <Input 
-                                id="edit-year" 
-                                name="year" 
-                                type="number"
-                                value={formData.year}
+                              <Label htmlFor="edit-abstract">Abstract *</Label>
+                              <Textarea 
+                                id="edit-abstract" 
+                                name="abstract" 
+                                value={formData.abstract}
                                 onChange={handleChange}
+                                rows={5}
                                 required
                               />
                             </div>
+                            
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button type="submit" disabled={updatePublication.isPending}>
+                                  {updatePublication.isPending ? "Saving..." : "Save Changes"}
+                                </Button>
+                              </DialogClose>
+                            </DialogFooter>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                      
+                      {/* Delete Dialog */}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Delete Publication</DialogTitle>
+                          </DialogHeader>
+                          <div className="py-4">
+                            <p>Are you sure you want to delete <span className="font-semibold">{publication.title}</span>?</p>
+                            <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
                           </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-evidenceQuality">Evidence Quality *</Label>
-                              <Select 
-                                value={formData.evidenceQuality} 
-                                onValueChange={(value) => handleSelectChange("evidenceQuality", value)}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select quality" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="high">High</SelectItem>
-                                  <SelectItem value="medium">Medium</SelectItem>
-                                  <SelectItem value="low">Low</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-evidenceType">Evidence Type *</Label>
-                              <Select 
-                                value={formData.evidenceType} 
-                                onValueChange={(value) => handleSelectChange("evidenceType", value)}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="infection">Infection</SelectItem>
-                                  <SelectItem value="spillover">Spillover</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-virusCategoryId">Virus Category *</Label>
-                              <Select 
-                                value={formData.virusCategoryId?.toString()} 
-                                onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select virus category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {virusCategories?.map((category) => (
-                                    <SelectItem key={category.id} value={category.id.toString()}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-region">Region *</Label>
-                              <Input 
-                                id="edit-region" 
-                                name="region" 
-                                value={formData.region}
-                                onChange={handleChange}
-                                required
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-publicationDate">Publication Date *</Label>
-                              <Input 
-                                id="edit-publicationDate" 
-                                name="publicationDate" 
-                                type="date"
-                                value={formData.publicationDate}
-                                onChange={handleChange}
-                                required
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-link">Link</Label>
-                              <Input 
-                                id="edit-link" 
-                                name="link" 
-                                value={formData.link}
-                                onChange={handleChange}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-abstract">Abstract *</Label>
-                            <Textarea 
-                              id="edit-abstract" 
-                              name="abstract" 
-                              value={formData.abstract}
-                              onChange={handleChange}
-                              rows={5}
-                              required
-                            />
-                          </div>
-                          
                           <DialogFooter>
                             <DialogClose asChild>
-                              <Button type="submit" disabled={updatePublication.isPending}>
-                                {updatePublication.isPending ? "Saving..." : "Save Changes"}
+                              <Button 
+                                variant="destructive" 
+                                onClick={() => deletePublication.mutate(publication.id)}
+                                disabled={deletePublication.isPending}
+                              >
+                                {deletePublication.isPending ? "Deleting..." : "Delete"}
                               </Button>
                             </DialogClose>
                           </DialogFooter>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
-                    
-                    {/* Delete Dialog */}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Delete Publication</DialogTitle>
-                        </DialogHeader>
-                        <div className="py-4">
-                          <p>Are you sure you want to delete:</p>
-                          <p className="font-semibold mt-2">{publication.title}</p>
-                          <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
-                        </div>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button 
-                              variant="destructive" 
-                              onClick={() => deletePublication.mutate(publication.id)}
-                              disabled={deletePublication.isPending}
-                            >
-                              {deletePublication.isPending ? "Deleting..." : "Delete"}
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
-    </>
   );
 }
