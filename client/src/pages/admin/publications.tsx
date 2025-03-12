@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
-import { Link, useParams, useLocation } from "wouter";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import AdminNav from "@/components/admin/admin-nav";
 import {
   Table,
   TableBody,
@@ -34,8 +32,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash } from "lucide-react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import AdminLayout from "@/components/layout/admin-layout";
 
 type VirusCategory = {
   id: number;
@@ -58,83 +67,164 @@ type Publication = {
   link?: string;
 };
 
+const formSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  authors: z.string().min(3, "Authors must be at least 3 characters"),
+  year: z.coerce.number().min(1900).max(new Date().getFullYear()),
+  abstract: z.string().min(10, "Abstract must be at least 10 characters"),
+  evidenceQuality: z.enum(["high", "medium", "low"]),
+  evidenceType: z.enum(["infection", "spillover"]),
+  virusCategoryId: z.coerce.number().min(1, "Please select a virus category"),
+  region: z.string().min(2, "Region must be at least 2 characters"),
+  publicationDate: z.string(),
+  link: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+});
+
 export default function PublicationsAdmin() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  // Get URL query parameters
-  const [location] = useLocation();
-  const searchParams = new URLSearchParams(location.split('?')[1]);
-  const action = searchParams.get('action');
-  
-  // State to control dialog visibility
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(action === "new");
-  
-  // Get path parameters
-  const params = useParams();
-  
-  // Form data state
-  const [formData, setFormData] = useState<Partial<Publication>>({
-    title: "",
-    authors: "",
-    year: new Date().getFullYear(),
-    abstract: "",
-    evidenceQuality: "medium",
-    evidenceType: "infection",
-    virusCategoryId: 0,
-    region: "",
-    publicationDate: new Date().toISOString().split('T')[0],
-    link: ""
-  });
-  
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPublication, setSelectedPublication] = useState<Publication | null>(null);
   
-  // Get publications query
-  const { data: publications, isLoading } = useQuery<Publication[]>({
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  const { data: publications, isLoading: isLoadingPublications } = useQuery({
     queryKey: ['/api/publications'],
   });
   
-  // Get virus categories for select dropdown
-  const { data: virusCategories } = useQuery<VirusCategory[]>({
+  const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['/api/virus-categories'],
   });
   
-  // Reset form data
-  const resetFormData = () => {
-    setFormData({
+  const addForm = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
       title: "",
       authors: "",
       year: new Date().getFullYear(),
       abstract: "",
       evidenceQuality: "medium",
-      evidenceType: "infection",
+      evidenceType: "spillover",
       virusCategoryId: 0,
       region: "",
       publicationDate: new Date().toISOString().split('T')[0],
-      link: ""
-    });
-  };
+      link: "",
+    },
+  });
   
-  // Form change handler
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "year" || name === "virusCategoryId" ? parseInt(value) : value
-    }));
+  const editForm = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      authors: "",
+      year: new Date().getFullYear(),
+      abstract: "",
+      evidenceQuality: "medium",
+      evidenceType: "spillover",
+      virusCategoryId: 0,
+      region: "",
+      publicationDate: new Date().toISOString().split('T')[0],
+      link: "",
+    },
+  });
+
+  const createPublication = useMutation({
+    mutationFn: async (data: z.infer<typeof formSchema>) => {
+      return apiRequest('/api/publications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
+      setIsAddDialogOpen(false);
+      addForm.reset();
+      toast({
+        title: "Publication created",
+        description: "The publication has been added successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error creating publication:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create publication. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePublication = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: z.infer<typeof formSchema> }) => {
+      return apiRequest(`/api/publications/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
+      setIsEditDialogOpen(false);
+      setSelectedPublication(null);
+      toast({
+        title: "Publication updated",
+        description: "The publication has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating publication:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update publication. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePublication = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/publications/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
+      setIsDeleteDialogOpen(false);
+      setSelectedPublication(null);
+      toast({
+        title: "Publication deleted",
+        description: "The publication has been deleted successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting publication:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete publication. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onAddSubmit = (data: z.infer<typeof formSchema>) => {
+    createPublication.mutate(data);
   };
-  
-  // Select change handler
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "virusCategoryId" ? parseInt(value) : value
-    }));
+
+  const onEditSubmit = (data: z.infer<typeof formSchema>) => {
+    if (selectedPublication) {
+      updatePublication.mutate({ id: selectedPublication.id, data });
+    }
   };
-  
-  // Load publication data for edit form
+
   const loadPublicationData = (publication: Publication) => {
     setSelectedPublication(publication);
-    setFormData({
+    editForm.reset({
       title: publication.title,
       authors: publication.authors,
       year: publication.year,
@@ -144,597 +234,577 @@ export default function PublicationsAdmin() {
       virusCategoryId: publication.virusCategoryId,
       region: publication.region,
       publicationDate: publication.publicationDate,
-      link: publication.link || ""
+      link: publication.link || "",
     });
+    setIsEditDialogOpen(true);
   };
-  
-  // Add publication mutation
-  const addPublication = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest('/api/publications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
-      toast({
-        title: "Success",
-        description: "Publication added successfully",
-      });
-      resetFormData();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to add publication",
-        variant: "destructive",
-      });
-      console.error("Error adding publication:", error);
-    },
-  });
-  
-  // Update publication mutation
-  const updatePublication = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest(`/api/publications/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
-      toast({
-        title: "Success",
-        description: "Publication updated successfully",
-      });
-      setSelectedPublication(null);
-      resetFormData();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update publication",
-        variant: "destructive",
-      });
-      console.error("Error updating publication:", error);
-    },
-  });
-  
-  // Delete publication mutation
-  const deletePublication = useMutation({
-    mutationFn: async (id: number) => {
-      return apiRequest(`/api/publications/${id}`, {
-        method: 'DELETE'
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
-      toast({
-        title: "Success",
-        description: "Publication deleted successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete publication",
-        variant: "destructive",
-      });
-      console.error("Error deleting publication:", error);
-    },
-  });
-  
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validation
-    if (!formData.title || !formData.authors || !formData.year || !formData.abstract || !formData.region) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.virusCategoryId) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a virus category",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Prepare data for submission
-    const data = {
-      title: formData.title,
-      authors: formData.authors,
-      year: formData.year,
-      abstract: formData.abstract,
-      evidenceQuality: formData.evidenceQuality,
-      evidenceType: formData.evidenceType,
-      virusCategoryId: formData.virusCategoryId,
-      region: formData.region,
-      publicationDate: formData.publicationDate,
-      link: formData.link
-    };
-    
-    // Update or add
-    if (selectedPublication) {
-      updatePublication.mutate({ id: selectedPublication.id, data });
-    } else {
-      addPublication.mutate(data);
-    }
-  };
-  
-  // Get virus category name by ID
-  const getVirusCategoryName = (id: number) => {
-    const category = virusCategories?.find(c => c.id === id);
+
+  const getCategoryName = (id: number) => {
+    const category = categories?.find((cat: VirusCategory) => cat.id === id);
     return category ? category.name : "Unknown";
   };
-  
-  // Get quality badge color
-  const getQualityBadgeColor = (quality: string) => {
-    switch (quality) {
-      case "high":
-        return "bg-green-100 text-green-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-  
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Publications</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Manage research publications and articles.
-            </p>
-          </div>
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Publications</h1>
           
-          {/* Add Publication Dialog */}
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Publication
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl">
-              <DialogHeader>
-                <DialogTitle>Add New Publication</DialogTitle>
-                <DialogDescription>
-                  Add details about a research publication related to bat viruses.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
-                  <Input 
-                    id="title" 
-                    name="title" 
-                    value={formData.title}
-                    onChange={handleChange}
-                    placeholder="Publication title"
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="authors">Authors *</Label>
-                    <Input 
-                      id="authors" 
-                      name="authors" 
-                      value={formData.authors}
-                      onChange={handleChange}
-                      placeholder="Smith J, et al."
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Year *</Label>
-                    <Input 
-                      id="year" 
-                      name="year" 
-                      type="number"
-                      value={formData.year}
-                      onChange={handleChange}
-                      placeholder="2023"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="evidenceQuality">Evidence Quality *</Label>
-                    <Select 
-                      value={formData.evidenceQuality} 
-                      onValueChange={(value) => handleSelectChange("evidenceQuality", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select quality" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="evidenceType">Evidence Type *</Label>
-                    <Select 
-                      value={formData.evidenceType} 
-                      onValueChange={(value) => handleSelectChange("evidenceType", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="infection">Infection</SelectItem>
-                        <SelectItem value="spillover">Spillover</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="virusCategoryId">Virus Category *</Label>
-                    <Select 
-                      value={formData.virusCategoryId?.toString()} 
-                      onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select virus category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {virusCategories?.map((category) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="region">Region *</Label>
-                    <Input 
-                      id="region" 
-                      name="region" 
-                      value={formData.region}
-                      onChange={handleChange}
-                      placeholder="Asia, Africa, Global, etc."
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="publicationDate">Publication Date *</Label>
-                    <Input 
-                      id="publicationDate" 
-                      name="publicationDate" 
-                      type="date"
-                      value={formData.publicationDate}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="link">Link</Label>
-                    <Input 
-                      id="link" 
-                      name="link" 
-                      value={formData.link}
-                      onChange={handleChange}
-                      placeholder="https://doi.org/..."
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="abstract">Abstract *</Label>
-                  <Textarea 
-                    id="abstract" 
-                    name="abstract" 
-                    value={formData.abstract}
-                    onChange={handleChange}
-                    placeholder="Publication abstract"
-                    rows={5}
-                    required
-                  />
-                </div>
-                
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="submit" disabled={addPublication.isPending || updatePublication.isPending}>
-                      {addPublication.isPending || updatePublication.isPending ? "Saving..." : "Save Publication"}
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Publication
+          </Button>
         </div>
-      </div>
-      
-      {/* Publications Table */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Authors</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Virus Category</TableHead>
-                <TableHead>Quality</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                Array(5).fill(0).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-[80px]" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-[100px] ml-auto" /></TableCell>
-                  </TableRow>
-                ))
-              )}
-              
-              {!isLoading && publications?.length === 0 && (
+        
+        {isLoadingPublications ? (
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                    No publications found. Add your first publication to get started.
-                  </TableCell>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Authors</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Evidence Quality</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              )}
-              
-              {!isLoading && [...(publications || [])].sort((a, b) => a.id - b.id).map((publication) => (
-                <TableRow key={publication.id}>
-                  <TableCell className="font-medium max-w-[300px] truncate">
-                    {publication.title}
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate">{publication.authors}</TableCell>
-                  <TableCell>{publication.year}</TableCell>
-                  <TableCell>{getVirusCategoryName(publication.virusCategoryId)}</TableCell>
-                  <TableCell>
-                    <Badge className={getQualityBadgeColor(publication.evidenceQuality)}>
-                      {publication.evidenceQuality}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {/* External Link */}
-                      {publication.link && (
-                        <a 
-                          href={publication.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              </TableHeader>
+              <TableBody>
+                {publications?.map((publication: Publication) => (
+                  <TableRow key={publication.id}>
+                    <TableCell className="font-medium">{publication.title}</TableCell>
+                    <TableCell>{publication.authors}</TableCell>
+                    <TableCell>{publication.year}</TableCell>
+                    <TableCell>{getCategoryName(publication.virusCategoryId)}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          publication.evidenceQuality === 'high'
+                            ? 'bg-green-100 text-green-800'
+                            : publication.evidenceQuality === 'medium'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {publication.evidenceQuality.charAt(0).toUpperCase() + publication.evidenceQuality.slice(1)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => loadPublicationData(publication)}
                         >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
-                      
-                      {/* Edit Dialog */}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => loadPublicationData(publication)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-3xl">
-                          <DialogHeader>
-                            <DialogTitle>Edit Publication</DialogTitle>
-                          </DialogHeader>
-                          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-title">Title *</Label>
-                              <Input 
-                                id="edit-title" 
-                                name="title" 
-                                value={formData.title}
-                                onChange={handleChange}
-                                required
-                              />
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-authors">Authors *</Label>
-                                <Input 
-                                  id="edit-authors" 
-                                  name="authors" 
-                                  value={formData.authors}
-                                  onChange={handleChange}
-                                  required
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-year">Year *</Label>
-                                <Input 
-                                  id="edit-year" 
-                                  name="year" 
-                                  type="number"
-                                  value={formData.year}
-                                  onChange={handleChange}
-                                  required
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-evidenceQuality">Evidence Quality *</Label>
-                                <Select 
-                                  value={formData.evidenceQuality} 
-                                  onValueChange={(value) => handleSelectChange("evidenceQuality", value)}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select quality" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="high">High</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="low">Low</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-evidenceType">Evidence Type *</Label>
-                                <Select 
-                                  value={formData.evidenceType} 
-                                  onValueChange={(value) => handleSelectChange("evidenceType", value)}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="infection">Infection</SelectItem>
-                                    <SelectItem value="spillover">Spillover</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-virusCategoryId">Virus Category *</Label>
-                                <Select 
-                                  value={formData.virusCategoryId?.toString()} 
-                                  onValueChange={(value) => handleSelectChange("virusCategoryId", value)}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select virus category" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {virusCategories?.map((category) => (
-                                      <SelectItem key={category.id} value={category.id.toString()}>
-                                        {category.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-region">Region *</Label>
-                                <Input 
-                                  id="edit-region" 
-                                  name="region" 
-                                  value={formData.region}
-                                  onChange={handleChange}
-                                  required
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-publicationDate">Publication Date *</Label>
-                                <Input 
-                                  id="edit-publicationDate" 
-                                  name="publicationDate" 
-                                  type="date"
-                                  value={formData.publicationDate}
-                                  onChange={handleChange}
-                                  required
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-link">Link</Label>
-                                <Input 
-                                  id="edit-link" 
-                                  name="link" 
-                                  value={formData.link}
-                                  onChange={handleChange}
-                                  placeholder="https://doi.org/..."
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-abstract">Abstract *</Label>
-                              <Textarea 
-                                id="edit-abstract" 
-                                name="abstract" 
-                                value={formData.abstract}
-                                onChange={handleChange}
-                                rows={5}
-                                required
-                              />
-                            </div>
-                            
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        
+                        <Dialog open={isDeleteDialogOpen && selectedPublication?.id === publication.id} onOpenChange={(open) => !open && setSelectedPublication(null)}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => {
+                                setSelectedPublication(publication);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete Publication</DialogTitle>
+                              <DialogDescription>
+                                Are you sure you want to delete "{publication.title}"? This action cannot be undone.
+                              </DialogDescription>
+                            </DialogHeader>
                             <DialogFooter>
                               <DialogClose asChild>
-                                <Button type="submit" disabled={updatePublication.isPending}>
-                                  {updatePublication.isPending ? "Saving..." : "Save Changes"}
+                                <Button variant="outline">Cancel</Button>
+                              </DialogClose>
+                              <DialogClose asChild>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => deletePublication.mutate(publication.id)}
+                                  disabled={deletePublication.isPending}
+                                >
+                                  {deletePublication.isPending ? "Deleting..." : "Delete"}
                                 </Button>
                               </DialogClose>
                             </DialogFooter>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                      
-                      {/* Delete Dialog */}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Delete Publication</DialogTitle>
-                          </DialogHeader>
-                          <div className="py-4">
-                            <p>Are you sure you want to delete <span className="font-semibold">{publication.title}</span>?</p>
-                            <p className="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
-                          </div>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button 
-                                variant="destructive" 
-                                onClick={() => deletePublication.mutate(publication.id)}
-                                disabled={deletePublication.isPending}
-                              >
-                                {deletePublication.isPending ? "Deleting..." : "Delete"}
-                              </Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        
+        {/* Add Publication Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Publication</DialogTitle>
+              <DialogDescription>
+                Fill in the details to add a new publication to the database.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...addForm}>
+              <form onSubmit={addForm.handleSubmit(onAddSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={addForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="authors"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Authors</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="year"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Year</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={1900}
+                            max={new Date().getFullYear()}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="virusCategoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Virus Category</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value.toString()}
+                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories?.map((category: VirusCategory) => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={category.id.toString()}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="evidenceQuality"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Evidence Quality</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="high">High</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="low">Low</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="evidenceType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Evidence Type</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="infection">Infection</SelectItem>
+                              <SelectItem value="spillover">Spillover</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="region"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Region</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="publicationDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Publication Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="link"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Link (Optional)</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={addForm.control}
+                  name="abstract"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Abstract</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createPublication.isPending}
+                  >
+                    {createPublication.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Publication"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Publication Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) setSelectedPublication(null);
+        }}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Publication</DialogTitle>
+              <DialogDescription>
+                Update the details of this publication.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="authors"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Authors</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="year"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Year</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={1900}
+                            max={new Date().getFullYear()}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="virusCategoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Virus Category</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value.toString()}
+                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories?.map((category: VirusCategory) => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={category.id.toString()}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="evidenceQuality"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Evidence Quality</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="high">High</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="low">Low</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="evidenceType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Evidence Type</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="infection">Infection</SelectItem>
+                              <SelectItem value="spillover">Spillover</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="region"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Region</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="publicationDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Publication Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={editForm.control}
+                    name="link"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Link (Optional)</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={editForm.control}
+                  name="abstract"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Abstract</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updatePublication.isPending}
+                  >
+                    {updatePublication.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Publication"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
