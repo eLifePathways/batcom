@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 // Default queries to show if schema introspection fails
 const defaultQueries = [
   {
-    name: "Schema Introspection",
+    name: "🔍 GraphQL Schema Structure",
     query: `
 query IntrospectionQuery {
   __schema {
@@ -51,7 +51,7 @@ query IntrospectionQuery {
     description: "Introspects the schema structure of the GraphQL API."
   },
   {
-    name: "Get Types",
+    name: "🔍 GraphQL Type Definitions",
     query: `
 query GetTypes {
   __schema {
@@ -70,7 +70,7 @@ query GetTypes {
     description: "Lists all available types in the GraphQL schema."
   },
   {
-    name: "Last Manuscript",
+    name: "📄 Latest Manuscript",
     query: `
 query LastManuscript {
   paginatedManuscripts(first: 1) {
@@ -100,7 +100,7 @@ query LastManuscript {
     description: "Fetches the latest manuscript from the database."
   },
   {
-    name: "Manuscripts By Status",
+    name: "📋 Filter Manuscripts by Status",
     query: `
 query ManuscriptsByStatus($status: String!) {
   paginatedManuscripts(first: 5, filter: { status: $status }) {
@@ -128,7 +128,7 @@ query ManuscriptsByStatus($status: String!) {
     description: "Fetches manuscripts filtered by submission status."
   },
   {
-    name: "Manuscript Details",
+    name: "📝 Detailed Manuscript View",
     query: `
 query ManuscriptDetails($id: ID!) {
   manuscript(id: $id) {
@@ -607,28 +607,46 @@ export default function GraphQLAdmin() {
                   
                   <Separator />
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="predefinedQuery">Available Queries</Label>
-                    <Select 
-                      value={selectedQueryIndex.toString()} 
-                      onValueChange={handleQuerySelection}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a query" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dynamicQueries.map((q: DynamicQuery, index: number) => (
-                          <SelectItem key={index} value={index.toString()}>
-                            {q.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {dynamicQueries[selectedQueryIndex]?.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {dynamicQueries[selectedQueryIndex].description}
-                      </p>
-                    )}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="predefinedQuery">Available Example Queries</Label>
+                      <Select 
+                        value={selectedQueryIndex.toString()} 
+                        onValueChange={handleQuerySelection}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a query" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dynamicQueries.map((q: DynamicQuery, index: number) => (
+                            <SelectItem key={index} value={index.toString()}>
+                              {q.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {dynamicQueries[selectedQueryIndex]?.description && (
+                        <p className="text-sm text-muted-foreground">
+                          {dynamicQueries[selectedQueryIndex].description}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <Button 
+                        variant="secondary" 
+                        onClick={executeQuery} 
+                        disabled={isLoading || !endpoint}
+                        className="w-full"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Running example query...
+                          </>
+                        ) : "Run Selected Example Query"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 
