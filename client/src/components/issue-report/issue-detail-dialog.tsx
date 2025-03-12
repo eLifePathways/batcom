@@ -422,7 +422,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
             </TabsContent>
             
             <TabsContent value="screenshot" className="mt-3">
-              {issue.screenshot ? (
+              {issue.screenshotUrl ? (
                 <Card>
                   <CardHeader className="py-2 px-3">
                     <CardTitle className="text-sm flex items-center">
@@ -433,13 +433,13 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                   <CardContent className="pt-1 pb-3 px-3">
                     <div className="relative h-[300px] mb-3 border rounded overflow-hidden">
                       <img 
-                        src={issue.screenshot} 
+                        src={issue.screenshotUrl} 
                         alt="Screenshot" 
                         className="w-full h-full object-contain" 
                       />
                     </div>
                     <Button variant="outline" asChild size="sm" className="w-full">
-                      <a href={issue.screenshot} target="_blank" rel="noopener noreferrer">
+                      <a href={issue.screenshotUrl} target="_blank" rel="noopener noreferrer">
                         <ImageIcon className="h-3 w-3 mr-1" />
                         View Full Size in New Tab
                       </a>
