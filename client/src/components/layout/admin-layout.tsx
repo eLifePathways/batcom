@@ -9,7 +9,8 @@ import {
   Bug, 
   Settings, 
   BarChart,
-  ArrowLeft
+  ArrowLeft,
+  UserCog
 } from "lucide-react";
 
 const AdminSidebar = () => {
@@ -20,7 +21,7 @@ const AdminSidebar = () => {
       href: "/admin",
       label: "Dashboard",
       icon: <Home className="h-5 w-5" />,
-      active: location === "/admin",
+      active: location === "/admin" || location === "/admin/",
     },
     {
       href: "/admin/team",
@@ -47,16 +48,22 @@ const AdminSidebar = () => {
       active: location === "/admin/background-papers" || location.startsWith("/admin/background-papers/"),
     },
     {
+      href: "/admin/users",
+      label: "User Management",
+      icon: <UserCog className="h-5 w-5" />,
+      active: location === "/admin/users" || location.startsWith("/admin/users/"),
+    },
+    {
       href: "/admin/analytics",
       label: "Analytics",
       icon: <BarChart className="h-5 w-5" />,
-      active: location === "/admin/analytics",
+      active: location === "/admin/analytics" || location.startsWith("/admin/analytics/"),
     },
     {
       href: "/admin/settings",
       label: "Settings",
       icon: <Settings className="h-5 w-5" />,
-      active: location === "/admin/settings",
+      active: location === "/admin/settings" || location.startsWith("/admin/settings/"),
     },
   ];
 
