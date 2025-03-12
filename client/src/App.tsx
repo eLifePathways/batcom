@@ -30,8 +30,13 @@ function Router() {
         <Route path="/admin" component={AdminPage} />
         <Route path="/admin/team" component={AdminTeam} />
         <Route path="/admin/publications" component={AdminPublications} />
+        {/* Redirect sub-routes to the main admin page for that resource */}
+        <Route path="/admin/publications/:action" component={AdminPublications} />
         <Route path="/admin/background-papers" component={AdminBackgroundPapers} />
+        <Route path="/admin/background-papers/:action" component={AdminBackgroundPapers} />
         <Route path="/admin/virus-categories" component={AdminVirusCategories} />
+        <Route path="/admin/virus-categories/:action" component={AdminVirusCategories} />
+        <Route path="/admin/team/:action" component={AdminTeam} />
         <Route path="/admin/settings" component={AdminSettings} />
         <Route component={NotFound} />
       </Switch>
