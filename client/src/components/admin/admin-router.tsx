@@ -11,18 +11,10 @@ export default function AdminRouter() {
     if (isAdminRoute || isExactAdminRoute) {
       console.log('Admin router handling admin route:', location);
       
-      // For admin routes, we want to ensure the admin layout is applied
-      // and the correct component is rendered
-      
-      // This is a no-op navigation that forces a re-render while keeping the URL the same
-      // It helps ensure the router picks up the route correctly after a direct page load
-      const currentPath = location;
-      window.setTimeout(() => {
-        navigate(currentPath, { replace: true });
-        console.log('Admin router navigation complete');
-      }, 0);
+      // We only want to match the admin routes pattern and apply the correct layout
+      // The Router component will handle the actual navigation
     }
-  }, [isAdminRoute, isExactAdminRoute]);
+  }, [isAdminRoute, isExactAdminRoute, location]);
   
   return null;
 }
