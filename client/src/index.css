@@ -2,17 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Screenshot mode styling */
+/* Optimized screenshot mode styling */
 .screenshot-in-progress [role="dialog"],
 .screenshot-in-progress dialog {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-/* Ensure elements have proper colors during screenshot */
-.screenshot-in-progress * {
+/* Ensure elements have proper colors during screenshot - targeting only necessary elements */
+.screenshot-in-progress body {
   color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
+  background-color: white !important;
 }
 
 @layer base {

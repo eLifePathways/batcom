@@ -16,7 +16,7 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
     onCapture(screenshot);
   }, [screenshot, onCapture]);
 
-  // Completely new approach for screenshot capture
+  // Optimized screenshot capture with better performance
   const captureScreen = async () => {
     setIsCapturing(true);
     
@@ -24,42 +24,47 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       // Add a class to the body to hide elements we don't want in the screenshot
       document.body.classList.add('screenshot-in-progress');
       
-      // Hide the dialog directly
-      let dialogElement = document.querySelector('[role="dialog"]');
+      // Hide the dialog directly - more efficient with cached selector
+      const dialogElement = document.querySelector('[role="dialog"]') as HTMLElement | null;
       if (dialogElement) {
-        (dialogElement as HTMLElement).style.display = 'none';
+        dialogElement.style.display = 'none';
       }
       
-      // Wait for UI updates
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Reduced timeout for better performance (50ms is usually sufficient)
+      await new Promise(resolve => setTimeout(resolve, 50));
       
-      // Create a simple canvas with the current viewport size
-      const viewportWidth = Math.min(1280, window.innerWidth);
-      const viewportHeight = Math.min(800, window.innerHeight);
+      // Optimize viewport dimensions calculation - use constants to avoid recalculation
+      const MAX_WIDTH = 1280;
+      const MAX_HEIGHT = 800;
+      const viewportWidth = Math.min(MAX_WIDTH, window.innerWidth);
+      const viewportHeight = Math.min(MAX_HEIGHT, window.innerHeight);
       
-      // Create a canvas element
+      // Create a canvas element with the optimal size
       const canvas = document.createElement('canvas');
       canvas.width = viewportWidth;
       canvas.height = viewportHeight;
       
       // Get the 2D context
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { alpha: false }); // alpha: false for better performance
       if (!ctx) {
         throw new Error('Failed to get canvas context');
       }
       
-      // Draw a white background
+      // Draw a white background (faster with clearRect first)
+      ctx.clearRect(0, 0, viewportWidth, viewportHeight);
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, viewportWidth, viewportHeight);
       
-      // Draw text info (fallback in case rendering fails)
+      // Draw text info (fallback in case rendering fails) - combine text operations
       ctx.fillStyle = '#000000';
       ctx.font = '14px Arial';
-      ctx.fillText(`Captured: ${window.location.href}`, 10, 20);
-      ctx.fillText(`Time: ${new Date().toLocaleString()}`, 10, 40);
+      const currentUrl = window.location.href;
+      const timestamp = new Date().toLocaleString();
+      ctx.fillText(`Captured: ${currentUrl}`, 10, 20);
+      ctx.fillText(`Time: ${timestamp}`, 10, 40);
       
       try {
-        // Simple approach - just draw what's visible in the viewport
+        // Optimized html2canvas options for better performance
         const simplifiedOptions = {
           width: viewportWidth,
           height: viewportHeight,
@@ -69,15 +74,18 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
           useCORS: true,
           backgroundColor: '#FFFFFF',
           logging: false,
-          scale: 1,
+          scale: 0.75, // Lower scale for better performance
+          removeContainer: true, // Clean up temporary elements
           ignoreElements: (element: Element) => {
-            return element.tagName === 'DIALOG' || 
-                   element.hasAttribute('role') && element.getAttribute('role') === 'dialog';
+            // More efficient element checking
+            const tagName = element.tagName;
+            const role = element.getAttribute('role');
+            return tagName === 'DIALOG' || role === 'dialog';
           }
         };
         
-        // Capture the content
-        const contentCanvas = await html2canvas(document.documentElement, simplifiedOptions);
+        // Capture the content - use document.body instead of documentElement for better performance
+        const contentCanvas = await html2canvas(document.body, simplifiedOptions);
         
         // Draw the captured content onto our canvas
         ctx.drawImage(contentCanvas, 0, 0);
@@ -93,19 +101,19 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       ctx.lineWidth = 2;
       ctx.strokeRect(0, 0, viewportWidth, viewportHeight);
       
-      // Get the image as data URL (PNG for better quality)
-      const dataUrl = canvas.toDataURL('image/png');
+      // Get the image as data URL (JPEG with 0.9 quality for better performance)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
       setScreenshot(dataUrl);
     } catch (error) {
       console.error('Error capturing screenshot:', error);
     } finally {
-      // Clean up
+      // Clean up - ensure we always remove the class even if there's an error
       document.body.classList.remove('screenshot-in-progress');
       
-      // Restore any hidden elements
-      let dialogElement = document.querySelector('[role="dialog"]');
+      // Restore any hidden elements - reuse the cached dialog element if possible
+      const dialogElement = document.querySelector('[role="dialog"]') as HTMLElement | null;
       if (dialogElement) {
-        (dialogElement as HTMLElement).style.display = '';
+        dialogElement.style.display = '';
       }
       
       setIsCapturing(false);

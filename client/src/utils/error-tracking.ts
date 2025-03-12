@@ -1,88 +1,174 @@
 /**
- * Utility for capturing and tracking JavaScript errors
+ * Optimized utility for capturing and tracking JavaScript errors
  */
 
 const ERROR_STORAGE_KEY = 'consoleErrorLogs';
-const MAX_STORED_LOGS = 20;
+const MAX_STORED_LOGS = 20; 
+const THROTTLE_TIME = 1000; // Limit storage frequency to reduce performance impact
+
+// Throttling variables
+let lastErrorTime = 0;
+let errorQueue: string[] = [];
+let throttleTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
- * Initialize error tracking for the application
+ * Initialize error tracking for the application with performance optimizations
  */
 export function initErrorTracking() {
+  // Initialize in an async manner to not block page load
+  setTimeout(() => {
+    setupErrorHandlers();
+    console.log("Error tracking initialized");
+  }, 100);
+}
+
+// Setup error handlers in a separate function to improve code organization
+function setupErrorHandlers() {
   // Store the original console error function
   const originalConsoleError = console.error;
   
-  // Override console.error to capture errors
+  // Override console.error to capture errors with throttling
   console.error = function(...args) {
     // Call the original console.error
     originalConsoleError.apply(console, args);
     
     try {
-      // Format the error messages
-      const errorMessage = args.map(arg => {
+      // Format the error message more efficiently
+      let errorMessage = '';
+      for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
         if (arg instanceof Error) {
-          return `${arg.name}: ${arg.message}\n${arg.stack || ''}`;
+          errorMessage += `${arg.name}: ${arg.message}\n${arg.stack || ''}`;
         } else if (typeof arg === 'object') {
-          return JSON.stringify(arg, null, 2);
+          try {
+            errorMessage += JSON.stringify(arg);
+          } catch {
+            errorMessage += '[Object]';
+          }
         } else {
-          return String(arg);
+          errorMessage += String(arg);
         }
-      }).join(' ');
+        
+        if (i < args.length - 1) {
+          errorMessage += ' ';
+        }
+      }
       
-      // Store the error in localStorage with timestamp
-      storeErrorLog(`[${new Date().toISOString()}] Console Error: ${errorMessage}`);
+      // Add error to queue with timestamp
+      const timestamp = new Date().toISOString();
+      queueErrorLog(`[${timestamp}] Console Error: ${errorMessage}`);
     } catch (e) {
       // If there's an error in our error handling, log it but don't break anything
       originalConsoleError.call(console, 'Error capturing console.error:', e);
     }
   };
   
-  // Capture uncaught errors
+  // Capture uncaught errors, optimized for performance
   window.onerror = function(message, source, lineno, colno, error) {
-    const errorInfo = `[${new Date().toISOString()}] Uncaught Error: ${message}\nSource: ${source}\nLine: ${lineno}, Column: ${colno}\nStack: ${error?.stack || 'No stack available'}`;
-    storeErrorLog(errorInfo);
+    // Create a more compact error info string
+    const timestamp = new Date().toISOString();
+    const errorSource = source ? `\nSource: ${source.split('?')[0]}` : '';
+    const location = `\nLocation: ${lineno}:${colno}`;
+    const stack = error?.stack ? `\nStack: ${error.stack.split('\n').slice(0, 3).join('\n')}` : '';
+    
+    queueErrorLog(`[${timestamp}] Uncaught: ${message}${errorSource}${location}${stack}`);
     return false; // Allow default error handling to continue
   };
   
-  // Capture unhandled promise rejections
+  // Capture unhandled promise rejections with optimized handling
   window.addEventListener("unhandledrejection", function(event) {
     const reason = event.reason;
-    let errorInfo = `[${new Date().toISOString()}] Unhandled Promise Rejection: `;
+    const timestamp = new Date().toISOString();
+    let errorInfo = `[${timestamp}] Unhandled Promise: `;
     
     if (reason instanceof Error) {
-      errorInfo += `${reason.name}: ${reason.message}\n${reason.stack || ''}`;
+      errorInfo += `${reason.name}: ${reason.message}`;
+      if (reason.stack) {
+        errorInfo += `\n${reason.stack.split('\n').slice(0, 3).join('\n')}`;
+      }
+    } else if (reason === null || reason === undefined) {
+      errorInfo += 'No reason provided';
     } else if (typeof reason === 'object') {
-      errorInfo += JSON.stringify(reason, null, 2);
+      try {
+        errorInfo += JSON.stringify(reason);
+      } catch {
+        errorInfo += '[Object]';
+      }
     } else {
       errorInfo += String(reason);
     }
     
-    storeErrorLog(errorInfo);
+    queueErrorLog(errorInfo);
   });
-  
-  console.log("Error tracking initialized");
 }
 
 /**
- * Store error logs in localStorage
+ * Add error to the throttled queue
  */
-function storeErrorLog(errorLog: string) {
+function queueErrorLog(errorLog: string) {
+  const now = Date.now();
+  
+  // Add to queue
+  errorQueue.push(errorLog);
+  
+  // If we're throttling, just queue the error
+  if (now - lastErrorTime < THROTTLE_TIME) {
+    // If we don't have a timer yet, set one up
+    if (!throttleTimer) {
+      throttleTimer = setTimeout(flushErrorQueue, THROTTLE_TIME);
+    }
+    return;
+  }
+  
+  // Not throttling, process immediately
+  flushErrorQueue();
+}
+
+/**
+ * Process queued errors
+ */
+function flushErrorQueue() {
+  // Clear any existing timer
+  if (throttleTimer) {
+    clearTimeout(throttleTimer);
+    throttleTimer = null;
+  }
+  
+  // Update last error time
+  lastErrorTime = Date.now();
+  
+  // If queue is empty, nothing to do
+  if (errorQueue.length === 0) return;
+  
+  // Process all queued errors at once to reduce localStorage operations
   try {
-    // Get existing logs
     const existingLogs = getStoredErrorLogs();
     
-    // Add new log at the beginning (most recent first)
-    existingLogs.unshift(errorLog);
+    // Add all queued errors
+    for (const errorLog of errorQueue) {
+      existingLogs.unshift(errorLog);
+    }
     
-    // Limit the number of stored logs to prevent localStorage from getting too large
+    // Limit the number of stored logs
     const trimmedLogs = existingLogs.slice(0, MAX_STORED_LOGS);
     
-    // Store back to localStorage
+    // Store in a single operation
     localStorage.setItem(ERROR_STORAGE_KEY, JSON.stringify(trimmedLogs));
+    
+    // Clear the queue
+    errorQueue = [];
   } catch (e) {
     // If localStorage is not available, we can't do much
-    console.error("Failed to store error log:", e);
+    console.error("Failed to store error logs:", e);
   }
+}
+
+/**
+ * Store a single error log in localStorage (legacy support)
+ */
+function storeErrorLog(errorLog: string) {
+  // Use the queuing system for better performance
+  queueErrorLog(errorLog);
 }
 
 /**
