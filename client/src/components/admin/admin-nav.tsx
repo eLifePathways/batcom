@@ -9,7 +9,8 @@ import {
   Settings, 
   BarChart, 
   UserCog, 
-  AlertCircle 
+  AlertCircle,
+  Layout
 } from "lucide-react";
 
 export default function AdminNav() {
@@ -45,6 +46,12 @@ export default function AdminNav() {
       label: "Background Papers",
       icon: <FileText className="h-5 w-5" />,
       active: location === "/admin/background-papers" || location.startsWith("/admin/background-papers/"),
+    },
+    {
+      href: "/admin/what-we-do",
+      label: "What We Do",
+      icon: <Layout className="h-5 w-5" />,
+      active: location === "/admin/what-we-do" || location.startsWith("/admin/what-we-do/"),
     },
     {
       href: "/admin/users",

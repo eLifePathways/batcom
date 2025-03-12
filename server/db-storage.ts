@@ -435,6 +435,155 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
+  // What We Do section operations
+  async getAllWhatWeDoSections(): Promise<WhatWeDoSection[]> {
+    return await db
+      .select()
+      .from(whatWeDoSections)
+      .orderBy(whatWeDoSections.sortOrder);
+  }
+
+  async getWhatWeDoSection(id: number): Promise<WhatWeDoSection | undefined> {
+    const [section] = await db
+      .select()
+      .from(whatWeDoSections)
+      .where(eq(whatWeDoSections.id, id));
+    return section || undefined;
+  }
+  
+  async getWhatWeDoSectionBySlug(slug: string): Promise<WhatWeDoSection | undefined> {
+    const [section] = await db
+      .select()
+      .from(whatWeDoSections)
+      .where(eq(whatWeDoSections.slug, slug));
+    return section || undefined;
+  }
+  
+  async createWhatWeDoSection(section: InsertWhatWeDoSection): Promise<WhatWeDoSection> {
+    // Properly handle nullable fields
+    const sectionData = {
+      ...section,
+      subtitle: section.subtitle || null,
+      description: section.description || null,
+      imageUrl: section.imageUrl || null,
+      sortOrder: section.sortOrder || 0
+    };
+    
+    const [newSection] = await db
+      .insert(whatWeDoSections)
+      .values(sectionData)
+      .returning();
+      
+    return newSection;
+  }
+  
+  async updateWhatWeDoSection(id: number, data: Partial<WhatWeDoSection>): Promise<WhatWeDoSection | undefined> {
+    const existingSection = await this.getWhatWeDoSection(id);
+    if (!existingSection) {
+      return undefined;
+    }
+    
+    // Handle the nullable fields
+    const updateData = { ...data };
+    
+    const [updatedSection] = await db
+      .update(whatWeDoSections)
+      .set(updateData)
+      .where(eq(whatWeDoSections.id, id))
+      .returning();
+      
+    return updatedSection;
+  }
+  
+  async deleteWhatWeDoSection(id: number): Promise<boolean> {
+    // First delete all content associated with this section
+    await db
+      .delete(whatWeDoContent)
+      .where(eq(whatWeDoContent.sectionId, id));
+      
+    // Then delete the section
+    await db
+      .delete(whatWeDoSections)
+      .where(eq(whatWeDoSections.id, id));
+    
+    return true;
+  }
+  
+  // What We Do content operations
+  async getWhatWeDoContentBySection(sectionId: number): Promise<WhatWeDoContent[]> {
+    return await db
+      .select()
+      .from(whatWeDoContent)
+      .where(eq(whatWeDoContent.sectionId, sectionId))
+      .orderBy(whatWeDoContent.sortOrder);
+  }
+  
+  async getWhatWeDoContent(id: number): Promise<WhatWeDoContent | undefined> {
+    const [content] = await db
+      .select()
+      .from(whatWeDoContent)
+      .where(eq(whatWeDoContent.id, id));
+    return content || undefined;
+  }
+  
+  async createWhatWeDoContent(content: InsertWhatWeDoContent): Promise<WhatWeDoContent> {
+    // Handle nullable fields
+    const contentData = {
+      ...content,
+      title: content.title || null,
+      sortOrder: content.sortOrder || 0,
+      metadata: content.metadata || null
+    };
+    
+    const [newContent] = await db
+      .insert(whatWeDoContent)
+      .values(contentData)
+      .returning();
+      
+    return newContent;
+  }
+  
+  async updateWhatWeDoContent(id: number, data: Partial<WhatWeDoContent>): Promise<WhatWeDoContent | undefined> {
+    const existingContent = await this.getWhatWeDoContent(id);
+    if (!existingContent) {
+      return undefined;
+    }
+    
+    const [updatedContent] = await db
+      .update(whatWeDoContent)
+      .set(data)
+      .where(eq(whatWeDoContent.id, id))
+      .returning();
+      
+    return updatedContent;
+  }
+  
+  async deleteWhatWeDoContent(id: number): Promise<boolean> {
+    await db
+      .delete(whatWeDoContent)
+      .where(eq(whatWeDoContent.id, id));
+    
+    return true;
+  }
+  
+  async reorderWhatWeDoContent(sectionId: number, contentIds: number[]): Promise<WhatWeDoContent[]> {
+    // Update sort order for each content item
+    for (let i = 0; i < contentIds.length; i++) {
+      await db
+        .update(whatWeDoContent)
+        .set({ sortOrder: i })
+        .where(
+          and(
+            eq(whatWeDoContent.id, contentIds[i]),
+            eq(whatWeDoContent.sectionId, sectionId)
+          )
+        );
+    }
+    
+    // Return the reordered content
+    return this.getWhatWeDoContentBySection(sectionId);
+  }
+
   // Database initialization
   async initializeDatabase(): Promise<void> {
     console.log("Initializing database with sample data...");
@@ -687,6 +836,137 @@ export class DatabaseStorage implements IStorage {
           title: "Ecological factors influencing bat-associated rhabdoviruses",
           virusCategoryId: rhabdoviridae.id,
           link: "https://example.com/rhabdovirus-ecology"
+        });
+        
+      // Add "What We Do" sections
+      const [researchSection] = await db
+        .insert(whatWeDoSections)
+        .values({
+          title: "Research Initiatives",
+          subtitle: "Our Bat-CoV Research Initiatives",
+          description: "We study bat-borne viruses with an emphasis on understanding viral ecology, host factors, and transmission dynamics.",
+          slug: "research-initiatives",
+          imageUrl: "/assets/what-we-do/research.jpg",
+          sortOrder: 0
+        })
+        .returning();
+      
+      const [fieldSection] = await db
+        .insert(whatWeDoSections)
+        .values({
+          title: "Field Work",
+          subtitle: "Bat Population Sampling & Monitoring",
+          description: "Our field teams collect samples from bat populations across multiple continents to track viral prevalence and diversity.",
+          slug: "field-work",
+          imageUrl: "/assets/what-we-do/field-work.jpg",
+          sortOrder: 1
+        })
+        .returning();
+      
+      const [labSection] = await db
+        .insert(whatWeDoSections)
+        .values({
+          title: "Laboratory Analysis",
+          subtitle: "State-of-the-art Diagnostic Capabilities",
+          description: "We employ cutting-edge molecular techniques to identify and characterize novel viruses.",
+          slug: "laboratory-analysis",
+          imageUrl: "/assets/what-we-do/lab-analysis.jpg",
+          sortOrder: 2
+        })
+        .returning();
+      
+      const [modelingSection] = await db
+        .insert(whatWeDoSections)
+        .values({
+          title: "Epidemic Modeling",
+          subtitle: "Predicting Spillover Events",
+          description: "We develop computational models to predict viral spillover events and identify high-risk areas.",
+          slug: "epidemic-modeling",
+          imageUrl: "/assets/what-we-do/modeling.jpg",
+          sortOrder: 3
+        })
+        .returning();
+      
+      const [capacitySection] = await db
+        .insert(whatWeDoSections)
+        .values({
+          title: "Capacity Building",
+          subtitle: "Training the Next Generation",
+          description: "We train researchers and public health professionals in low and middle-income countries to enhance global surveillance capacity.",
+          slug: "capacity-building",
+          imageUrl: "/assets/what-we-do/capacity-building.jpg",
+          sortOrder: 4
+        })
+        .returning();
+      
+      // Add content for Research Initiatives section
+      await db
+        .insert(whatWeDoContent)
+        .values({
+          sectionId: researchSection.id,
+          title: "Viral Discovery Program",
+          contentType: "text",
+          content: "Our viral discovery program focuses on identifying novel coronaviruses and other bat-borne viruses with pandemic potential. Using metagenomic sequencing approaches, we have characterized dozens of previously unknown viral species.",
+          sortOrder: 0
+        });
+      
+      await db
+        .insert(whatWeDoContent)
+        .values({
+          sectionId: researchSection.id,
+          title: "Host-Pathogen Interactions",
+          contentType: "text",
+          content: "We study the molecular mechanisms that allow bats to harbor viruses without developing disease. Understanding these immune adaptations may provide insights for human therapeutics.",
+          sortOrder: 1
+        });
+      
+      await db
+        .insert(whatWeDoContent)
+        .values({
+          sectionId: researchSection.id,
+          title: "Ecological Monitoring",
+          contentType: "image",
+          content: "/assets/what-we-do/ecological-monitoring.jpg",
+          metadata: JSON.stringify({
+            caption: "Our team setting up acoustic monitors to track bat population movements in Southeast Asia.",
+            altText: "Researchers installing bat acoustic monitoring equipment"
+          }),
+          sortOrder: 2
+        });
+      
+      // Add content for Field Work section
+      await db
+        .insert(whatWeDoContent)
+        .values({
+          sectionId: fieldSection.id,
+          title: "Global Study Sites",
+          contentType: "text",
+          content: "We operate field sites in over 20 countries across Asia, Africa, and Latin America. These sites represent diverse ecological settings where bat-human interfaces occur frequently.",
+          sortOrder: 0
+        });
+      
+      await db
+        .insert(whatWeDoContent)
+        .values({
+          sectionId: fieldSection.id,
+          title: "Sampling Methods",
+          contentType: "image",
+          content: "/assets/what-we-do/bat-sampling.jpg",
+          metadata: JSON.stringify({
+            caption: "Our team collecting samples from a cave-dwelling bat colony in Uganda.",
+            altText: "Researchers in PPE collecting bat samples"
+          }),
+          sortOrder: 1
+        });
+      
+      await db
+        .insert(whatWeDoContent)
+        .values({
+          sectionId: fieldSection.id,
+          title: "Community Engagement",
+          contentType: "text",
+          content: "We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.",
+          sortOrder: 2
         });
 
       console.log("Sample data successfully inserted.");
