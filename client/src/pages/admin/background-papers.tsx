@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AdminNav from "@/components/admin/admin-nav";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Table,
   TableBody,
@@ -296,28 +297,25 @@ export default function BackgroundPapersAdmin() {
                   </Select>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="link">Resource Link</Label>
-                    <Input 
-                      id="link" 
-                      name="link" 
-                      value={formData.link}
-                      onChange={handleChange}
-                      placeholder="https://example.com/paper.pdf"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="imageUrl">Image URL</Label>
-                    <Input 
-                      id="imageUrl" 
-                      name="imageUrl" 
-                      value={formData.imageUrl}
-                      onChange={handleChange}
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="link">Resource Link</Label>
+                  <Input 
+                    id="link" 
+                    name="link" 
+                    value={formData.link}
+                    onChange={handleChange}
+                    placeholder="https://example.com/paper.pdf"
+                  />
                 </div>
+                
+                <ImageUpload
+                  currentImageUrl={formData.imageUrl}
+                  onImageUploaded={(imageUrl) => {
+                    setFormData(prev => ({ ...prev, imageUrl }));
+                  }}
+                  label="Paper Image"
+                  description="Upload an image for this background paper (PNG, JPG up to 5MB)"
+                />
                 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
