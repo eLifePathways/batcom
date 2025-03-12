@@ -498,7 +498,7 @@ export default function PublicationsAdmin() {
               </TableRow>
             )}
             
-            {!isLoading && publications?.map((publication) => (
+            {!isLoading && [...(publications || [])].sort((a, b) => a.id - b.id).map((publication) => (
               <TableRow key={publication.id}>
                 <TableCell className="font-medium max-w-[300px] truncate">
                   {publication.title}

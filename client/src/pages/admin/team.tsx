@@ -382,7 +382,7 @@ export default function TeamMembersAdmin() {
                 </TableRow>
               )}
               
-              {!isLoading && teamMembers?.map((member) => (
+              {!isLoading && [...(teamMembers || [])].sort((a, b) => a.id - b.id).map((member) => (
                 <TableRow key={member.id}>
                   <TableCell>
                     {member.imageUrl ? (

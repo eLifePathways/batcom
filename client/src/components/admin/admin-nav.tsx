@@ -49,18 +49,18 @@ export default function AdminNav() {
       <div className="container mx-auto px-4">
         <nav className="flex items-center space-x-4 overflow-x-auto py-4">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <a
-                className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                  item.active
-                    ? "bg-primary/10 text-primary"
-                    : "text-gray-600 hover:text-primary hover:bg-primary/5 dark:text-gray-300 dark:hover:text-primary"
-                )}
-              >
-                {item.icon}
-                <span className="ml-2">{item.label}</span>
-              </a>
+            <Link 
+              key={item.href} 
+              href={item.href} 
+              className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                item.active
+                  ? "bg-primary/10 text-primary"
+                  : "text-gray-600 hover:text-primary hover:bg-primary/5 dark:text-gray-300 dark:hover:text-primary"
+              )}
+            >
+              {item.icon}
+              <span className="ml-2">{item.label}</span>
             </Link>
           ))}
         </nav>

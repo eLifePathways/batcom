@@ -305,7 +305,7 @@ export default function VirusCategoriesAdmin() {
                 </TableRow>
               )}
               
-              {!isLoading && virusCategories?.map((category) => (
+              {!isLoading && [...(virusCategories || [])].sort((a, b) => a.id - b.id).map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>
                     {category.imageUrl ? (

@@ -383,7 +383,7 @@ export default function BackgroundPapersAdmin() {
                 </TableRow>
               )}
               
-              {!isLoading && backgroundPapers?.map((paper) => (
+              {!isLoading && [...(backgroundPapers || [])].sort((a, b) => a.id - b.id).map((paper) => (
                 <TableRow key={paper.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
