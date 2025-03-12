@@ -40,16 +40,16 @@ export const getVisitorStats = async (req: Request, res: Response) => {
     
     // Get data grouped by day
     const dailyStats = await db.select({
-      date: sql<string>`date_trunc('day', ${pageViews.timestamp})::date::text`,
+      date: sql<string>`date_trunc('day', ${pageViews.visitedAt})::date::text`,
       pageViews: count(pageViews.id),
       uniqueSessionIds: sql<number>`count(distinct ${pageViews.sessionId})`
     })
     .from(pageViews)
     .where(
-      sql`${pageViews.timestamp} >= ${startDate.toISOString()}`
+      sql`${pageViews.visitedAt} >= ${startDate.toISOString()}`
     )
-    .groupBy(sql`date_trunc('day', ${pageViews.timestamp})::date::text`)
-    .orderBy(sql`date_trunc('day', ${pageViews.timestamp})::date::text`);
+    .groupBy(sql`date_trunc('day', ${pageViews.visitedAt})::date::text`)
+    .orderBy(sql`date_trunc('day', ${pageViews.visitedAt})::date::text`);
     
     // Format the response to include visitors, pageViews, and sessions
     const formattedStats = dailyStats.map(day => ({
@@ -115,14 +115,15 @@ export const getDeviceDistribution = async (req: Request, res: Response) => {
     // Get unique session IDs first to avoid counting the same device multiple times
     const uniqueSessions = await db.select({
       sessionId: sessions.id,
-      userAgent: sessions.userAgent
+      deviceType: sessions.deviceType,
+      browser: sessions.browser
     })
     .from(sessions)
     .where(
-      sql`${sessions.createdAt} >= ${startDate.toISOString()}`
+      sql`${sessions.startedAt} >= ${startDate.toISOString()}`
     );
     
-    // Parse user agents and count device types
+    // Count device types from the session table
     const deviceCounts: Record<string, number> = { 
       Desktop: 0, 
       Mobile: 0, 
@@ -131,20 +132,14 @@ export const getDeviceDistribution = async (req: Request, res: Response) => {
     };
     
     uniqueSessions.forEach(session => {
-      if (session.userAgent) {
-        const parser = new UAParser(session.userAgent);
-        const device = parser.getDevice();
-        
-        if (device.type === 'mobile') {
-          deviceCounts.Mobile++;
-        } else if (device.type === 'tablet') {
-          deviceCounts.Tablet++;
-        } else if (!device.type || device.type === 'desktop') {
-          // If no device type or specifically desktop
-          deviceCounts.Desktop++;
-        } else {
-          deviceCounts.Other++;
-        }
+      const deviceType = session.deviceType?.toLowerCase() || '';
+      
+      if (deviceType === 'mobile') {
+        deviceCounts.Mobile++;
+      } else if (deviceType === 'tablet') {
+        deviceCounts.Tablet++;
+      } else if (deviceType === 'desktop') {
+        deviceCounts.Desktop++;
       } else {
         deviceCounts.Other++;
       }
@@ -186,14 +181,15 @@ export const getTrafficSources = async (req: Request, res: Response) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysToLookBack);
     
-    // Get unique session IDs with referrer info
+    // Get unique session IDs with source info
     const uniqueSessions = await db.select({
       sessionId: sessions.id,
-      referrer: sessions.referrer
+      source: sessions.source,
+      sourceDetail: sessions.sourceDetail
     })
     .from(sessions)
     .where(
-      sql`${sessions.createdAt} >= ${startDate.toISOString()}`
+      sql`${sessions.startedAt} >= ${startDate.toISOString()}`
     );
     
     // Categorize referrers
@@ -215,16 +211,17 @@ export const getTrafficSources = async (req: Request, res: Response) => {
     ];
     
     uniqueSessions.forEach(session => {
-      const referrer = session.referrer?.toLowerCase() || '';
+      const source = session.source?.toLowerCase() || '';
+      const sourceDetail = session.sourceDetail?.toLowerCase() || '';
       
-      if (!referrer) {
+      if (source === 'direct') {
         sourceCounts.Direct++;
-      } else if (searchEngines.some(engine => referrer.includes(engine))) {
+      } else if (source === 'organic') {
         sourceCounts['Organic Search']++;
-      } else if (socialPlatforms.some(platform => referrer.includes(platform))) {
-        sourceCounts.Social++;
-      } else if (referrer.startsWith('http')) {
+      } else if (source === 'referral') {
         sourceCounts.Referral++;
+      } else if (source === 'social') {
+        sourceCounts.Social++;
       } else {
         sourceCounts.Other++;
       }
@@ -274,7 +271,7 @@ export const getPopularPages = async (req: Request, res: Response) => {
     })
     .from(pageViews)
     .where(
-      sql`${pageViews.timestamp} >= ${startDate.toISOString()}`
+      sql`${pageViews.visitedAt} >= ${startDate.toISOString()}`
     )
     .groupBy(pageViews.path)
     .orderBy(desc(count(pageViews.id)))
@@ -286,7 +283,7 @@ export const getPopularPages = async (req: Request, res: Response) => {
     })
     .from(sessions)
     .where(
-      sql`${sessions.createdAt} >= ${startDate.toISOString()}`
+      sql`${sessions.startedAt} >= ${startDate.toISOString()}`
     );
     
     // Map paths to more user-friendly titles

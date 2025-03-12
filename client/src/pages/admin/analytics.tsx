@@ -102,25 +102,25 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 export default function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState("7days");
   
-  // These will be implemented with real API endpoints when available
+  // Fetch real data from API endpoints
   const { data: visitorData, isLoading: isVisitorDataLoading } = useQuery({
     queryKey: ['/api/analytics/visitors', timeRange],
-    queryFn: () => mockVisitorData, // Will be replaced with apiRequest
+    queryFn: () => apiRequest(`/api/analytics/visitors?timeRange=${timeRange}`),
   });
   
   const { data: deviceData, isLoading: isDeviceDataLoading } = useQuery({
     queryKey: ['/api/analytics/devices', timeRange],
-    queryFn: () => mockDeviceData, // Will be replaced with apiRequest
+    queryFn: () => apiRequest(`/api/analytics/devices?timeRange=${timeRange}`),
   });
   
   const { data: sourceData, isLoading: isSourceDataLoading } = useQuery({
     queryKey: ['/api/analytics/sources', timeRange],
-    queryFn: () => mockSourceData, // Will be replaced with apiRequest
+    queryFn: () => apiRequest(`/api/analytics/sources?timeRange=${timeRange}`),
   });
   
   const { data: popularPagesData, isLoading: isPopularPagesLoading } = useQuery({
     queryKey: ['/api/analytics/popular-pages', timeRange],
-    queryFn: () => mockPopularPagesData, // Will be replaced with apiRequest
+    queryFn: () => apiRequest(`/api/analytics/popular-pages?timeRange=${timeRange}`),
   });
 
   const handleTimeRangeChange = (value: string) => {
