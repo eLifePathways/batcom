@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AdminLayout from "@/components/layout/admin-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -90,11 +89,12 @@ export default function GraphQLAdmin() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // Reset response and error when changing tabs
-  useEffect(() => {
+  // Handle tab changes - clear previous responses
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
     setResponse(null);
     setError(null);
-  }, [activeTab]);
+  };
 
   // Form for API configuration
   const configForm = useForm<z.infer<typeof graphqlConfigSchema>>({
@@ -121,7 +121,7 @@ export default function GraphQLAdmin() {
       title: "API Configuration Saved",
       description: "Your GraphQL API endpoint has been configured.",
     });
-    setActiveTab("query");
+    handleTabChange("query");
   };
 
   // Handle query selection
@@ -140,7 +140,7 @@ export default function GraphQLAdmin() {
         description: "Please configure the GraphQL API endpoint first.",
         variant: "destructive",
       });
-      setActiveTab("connection");
+      handleTabChange("connection");
       return;
     }
 
@@ -201,7 +201,7 @@ export default function GraphQLAdmin() {
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">GraphQL API Explorer</h1>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList>
             <TabsTrigger value="connection">API Configuration</TabsTrigger>
             <TabsTrigger value="query" disabled={!endpoint}>Query Explorer</TabsTrigger>
