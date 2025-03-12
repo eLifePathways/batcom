@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -39,6 +40,11 @@ export default function VirusCategoriesAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Get URL query parameters
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1]);
+  const action = searchParams.get('action');
+  
   // Form data state
   const [formData, setFormData] = useState<Partial<VirusCategory>>({
     name: "",
@@ -47,7 +53,7 @@ export default function VirusCategoriesAdmin() {
   });
   
   const [selectedCategory, setSelectedCategory] = useState<VirusCategory | null>(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(action === 'new');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
