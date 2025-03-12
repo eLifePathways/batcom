@@ -673,12 +673,26 @@ export default function WhatWeDoAdmin() {
 
   // Form handlers
   const handleCreateSection = (data: any) => {
-    createSectionMutation.mutate(data);
+    console.log('Creating section with data:', data);
+    // Ensure that required fields are always set 
+    const sectionData = {
+      ...data,
+      title: data.title?.trim() || '',
+      slug: data.slug?.trim() || ''
+    };
+    createSectionMutation.mutate(sectionData);
   };
 
   const handleUpdateSection = (data: any) => {
     if (editingSection) {
-      updateSectionMutation.mutate({ id: editingSection.id, data });
+      console.log('Updating section with data:', data);
+      // Ensure that required fields are always set
+      const sectionData = {
+        ...data,
+        title: data.title?.trim() || '',
+        slug: data.slug?.trim() || ''
+      };
+      updateSectionMutation.mutate({ id: editingSection.id, data: sectionData });
     }
   };
 
