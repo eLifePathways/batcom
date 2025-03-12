@@ -5,6 +5,7 @@ import { initDatabase } from "./db";
 import { storage } from "./storage";
 import { DatabaseStorage } from "./db-storage";
 import { analyticsMiddleware } from "./analytics";
+import { spaMiddleware } from "./spa-middleware";
 import cookieParser from "cookie-parser";
 
 const app = express();
