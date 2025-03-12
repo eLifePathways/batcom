@@ -123,7 +123,13 @@ export default function TeamMembersAdmin() {
   // Update team member mutation
   const updateTeamMember = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest('PUT', `/api/team-members/${id}`, data);
+      return apiRequest(`/api/team-members/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
@@ -148,7 +154,9 @@ export default function TeamMembersAdmin() {
   // Delete team member mutation
   const deleteTeamMember = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/team-members/${id}`);
+      return apiRequest<any>(`/api/team-members/${id}`, {
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
