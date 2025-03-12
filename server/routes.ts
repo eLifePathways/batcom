@@ -3,6 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { upload, handleUploadErrors, getUploadedFileUrl } from "./upload";
+import { 
+  getVisitorStats,
+  getDeviceDistribution,
+  getTrafficSources,
+  getPopularPages
+} from "./analytics-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes
@@ -425,6 +431,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: true, message: 'Server error during file upload' });
     }
   });
+
+  // Analytics endpoints
+  app.get('/api/analytics/visitors', getVisitorStats);
+  app.get('/api/analytics/devices', getDeviceDistribution);
+  app.get('/api/analytics/sources', getTrafficSources);
+  app.get('/api/analytics/popular-pages', getPopularPages);
 
   const httpServer = createServer(app);
   return httpServer;
