@@ -10,32 +10,17 @@ import { Loader2, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
-// Predefined queries
+// Predefined queries for Kotahi GraphQL API
 const predefinedQueries = [
   {
-    name: "List Manuscripts",
-    query: `
-query {
-  manuscripts {
-    edges {
-      node {
-        id
-        title
-        status
-      }
-    }
-  }
-}`,
-    variables: "{}"
-  },
-  {
-    name: "User Profile",
+    name: "Current User",
     query: `
 query {
   currentUser {
     id
     username
     email
+    admin
     defaultIdentity {
       id
       name
@@ -46,17 +31,85 @@ query {
     variables: "{}"
   },
   {
-    name: "Journal Details",
+    name: "List Submissions",
+    query: `
+query GetSubmissions {
+  manuscripts {
+    edges {
+      node {
+        id
+        meta {
+          title
+          articleType
+          stage
+        }
+        submission {
+          id
+          status
+          createdAt
+        }
+      }
+    }
+  }
+}`,
+    variables: "{}"
+  },
+  {
+    name: "Journal Configuration",
     query: `
 query {
-  journal {
-    id
-    name
-    description
-    manuscriptTypes {
+  config {
+    journal {
+      name
+      theme {
+        logo
+        footerLogo
+        primaryColor
+        headerColorText
+      }
+    }
+    teams {
       id
       name
-      description
+      role
+    }
+  }
+}`,
+    variables: "{}"
+  },
+  {
+    name: "Manuscript Types",
+    query: `
+query {
+  manuscriptTypes {
+    id
+    name
+    count
+  }
+}`,
+    variables: "{}"
+  },
+  {
+    name: "List Reviews",
+    query: `
+query {
+  reviews {
+    edges {
+      node {
+        id
+        recommendation
+        status
+        user {
+          id
+          username
+        }
+        manuscript {
+          id
+          meta {
+            title
+          }
+        }
+      }
     }
   }
 }`,
