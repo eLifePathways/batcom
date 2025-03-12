@@ -22,6 +22,7 @@ import AdminSettings from "@/pages/admin/settings";
 import AdminAnalytics from "@/pages/admin/analytics";
 import AdminIssues from "@/pages/admin/issues-new";
 import AdminWhatWeDo from "@/pages/admin/what-we-do";
+import AdminGraphQL from "@/pages/admin/graphql";
 
 import AdminLayout from "@/components/layout/admin-layout";
 import { BugReportButton } from "@/components/issue-report";
@@ -51,6 +52,7 @@ function Router() {
           <Route path="/admin/what-we-do" component={AdminWhatWeDo} />
           <Route path="/admin/settings" component={AdminSettings} />
           <Route path="/admin/analytics" component={AdminAnalytics} />
+          <Route path="/admin/graphql" component={AdminGraphQL} />
           <Route path="/admin/*" component={AdminPage} />
           <Route component={NotFound} />
         </Switch>

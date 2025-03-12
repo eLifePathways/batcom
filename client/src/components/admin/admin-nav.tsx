@@ -10,7 +10,8 @@ import {
   BarChart, 
   UserCog, 
   AlertCircle,
-  Layout
+  Layout,
+  Globe
 } from "lucide-react";
 
 export default function AdminNav() {
@@ -52,6 +53,12 @@ export default function AdminNav() {
       label: "What We Do",
       icon: <Layout className="h-5 w-5" />,
       active: location === "/admin/what-we-do" || location.startsWith("/admin/what-we-do/"),
+    },
+    {
+      href: "/admin/graphql",
+      label: "GraphQL API",
+      icon: <Globe className="h-5 w-5" />,
+      active: location === "/admin/graphql" || location.startsWith("/admin/graphql/"),
     },
     {
       href: "/admin/users",

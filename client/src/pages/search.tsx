@@ -107,7 +107,7 @@ const Search = () => {
                     evidenceQuality={publication.evidenceQuality as "high" | "medium" | "low"}
                     virusCategory={getCategoryNameById(publication.virusCategoryId)}
                     region={publication.region}
-                    link={publication.link}
+                    link={publication.link || undefined}
                   />
                 ))}
               </div>
