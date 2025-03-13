@@ -19,6 +19,7 @@ export const teamMembers = pgTable("team_members", {
   email: text("email"),
   website: text("website"),
   socialMedia: text("social_media"),
+  sortOrder: integer("sort_order").default(0),
 });
 
 export const publications = pgTable("publications", {

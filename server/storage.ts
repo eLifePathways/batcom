@@ -32,6 +32,7 @@ export interface IStorage {
   createTeamMember(member: InsertTeamMember): Promise<TeamMember>;
   updateTeamMember(id: number, data: Partial<TeamMember>): Promise<TeamMember | undefined>;
   deleteTeamMember(id: number): Promise<boolean>;
+  reorderTeamMembers(memberIds: number[]): Promise<TeamMember[]>;
 
   // Publication operations
   getAllPublications(): Promise<Publication[]>;
