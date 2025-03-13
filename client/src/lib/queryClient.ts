@@ -117,9 +117,12 @@ class LRUCache<T> {
     const now = Date.now();
     let removed = 0;
     
-    for (const key of this.cache.keys()) {
-      const item = this.cache.get(key)!;
-      if (now - item.timestamp > this.ttl) {
+    // Convert keys to an array to avoid iterator issues
+    const keys = Array.from(this.cache.keys());
+    
+    for (const key of keys) {
+      const item = this.cache.get(key);
+      if (item && now - item.timestamp > this.ttl) {
         this.delete(key);
         removed++;
       }
@@ -133,10 +136,11 @@ class LRUCache<T> {
    */
   private evictOldest(count: number): void {
     let evicted = 0;
-    // Get first N items from keysByAge (oldest first)
-    for (const key of this.keysByAge) {
-      if (evicted >= count) break;
-      this.delete(key);
+    // Convert to array to avoid iterator issues
+    const keys = Array.from(this.keysByAge);
+    
+    for (let i = 0; i < Math.min(count, keys.length); i++) {
+      this.delete(keys[i]);
       evicted++;
     }
   }
@@ -147,9 +151,14 @@ class LRUCache<T> {
   stats(): { size: number; totalSize: number; oldestTimestamp: number | null } {
     let oldestTimestamp: number | null = null;
     
+    // Safely get the oldest timestamp
     if (this.keysByAge.size > 0) {
-      const oldestKey = this.keysByAge.values().next().value;
-      oldestTimestamp = this.cache.get(oldestKey)?.timestamp || null;
+      const keys = Array.from(this.keysByAge);
+      if (keys.length > 0) {
+        const oldestKey = keys[0];
+        const item = this.cache.get(oldestKey);
+        oldestTimestamp = item ? item.timestamp : null;
+      }
     }
     
     return {
@@ -199,12 +208,14 @@ export async function apiRequest<T = any>(
   const cacheKey = `${method}:${url}`;
   
   // Add headers for all requests if Content-Type not already set
-  if (!options.headers?.['Content-Type'] && 
-      !(options.body instanceof FormData)) { // Don't set for FormData
-    options.headers = {
-      ...options.headers,
-      'Content-Type': 'application/json',
-    };
+  if (!(options.body instanceof FormData)) { // Don't set for FormData
+    const currentHeaders = options.headers as Record<string, string> || {};
+    if (!currentHeaders['Content-Type']) {
+      options.headers = {
+        ...currentHeaders,
+        'Content-Type': 'application/json',
+      };
+    }
   }
 
   // Only log in development mode to reduce console clutter in production

@@ -76,61 +76,37 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
           const visibleHeight = Math.min(window.innerHeight, document.documentElement.clientHeight);
           const visibleWidth = Math.min(window.innerWidth, document.documentElement.clientWidth);
           
-          // Optimized html2canvas options
+          // Simple html2canvas options that will work reliably
           const captureOptions = {
-            width: viewportWidth,
-            height: viewportHeight,
-            x: window.scrollX,
-            y: window.scrollY,
             allowTaint: true,
-            useCORS: false, // Avoid CORS for better performance
-            backgroundColor: getComputedStyle(document.body).backgroundColor || '#FFFFFF',
+            useCORS: true,
             logging: false,
-            scale: 1.0, // Already scaled by our custom logic
-            removeContainer: true,
-            foreignObjectRendering: false,
-            imageTimeout: 1500, // Reduced timeout for better performance
             ignoreElements: (element: Element) => {
-              // Quick element filtering
-              const nodeName = element.nodeName.toUpperCase();
-              
-              // Skip non-visual elements
-              if (nodeName === 'SCRIPT' || 
-                  nodeName === 'STYLE' || 
-                  nodeName === 'META' || 
-                  nodeName === 'LINK' ||
-                  nodeName === 'NOSCRIPT') {
+              // Skip dialog elements to avoid capturing the bug report form itself
+              if (element.nodeName === 'DIALOG' || 
+                  element.getAttribute('role') === 'dialog' ||
+                  element.id === 'toast-container') {
                 return true;
               }
               
-              // Check for hidden elements or offscreen elements
-              if (element instanceof HTMLElement) {
-                // Skip already hidden elements
-                if (element.style.display === 'none' || 
-                    element.style.visibility === 'hidden' ||
-                    element.style.opacity === '0') {
-                  return true;
-                }
-                
-                // Skip elements with certain class names
-                const className = element.className;
-                if (className && typeof className === 'string' && 
-                    (className.includes('hidden') || 
-                     className.includes('issue-report') || 
-                     className.includes('toast'))) {
-                  return true;
-                }
+              // Skip the issue report dialog itself
+              if (element.className && 
+                 typeof element.className === 'string' && 
+                 element.className.includes('issue-report')) {
+                return true;
               }
               
               return false;
             }
           };
           
-          // Execute the capture with our optimized settings
-          const contentCanvas = await html2canvas(document.body, captureOptions);
+          // Capture just the main content, not the entire page
+          // This avoids capturing the bug report dialog itself
+          const mainElement = document.querySelector('main') || document.body;
+          const contentCanvas = await html2canvas(mainElement, captureOptions);
           
-          // Use jpeg for better compression with reasonable quality
-          const dataUrl = contentCanvas.toDataURL('image/jpeg', 0.7);
+          // Use png for better quality
+          const dataUrl = contentCanvas.toDataURL('image/png');
           setScreenshot(dataUrl);
         } catch (renderError) {
           console.error('Screenshot rendering error:', renderError);
