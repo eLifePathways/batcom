@@ -206,7 +206,16 @@ export default function TeamMembersAdmin() {
   // Initialize ordered members when team members are loaded
   useEffect(() => {
     if (teamMembers) {
-      setOrderedMembers([...teamMembers]);
+      // Sort team members by sortOrder before setting
+      const sortedMembers = [...teamMembers].sort((a, b) => {
+        // If sortOrder exists on both, use it
+        const aSortOrder = a.sortOrder !== undefined && a.sortOrder !== null ? a.sortOrder : 0;
+        const bSortOrder = b.sortOrder !== undefined && b.sortOrder !== null ? b.sortOrder : 0;
+        return aSortOrder - bSortOrder;
+      });
+      console.log("Setting ordered members sorted by sortOrder:", 
+        sortedMembers.map(m => ({ id: m.id, name: m.name, sortOrder: m.sortOrder })));
+      setOrderedMembers(sortedMembers);
     }
   }, [teamMembers]);
   
@@ -284,9 +293,14 @@ export default function TeamMembersAdmin() {
               <Button 
                 variant="outline" 
                 onClick={() => {
-                  // Reset to original order
+                  // Reset to original order sorted by sortOrder
                   if (teamMembers) {
-                    setOrderedMembers([...teamMembers]);
+                    const sortedMembers = [...teamMembers].sort((a, b) => {
+                      const aSortOrder = a.sortOrder !== undefined && a.sortOrder !== null ? a.sortOrder : 0;
+                      const bSortOrder = b.sortOrder !== undefined && b.sortOrder !== null ? b.sortOrder : 0;
+                      return aSortOrder - bSortOrder;
+                    });
+                    setOrderedMembers(sortedMembers);
                   }
                   setIsReorderMode(false);
                 }}
