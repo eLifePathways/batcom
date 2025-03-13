@@ -112,10 +112,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
+    // Get the current max sort order and add 1 for the new member
+    const existingMembers = await db.select().from(teamMembers);
+    const maxSortOrder = existingMembers.length > 0 
+      ? Math.max(...existingMembers
+          .map(m => (m.sortOrder !== undefined && m.sortOrder !== null) ? m.sortOrder : 0))
+      : -1;
+    const newSortOrder = maxSortOrder + 1;
+    
+    console.log(`Creating new team member with sortOrder: ${newSortOrder}`);
+    
+    // Insert with the calculated sort order
     const [newMember] = await db
       .insert(teamMembers)
-      .values(member)
+      .values({
+        ...member,
+        sortOrder: newSortOrder
+      })
       .returning();
+      
     return newMember;
   }
   
