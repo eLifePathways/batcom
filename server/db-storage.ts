@@ -140,16 +140,23 @@ export class DatabaseStorage implements IStorage {
   }
   
   async reorderTeamMembers(memberIds: number[]): Promise<TeamMember[]> {
+    console.log("Starting reorderTeamMembers with memberIds:", memberIds);
+    
     // Update sort order for each team member
     for (let i = 0; i < memberIds.length; i++) {
+      console.log(`Setting sortOrder ${i} for member ID ${memberIds[i]}`);
       await db
         .update(teamMembers)
         .set({ sortOrder: i })
         .where(eq(teamMembers.id, memberIds[i]));
     }
     
+    // Verify the sort order was updated correctly
+    const updatedMembers = await this.getAllTeamMembers();
+    console.log("Updated member order:", updatedMembers.map(m => ({ id: m.id, name: m.name, sortOrder: m.sortOrder })));
+    
     // Return the reordered team members
-    return this.getAllTeamMembers();
+    return updatedMembers;
   }
 
   // Publication operations

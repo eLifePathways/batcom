@@ -13,7 +13,17 @@ const TeamSection = ({ title = "Who we are", showAllMembers = false }: TeamSecti
     queryKey: ['/api/team-members'],
   });
 
-  const displayMembers = showAllMembers ? members : members?.slice(0, 3);
+  // Sort members by sortOrder if available
+  const sortedMembers = members ? [...members].sort((a, b) => {
+    // If sortOrder is available on both, use it
+    if (a.sortOrder !== undefined && b.sortOrder !== undefined) {
+      return a.sortOrder - b.sortOrder;
+    }
+    // Otherwise keep the order as is
+    return 0;
+  }) : members;
+
+  const displayMembers = showAllMembers ? sortedMembers : sortedMembers?.slice(0, 3);
 
   const renderSkeleton = () => (
     <>
