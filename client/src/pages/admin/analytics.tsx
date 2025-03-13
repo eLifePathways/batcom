@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Card,
@@ -32,12 +32,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, MousePointerClick, Clock, ArrowUp } from "lucide-react";
+import { Users, MousePointerClick, Clock, ArrowUp, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState("7days");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   
   // Fetch real data from API endpoints
   const { data: visitorData, isLoading: isVisitorDataLoading } = useQuery({
@@ -60,8 +76,44 @@ export default function AnalyticsDashboard() {
     queryFn: () => apiRequest(`/api/analytics/popular-pages?timeRange=${timeRange}`),
   });
 
+  // Reset analytics mutation
+  const resetAnalyticsMutation = useMutation({
+    mutationFn: () => {
+      return apiRequest('/api/analytics/reset', { method: 'POST' });
+    },
+    onSuccess: () => {
+      // Invalidate all analytics queries
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/visitors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/devices'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/sources'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics/popular-pages'] });
+      
+      // Show success toast
+      toast({
+        title: "Analytics Reset",
+        description: "All analytics data has been successfully reset.",
+        variant: "default",
+      });
+      
+      // Close the dialog
+      setIsResetDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error("Error resetting analytics:", error);
+      toast({
+        title: "Reset Failed",
+        description: "There was an error resetting analytics data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleTimeRangeChange = (value: string) => {
     setTimeRange(value);
+  };
+  
+  const handleResetAnalytics = () => {
+    resetAnalyticsMutation.mutate();
   };
 
   // Calculate summary metrics
@@ -93,17 +145,47 @@ export default function AnalyticsDashboard() {
             <h2 className="text-xl font-semibold">Visitor Analytics</h2>
             <p className="text-muted-foreground">Understand your website traffic and visitor behavior</p>
           </div>
-          <Select defaultValue={timeRange} onValueChange={handleTimeRangeChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select time range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7days">Last 7 days</SelectItem>
-              <SelectItem value="30days">Last 30 days</SelectItem>
-              <SelectItem value="3months">Last 3 months</SelectItem>
-              <SelectItem value="12months">Last 12 months</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-3 items-center">
+            {/* Reset Analytics Button with Alert Dialog */}
+            <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="flex items-center gap-1">
+                  <Trash2 className="h-4 w-4" />
+                  Reset Analytics
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset Analytics Data</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all analytics data including page views, visitor statistics, 
+                    and traffic sources. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleResetAnalytics}
+                    disabled={resetAnalyticsMutation.isPending}
+                  >
+                    {resetAnalyticsMutation.isPending ? "Resetting..." : "Reset Analytics"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            
+            <Select defaultValue={timeRange} onValueChange={handleTimeRangeChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7days">Last 7 days</SelectItem>
+                <SelectItem value="30days">Last 30 days</SelectItem>
+                <SelectItem value="3months">Last 3 months</SelectItem>
+                <SelectItem value="12months">Last 12 months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         
         {/* Summary Cards */}

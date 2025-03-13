@@ -7,7 +7,8 @@ import {
   getVisitorStats,
   getDeviceDistribution,
   getTrafficSources,
-  getPopularPages
+  getPopularPages,
+  resetAnalytics
 } from "./analytics-api";
 import { insertUserSchema } from "@shared/schema";
 
@@ -459,6 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/analytics/devices', getDeviceDistribution);
   app.get('/api/analytics/sources', getTrafficSources);
   app.get('/api/analytics/popular-pages', getPopularPages);
+  app.post('/api/analytics/reset', resetAnalytics);
 
   // User management endpoints
   app.get('/api/users', async (req: Request, res: Response) => {
