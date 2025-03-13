@@ -181,4 +181,4 @@ The application can be deployed on any Node.js hosting platform that supports Po
 
 This project is proprietary and confidential. Unauthorized copying, transfer, or reproduction of the contents of this repository is prohibited.
 
-© 2025 Johns Hopkins Bloomberg School of Public Health. All rights reserved.
+© 2025 Adam Hyde. All rights reserved.
