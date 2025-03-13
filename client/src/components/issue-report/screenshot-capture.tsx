@@ -7,13 +7,6 @@ interface ScreenshotCaptureProps {
   onCapture: (dataUrl: string | null) => void;
 }
 
-// Loading indicator instead of small preview thumbnail
-const createLoadingIndicator = (): null => {
-  // Don't create any thumbnail preview at all
-  // We'll use a loading spinner UI element instead
-  return null;
-};
-
 export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
