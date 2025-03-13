@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Globe, RefreshCw } from "lucide-react";
+import { Loader2, Globe, RefreshCw, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -248,9 +248,10 @@ export default function GraphQLAdmin() {
       setGroupId(savedGroupId);
     }
     
-    // If endpoint is available, fetch schema
+    // If endpoint is available, fetch schema and switch to query tab
     if (savedEndpoint && savedEndpoint.startsWith('http')) {
       fetchSchema();
+      setActiveTab("query");
     }
   }, []);
   
@@ -493,7 +494,7 @@ export default function GraphQLAdmin() {
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList>
           <TabsTrigger value="connection">API Configuration</TabsTrigger>
-          <TabsTrigger value="query" disabled={!endpoint || !endpoint.startsWith('http')}>Query Explorer</TabsTrigger>
+          <TabsTrigger value="query">Query Explorer</TabsTrigger>
         </TabsList>
         
         <TabsContent value="connection">
@@ -561,6 +562,14 @@ export default function GraphQLAdmin() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {!endpoint && (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded mb-4">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+                    <p>Please configure your GraphQL endpoint in the <span className="font-semibold">API Configuration</span> tab first.</p>
+                  </div>
+                </div>
+              )}
               <div className="space-y-4">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
