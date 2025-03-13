@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, QueryKey } from "@tanstack/react-query";
 
 // Memory cache for API responses to improve performance (5-minute TTL)
 const apiCache = new Map<string, { data: any; timestamp: number }>();
@@ -78,7 +78,7 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
+  async ({ queryKey }: { queryKey: QueryKey }) => {
     // Efficiently build URL from query key
     const baseUrl = queryKey[0] as string;
     let url = baseUrl;
@@ -136,7 +136,8 @@ export function invalidateApiCache(urlPattern: string | RegExp) {
     : urlPattern;
   
   // Find and remove matching cache entries
-  for (const key of apiCache.keys()) {
+  const keys = Array.from(apiCache.keys());
+  for (const key of keys) {
     if (pattern.test(key)) {
       apiCache.delete(key);
     }
@@ -165,7 +166,7 @@ export const queryClient = new QueryClient({
       staleTime: Infinity, // Using our own cache invalidation
       retry: false,
       // Add cache time for better memory management
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000 // 10 minutes (uses gcTime instead of cacheTime in v5)
     },
     mutations: {
       retry: false,
