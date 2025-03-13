@@ -3,6 +3,7 @@ import { db } from "./db";
 import { pageViews, sessions } from "@shared/schema";
 import { desc, eq, sql, and, between, count } from "drizzle-orm";
 import { UAParser } from "ua-parser-js";
+import { SQLWrapper } from "drizzle-orm";
 
 // Define constants for session field names to avoid TypeScript errors
 const SESSION_STARTED_AT = "started_at";
@@ -321,5 +322,20 @@ export const getPopularPages = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching popular pages:', error);
     res.status(500).json({ error: 'Failed to fetch popular pages' });
+  }
+};
+
+// Reset all analytics data
+export const resetAnalytics = async (req: Request, res: Response) => {
+  try {
+    // Truncate both tables to reset all analytics data
+    await db.delete(pageViews);
+    await db.delete(sessions);
+    
+    console.log('Analytics data reset successful');
+    res.json({ success: true, message: 'Analytics data has been reset successfully' });
+  } catch (error) {
+    console.error('Error resetting analytics data:', error);
+    res.status(500).json({ error: 'Failed to reset analytics data' });
   }
 };
