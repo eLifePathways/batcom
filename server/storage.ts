@@ -237,7 +237,8 @@ export class MemStorage implements IStorage {
       imageUrl: member.imageUrl ?? null,
       email: member.email ?? null,
       website: member.website ?? null,
-      socialMedia: member.socialMedia ?? null
+      socialMedia: member.socialMedia ?? null,
+      sortOrder: member.sortOrder ?? 0
     };
     this.teamMembers.set(id, teamMember);
     return teamMember;
@@ -256,7 +257,8 @@ export class MemStorage implements IStorage {
       imageUrl: data.imageUrl ?? teamMember.imageUrl,
       email: data.email ?? teamMember.email,
       website: data.website ?? teamMember.website,
-      socialMedia: data.socialMedia ?? teamMember.socialMedia
+      socialMedia: data.socialMedia ?? teamMember.socialMedia,
+      sortOrder: data.sortOrder ?? teamMember.sortOrder
     };
     
     this.teamMembers.set(id, updatedMember);
@@ -265,6 +267,20 @@ export class MemStorage implements IStorage {
   
   async deleteTeamMember(id: number): Promise<boolean> {
     return this.teamMembers.delete(id);
+  }
+  
+  async reorderTeamMembers(memberIds: number[]): Promise<TeamMember[]> {
+    // Update sort order for each team member
+    for (let i = 0; i < memberIds.length; i++) {
+      const member = this.teamMembers.get(memberIds[i]);
+      if (member) {
+        this.teamMembers.set(memberIds[i], { ...member, sortOrder: i });
+      }
+    }
+    
+    // Return the reordered team members sorted by sortOrder
+    return Array.from(this.teamMembers.values())
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }
 
   // Publication operations

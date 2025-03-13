@@ -138,6 +138,19 @@ export class DatabaseStorage implements IStorage {
     
     return true; // Postgres doesn't easily return affected rows count
   }
+  
+  async reorderTeamMembers(memberIds: number[]): Promise<TeamMember[]> {
+    // Update sort order for each team member
+    for (let i = 0; i < memberIds.length; i++) {
+      await db
+        .update(teamMembers)
+        .set({ sortOrder: i })
+        .where(eq(teamMembers.id, memberIds[i]));
+    }
+    
+    // Return the reordered team members
+    return this.getAllTeamMembers();
+  }
 
   // Publication operations
   async getAllPublications(): Promise<Publication[]> {
