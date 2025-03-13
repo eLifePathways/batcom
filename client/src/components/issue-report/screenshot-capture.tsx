@@ -34,34 +34,10 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       await new Promise(resolve => setTimeout(resolve, 50));
       
       // Optimize viewport dimensions calculation - use constants to avoid recalculation
-      const MAX_WIDTH = 1280;
-      const MAX_HEIGHT = 800;
+      const MAX_WIDTH = 1920;
+      const MAX_HEIGHT = 1200;
       const viewportWidth = Math.min(MAX_WIDTH, window.innerWidth);
       const viewportHeight = Math.min(MAX_HEIGHT, window.innerHeight);
-      
-      // Create a canvas element with the optimal size
-      const canvas = document.createElement('canvas');
-      canvas.width = viewportWidth;
-      canvas.height = viewportHeight;
-      
-      // Get the 2D context
-      const ctx = canvas.getContext('2d', { alpha: false }); // alpha: false for better performance
-      if (!ctx) {
-        throw new Error('Failed to get canvas context');
-      }
-      
-      // Draw a white background (faster with clearRect first)
-      ctx.clearRect(0, 0, viewportWidth, viewportHeight);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, viewportWidth, viewportHeight);
-      
-      // Draw text info (fallback in case rendering fails) - combine text operations
-      ctx.fillStyle = '#000000';
-      ctx.font = '14px Arial';
-      const currentUrl = window.location.href;
-      const timestamp = new Date().toLocaleString();
-      ctx.fillText(`Captured: ${currentUrl}`, 10, 20);
-      ctx.fillText(`Time: ${timestamp}`, 10, 40);
       
       try {
         // Optimized html2canvas options for better performance
@@ -74,7 +50,7 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
           useCORS: true,
           backgroundColor: '#FFFFFF',
           logging: false,
-          scale: 0.75, // Lower scale for better performance
+          scale: 1.0, // Full resolution for better quality
           removeContainer: true, // Clean up temporary elements
           ignoreElements: (element: Element) => {
             // More efficient element checking
@@ -84,26 +60,40 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
           }
         };
         
-        // Capture the content - use document.body instead of documentElement for better performance
+        // Capture the content
         const contentCanvas = await html2canvas(document.body, simplifiedOptions);
         
-        // Draw the captured content onto our canvas
-        ctx.drawImage(contentCanvas, 0, 0);
+        // Get the image as data URL with high quality
+        const dataUrl = contentCanvas.toDataURL('image/png', 1.0);
+        setScreenshot(dataUrl);
       } catch (renderError) {
         console.error('Rendering error:', renderError);
-        // If html2canvas fails, at least we have the fallback text
-        ctx.fillStyle = '#FF0000';
-        ctx.fillText('Failed to render page content. Basic info provided instead.', 10, 70);
+        
+        // Create a fallback canvas if html2canvas fails
+        const canvas = document.createElement('canvas');
+        canvas.width = viewportWidth;
+        canvas.height = viewportHeight;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Draw a white background
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+          
+          // Draw fallback text info
+          ctx.fillStyle = '#000000';
+          ctx.font = '14px Arial';
+          const currentUrl = window.location.href;
+          const timestamp = new Date().toLocaleString();
+          ctx.fillText(`Captured: ${currentUrl}`, 10, 20);
+          ctx.fillText(`Time: ${timestamp}`, 10, 40);
+          ctx.fillStyle = '#FF0000';
+          ctx.fillText('Failed to render page content. Basic info provided instead.', 10, 70);
+          
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          setScreenshot(dataUrl);
+        }
       }
-      
-      // Add a border to the image
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(0, 0, viewportWidth, viewportHeight);
-      
-      // Get the image as data URL (JPEG with 0.9 quality for better performance)
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      setScreenshot(dataUrl);
     } catch (error) {
       console.error('Error capturing screenshot:', error);
     } finally {
@@ -128,8 +118,8 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
     <div className="space-y-4">
       {screenshot ? (
         <div className="space-y-3">
-          <div className="relative border rounded-md overflow-hidden bg-gray-50">
-            <div className="max-h-[240px] overflow-auto relative bg-white border-b">
+          <div className="relative border rounded-md overflow-hidden">
+            <div className="max-h-[350px] overflow-auto relative">
               <img 
                 src={screenshot} 
                 alt="Page screenshot" 
@@ -137,7 +127,7 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
                 style={{ imageRendering: 'auto' }}
               />
             </div>
-            <div className="flex justify-between items-center p-2 bg-gray-50 border-t">
+            <div className="flex justify-between items-center p-2 border-t">
               <a 
                 href={screenshot}
                 target="_blank"

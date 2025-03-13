@@ -170,7 +170,7 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <BugIcon className="h-5 w-5 mr-2" />
