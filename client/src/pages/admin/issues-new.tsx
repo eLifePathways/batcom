@@ -27,7 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, MoreHorizontal, Eye, XCircle, Check, AlertTriangle, Trash2 } from "lucide-react";
+import { Loader2, MoreHorizontal, Eye, XCircle, Check, AlertTriangle, Trash2, Plus } from "lucide-react";
+import { IssueReportDialog } from "@/components/issue-report/issue-report-dialog";
 import { formatDistanceToNow } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -57,6 +58,7 @@ export default function IssuesAdmin() {
   const [selectedIssues, setSelectedIssues] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -145,9 +147,13 @@ export default function IssuesAdmin() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/issues'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/issues'], refetchType: 'active' });
       setIsDeleteDialogOpen(false);
-      toast({ title: "Issue deleted" });
+      toast({ 
+        title: "Issue deleted successfully",
+        description: "The issues list has been updated",
+        variant: "default" 
+      });
     },
     onError: (error) => {
       console.error("Error deleting issue:", error);
@@ -234,17 +240,25 @@ export default function IssuesAdmin() {
   // Handle bulk deletion of selected issues
   const bulkDeleteMutation = useMutation({
     mutationFn: async (issueIds: number[]) => {
+      const deletedCount = issueIds.length; // Store count before deletion
       const promises = issueIds.map(id => 
         apiRequest(`/api/issues/${id}`, { method: 'DELETE' })
       );
-      return Promise.all(promises);
+      return { result: await Promise.all(promises), count: deletedCount };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/issues'] });
+    onSuccess: (data) => {
+      // Force refetch to update the list immediately
+      queryClient.invalidateQueries({ queryKey: ['/api/issues'], refetchType: 'active' });
       setIsBulkDeleteDialogOpen(false);
       setSelectedIssues(new Set());
       setSelectAll(false);
-      toast({ title: `${selectedIssues.size} issues deleted successfully` });
+      
+      // Show confirmation toast with count and verification
+      toast({ 
+        title: `${data.count} issues deleted successfully`,
+        description: "The issues list has been updated",
+        variant: "default" 
+      });
     },
     onError: (error) => {
       console.error("Error deleting issues:", error);
@@ -301,8 +315,18 @@ export default function IssuesAdmin() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Issue Reports</h1>
         
-        {issues && issues.length > 0 && (
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsReportDialogOpen(true)}
+            className="flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Issue
+          </Button>
+          
+          {issues && issues.length > 0 && (
             <Button 
               variant="destructive" 
               size="sm" 
@@ -313,8 +337,8 @@ export default function IssuesAdmin() {
               <Trash2 className="h-4 w-4 mr-2" />
               Delete Selected ({selectedIssues.size})
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
       {isLoading ? (
@@ -502,6 +526,18 @@ export default function IssuesAdmin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Issue Report Dialog (Add new issue) */}
+      <IssueReportDialog
+        open={isReportDialogOpen}
+        onOpenChange={(open) => {
+          setIsReportDialogOpen(open);
+          if (!open) {
+            // Refresh the issues list when the dialog is closed (in case a new issue was added)
+            queryClient.invalidateQueries({ queryKey: ['/api/issues'], refetchType: 'active' });
+          }
+        }}
+      />
       
       {/* Issue Detail Dialog */}
       {selectedIssue && (
