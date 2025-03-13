@@ -100,7 +100,7 @@ export class DatabaseStorage implements IStorage {
 
   // Team member operations
   async getAllTeamMembers(): Promise<TeamMember[]> {
-    return await db.select().from(teamMembers);
+    return await db.select().from(teamMembers).orderBy(teamMembers.sortOrder);
   }
 
   async getTeamMember(id: number): Promise<TeamMember | undefined> {
