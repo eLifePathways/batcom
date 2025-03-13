@@ -15,11 +15,19 @@ let throttleTimer: ReturnType<typeof setTimeout> | null = null;
  * Initialize error tracking for the application with performance optimizations
  */
 export function initErrorTracking() {
-  // Initialize in an async manner to not block page load
-  setTimeout(() => {
-    setupErrorHandlers();
-    console.log("Error tracking initialized");
-  }, 100);
+  // Use requestIdleCallback to initialize when browser is idle
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(() => {
+      setupErrorHandlers();
+      console.log("Error tracking initialized");
+    }, { timeout: 2000 }); // Ensure it runs within 2 seconds even if browser remains busy
+  } else {
+    // Fallback for browsers without requestIdleCallback
+    setTimeout(() => {
+      setupErrorHandlers();
+      console.log("Error tracking initialized");
+    }, 300); // Increased timeout to further delay initialization
+  }
 }
 
 // Setup error handlers in a separate function to improve code organization

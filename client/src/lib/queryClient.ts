@@ -32,8 +32,10 @@ export async function apiRequest<T = any>(
     'Content-Type': 'application/json',
   };
 
-  // Log request details for debugging
-  console.log(`API Request: ${method} ${url}`, options.body ? JSON.parse(options.body as string) : '');
+  // Only log in development mode to reduce console clutter in production
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`API Request: ${method} ${url}`, options.body ? JSON.parse(options.body as string) : '');
+  }
   
   // For GET requests, check the cache first
   if (method === 'GET') {
@@ -158,6 +160,7 @@ export function clearApiCache() {
  * - Optimized retry and refetch settings
  */
 export const queryClient = new QueryClient({
+  // Optimize query client with performance settings
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
@@ -165,8 +168,11 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity, // Using our own cache invalidation
       retry: false,
-      // Add cache time for better memory management
-      gcTime: 10 * 60 * 1000 // 10 minutes (uses gcTime instead of cacheTime in v5)
+      gcTime: 10 * 60 * 1000, // 10 minutes (uses gcTime instead of cacheTime in v5)
+      // Additional optimizations that work with TanStack Query v5
+      refetchOnMount: false, // Minimize refetches on component mount
+      suspense: false, // Don't use React Suspense to avoid unnecessary renders
+      structuralSharing: true, // Enable structural sharing for better performance
     },
     mutations: {
       retry: false,
@@ -174,7 +180,9 @@ export const queryClient = new QueryClient({
       onMutate: () => {
         // Return context for potential rollback
         return { timestamp: Date.now() };
-      }
+      },
+      // Set garbage collection time for mutation cache (v5 compatible)
+      gcTime: 5 * 60 * 1000 // 5 minutes
     },
   },
 });

@@ -16,7 +16,7 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
     onCapture(screenshot);
   }, [screenshot, onCapture]);
 
-  // Optimized screenshot capture with better performance
+  // Highly optimized screenshot capture with lazy loading
   const captureScreen = async () => {
     setIsCapturing(true);
     
@@ -24,24 +24,32 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       // Add a class to the body to hide elements we don't want in the screenshot
       document.body.classList.add('screenshot-in-progress');
       
-      // Hide the dialog directly - more efficient with cached selector
-      const dialogElement = document.querySelector('[role="dialog"]') as HTMLElement | null;
-      if (dialogElement) {
-        dialogElement.style.display = 'none';
-      }
+      // Find the elements to hide once and cache them
+      const dialogElements = document.querySelectorAll('[role="dialog"]');
+      const issueDialogs = document.querySelectorAll('.issue-report-dialog');
       
-      // Reduced timeout for better performance (50ms is usually sufficient)
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Hide all dialog elements
+      dialogElements.forEach(el => {
+        if (el instanceof HTMLElement) el.style.display = 'none';
+      });
       
-      // Optimize viewport dimensions calculation - use constants to avoid recalculation
-      const MAX_WIDTH = 1920;
-      const MAX_HEIGHT = 1200;
-      const viewportWidth = Math.min(MAX_WIDTH, window.innerWidth);
-      const viewportHeight = Math.min(MAX_HEIGHT, window.innerHeight);
+      issueDialogs.forEach(el => {
+        if (el instanceof HTMLElement) el.style.display = 'none';
+      });
+      
+      // Skip timeout to improve performance - we can hide elements synchronously
+      
+      // Downscale viewport dimensions for faster capture
+      // Use more aggressive size limits to improve performance
+      const MAX_WIDTH = 1280;
+      const MAX_HEIGHT = 800;
+      const scale = window.devicePixelRatio > 1 ? 0.5 : 0.75; // Use lower scale on high-DPI displays
+      const viewportWidth = Math.min(MAX_WIDTH, Math.round(window.innerWidth * scale));
+      const viewportHeight = Math.min(MAX_HEIGHT, Math.round(window.innerHeight * scale));
       
       try {
-        // Optimized html2canvas options for better performance
-        const simplifiedOptions = {
+        // Optimized html2canvas options for maximum performance
+        const optimizedOptions = {
           width: viewportWidth,
           height: viewportHeight,
           x: window.scrollX,
@@ -50,47 +58,55 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
           useCORS: true,
           backgroundColor: '#FFFFFF',
           logging: false,
-          scale: 1.0, // Full resolution for better quality
+          scale: 1.0, // Already scaled by our custom logic
           removeContainer: true, // Clean up temporary elements
+          foreignObjectRendering: false, // Faster rendering option
+          imageTimeout: 2000, // Limit image processing time
           ignoreElements: (element: Element) => {
-            // More efficient element checking
+            // Fast element checking
+            if (element.nodeName === 'SCRIPT' || element.nodeName === 'STYLE') return true;
+            
+            // Check for dialog elements with simple attributes
             const tagName = element.tagName;
-            const role = element.getAttribute('role');
-            return tagName === 'DIALOG' || role === 'dialog';
+            const className = element.className && typeof element.className === 'string' ? element.className : '';
+            const role = element.getAttribute && element.getAttribute('role');
+            
+            return tagName === 'DIALOG' || 
+                  role === 'dialog' || 
+                  className.includes('issue-report') ||
+                  element.id === 'toast-container' ||
+                  element.id === 'context-menu';
           }
         };
         
         // Capture the content
-        const contentCanvas = await html2canvas(document.body, simplifiedOptions);
+        const contentCanvas = await html2canvas(document.body, optimizedOptions);
         
-        // Get the image as data URL with high quality
-        const dataUrl = contentCanvas.toDataURL('image/png', 1.0);
+        // Get the image as data URL with reduced quality (0.8) to save memory
+        const dataUrl = contentCanvas.toDataURL('image/jpeg', 0.8);
         setScreenshot(dataUrl);
       } catch (renderError) {
         console.error('Rendering error:', renderError);
         
-        // Create a fallback canvas if html2canvas fails
+        // Create a lightweight fallback canvas if html2canvas fails
         const canvas = document.createElement('canvas');
         canvas.width = viewportWidth;
         canvas.height = viewportHeight;
         
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          // Draw a white background
+          // Draw a simple fallback with minimal info
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, viewportWidth, viewportHeight);
           
-          // Draw fallback text info
           ctx.fillStyle = '#000000';
           ctx.font = '14px Arial';
-          const currentUrl = window.location.href;
-          const timestamp = new Date().toLocaleString();
-          ctx.fillText(`Captured: ${currentUrl}`, 10, 20);
-          ctx.fillText(`Time: ${timestamp}`, 10, 40);
+          ctx.fillText(`URL: ${window.location.pathname}`, 10, 20);
+          ctx.fillText(`Time: ${new Date().toLocaleTimeString()}`, 10, 40);
           ctx.fillStyle = '#FF0000';
-          ctx.fillText('Failed to render page content. Basic info provided instead.', 10, 70);
+          ctx.fillText('Screenshot failed - sending basic info only', 10, 70);
           
-          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
           setScreenshot(dataUrl);
         }
       }
@@ -100,11 +116,17 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
       // Clean up - ensure we always remove the class even if there's an error
       document.body.classList.remove('screenshot-in-progress');
       
-      // Restore any hidden elements - reuse the cached dialog element if possible
-      const dialogElement = document.querySelector('[role="dialog"]') as HTMLElement | null;
-      if (dialogElement) {
-        dialogElement.style.display = '';
-      }
+      // Restore all hidden elements
+      const dialogElements = document.querySelectorAll('[role="dialog"]');
+      const issueDialogs = document.querySelectorAll('.issue-report-dialog');
+      
+      dialogElements.forEach(el => {
+        if (el instanceof HTMLElement) el.style.display = '';
+      });
+      
+      issueDialogs.forEach(el => {
+        if (el instanceof HTMLElement) el.style.display = '';
+      });
       
       setIsCapturing(false);
     }
