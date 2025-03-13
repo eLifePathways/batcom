@@ -187,11 +187,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { memberIds } = req.body;
       
+      console.log("Received memberIds for reordering:", memberIds);
+      
       if (!memberIds || !Array.isArray(memberIds)) {
+        console.log("Invalid memberIds:", memberIds);
         return res.status(400).json({ message: 'Invalid request parameters' });
       }
       
       const reorderedMembers = await storage.reorderTeamMembers(memberIds);
+      console.log("Successfully reordered members:", reorderedMembers.length);
       res.json(reorderedMembers);
     } catch (error) {
       console.error("Error reordering team members:", error);

@@ -237,6 +237,7 @@ export default function TeamMembersAdmin() {
   // Save the reordered list
   const saveReordering = () => {
     const memberIds = orderedMembers.map(member => member.id);
+    console.log("Sending memberIds to reorder:", memberIds);
     reorderTeamMembers.mutate(memberIds);
   };
   

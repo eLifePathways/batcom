@@ -26,6 +26,15 @@ export async function apiRequest<T = any>(
   const method = options.method || 'GET';
   const cacheKey = `${method}:${url}`;
   
+  // Add headers for all requests
+  options.headers = {
+    ...options.headers,
+    'Content-Type': 'application/json',
+  };
+
+  // Log request details for debugging
+  console.log(`API Request: ${method} ${url}`, options.body ? JSON.parse(options.body as string) : '');
+  
   // For GET requests, check the cache first
   if (method === 'GET') {
     const cached = apiCache.get(cacheKey);
