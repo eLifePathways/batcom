@@ -15,12 +15,10 @@ const TeamSection = ({ title = "Who we are", showAllMembers = false }: TeamSecti
 
   // Sort members by sortOrder if available
   const sortedMembers = members ? [...members].sort((a, b) => {
-    // If sortOrder is available on both, use it
-    if (a.sortOrder !== undefined && b.sortOrder !== undefined) {
-      return a.sortOrder - b.sortOrder;
-    }
-    // Otherwise keep the order as is
-    return 0;
+    // If sortOrder is available on both, use it (handle null values)
+    const aSortOrder = a.sortOrder !== undefined && a.sortOrder !== null ? a.sortOrder : 0;
+    const bSortOrder = b.sortOrder !== undefined && b.sortOrder !== null ? b.sortOrder : 0;
+    return aSortOrder - bSortOrder;
   }) : members;
 
   const displayMembers = showAllMembers ? sortedMembers : sortedMembers?.slice(0, 3);
@@ -67,9 +65,9 @@ const TeamSection = ({ title = "Who we are", showAllMembers = false }: TeamSecti
               institution={member.institution}
               description={member.description}
               imageUrl={member.imageUrl || ''}
-              email={member.email}
-              website={member.website}
-              socialMedia={member.socialMedia}
+              email={member.email || undefined}
+              website={member.website || undefined}
+              socialMedia={member.socialMedia || undefined}
             />
           ))}
         </div>
