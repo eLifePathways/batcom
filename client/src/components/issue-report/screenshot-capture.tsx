@@ -7,32 +7,11 @@ interface ScreenshotCaptureProps {
   onCapture: (dataUrl: string | null) => void;
 }
 
-// Create a tiny pixel thumbnail for preview while full screenshot is loading
-const createThumbnail = (width: number = 20, height: number = 15): string => {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  
-  if (!ctx) return '';
-  
-  // Sample colors from visible viewport
-  const bgColor = getComputedStyle(document.body).backgroundColor || '#ffffff';
-  const textColor = getComputedStyle(document.body).color || '#000000';
-  
-  // Draw a super simple representation
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, width, height);
-  
-  // Add a few placeholder blocks to represent content
-  ctx.fillStyle = textColor;
-  ctx.globalAlpha = 0.2;
-  ctx.fillRect(0, 0, width, 3);  // header
-  ctx.fillRect(0, 5, width * 0.7, 1);  // text line
-  ctx.fillRect(0, 7, width * 0.8, 1);  // text line
-  ctx.fillRect(0, 9, width * 0.5, 4);  // image/box
-  
-  return canvas.toDataURL('image/png', 0.5);
+// Loading indicator instead of small preview thumbnail
+const createLoadingIndicator = (): null => {
+  // Don't create any thumbnail preview at all
+  // We'll use a loading spinner UI element instead
+  return null;
 };
 
 export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
@@ -52,9 +31,7 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
     // Set capturing state
     setIsCapturing(true);
     
-    // Show loading thumbnail immediately for better UX
-    const thumbnailPreview = createThumbnail();
-    setScreenshot(thumbnailPreview);
+    // Don't set any placeholder/thumbnail - just show loading state
     
     // Use requestIdleCallback for non-critical preparation work when browser is idle
     // With fallback to setTimeout for browsers that don't support it
