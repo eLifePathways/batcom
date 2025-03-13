@@ -181,6 +181,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to delete team member' });
     }
   });
+  
+  // Reorder team members
+  app.post('/api/team-members/reorder', async (req: Request, res: Response) => {
+    try {
+      const { memberIds } = req.body;
+      
+      if (!memberIds || !Array.isArray(memberIds)) {
+        return res.status(400).json({ message: 'Invalid request parameters' });
+      }
+      
+      const reorderedMembers = await storage.reorderTeamMembers(memberIds);
+      res.json(reorderedMembers);
+    } catch (error) {
+      console.error("Error reordering team members:", error);
+      res.status(500).json({ message: 'Failed to reorder team members' });
+    }
+  });
 
   // Publications endpoints
   app.get('/api/publications', async (req: Request, res: Response) => {

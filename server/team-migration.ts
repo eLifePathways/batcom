@@ -1,41 +1,51 @@
-import { db } from "./db";
+import { db } from './db';
+import { sql } from 'drizzle-orm';
 
 /**
  * Script to add sort_order column to team_members table
  */
 export async function addSortOrderToTeamMembers() {
   try {
-    // Check if the column already exists
-    const exists = await checkColumnExists("team_members", "sort_order");
+    const columnExists = await checkColumnExists('team_members', 'sort_order');
     
-    if (!exists) {
-      console.log("Adding sort_order column to team_members table...");
-      await db.execute(`
+    if (!columnExists) {
+      console.log('Adding sort_order column to team_members table...');
+      
+      // Add sort_order column with default value
+      await db.execute(sql`
         ALTER TABLE team_members 
-        ADD COLUMN sort_order INTEGER DEFAULT 0
+        ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0
       `);
       
-      // Update existing records with sequential sort order
-      await db.execute(`
+      // Add unique constraint to ensure no duplicate sort_order values
+      await db.execute(sql`
+        ALTER TABLE team_members 
+        ADD CONSTRAINT unique_sort_order UNIQUE (sort_order)
+      `);
+      
+      console.log('sort_order column added successfully');
+      
+      // Initialize sort_order values based on id to ensure unique values
+      await db.execute(sql`
         WITH indexed_rows AS (
-          SELECT id, ROW_NUMBER() OVER () - 1 as idx
+          SELECT id, ROW_NUMBER() OVER (ORDER BY id) - 1 as row_index
           FROM team_members
         )
         UPDATE team_members
-        SET sort_order = ir.idx
-        FROM indexed_rows ir
-        WHERE team_members.id = ir.id
+        SET sort_order = indexed_rows.row_index
+        FROM indexed_rows
+        WHERE team_members.id = indexed_rows.id
       `);
       
-      console.log("Successfully added sort_order column to team_members table");
+      console.log('team_members sort_order values initialized');
     } else {
-      console.log("sort_order column already exists in team_members table");
+      console.log('sort_order column already exists in team_members table');
     }
     
     return true;
   } catch (error) {
-    console.error("Error adding sort_order column to team_members table:", error);
-    return false;
+    console.error('Error adding sort_order column to team_members:', error);
+    throw error;
   }
 }
 
@@ -43,13 +53,14 @@ export async function addSortOrderToTeamMembers() {
  * Helper function to check if a column exists in a table
  */
 async function checkColumnExists(tableName: string, columnName: string): Promise<boolean> {
-  const result = await db.execute(`
+  const result = await db.execute(sql`
     SELECT EXISTS (
       SELECT 1 
       FROM information_schema.columns 
-      WHERE table_name = '${tableName}' AND column_name = '${columnName}'
-    ) as exists
+      WHERE table_name = ${tableName} 
+      AND column_name = ${columnName}
+    )
   `);
   
-  return result[0].exists === true;
+  return result.rows[0] && result.rows[0].exists === true;
 }

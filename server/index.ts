@@ -7,6 +7,7 @@ import { DatabaseStorage } from "./db-storage";
 import { analyticsMiddleware } from "./analytics";
 import { spaMiddleware } from "./spa-middleware";
 import { updateIssueCommentsSchema } from "./db-migration";
+import { addSortOrderToTeamMembers } from "./team-migration";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -58,6 +59,7 @@ app.use((req, res, next) => {
       try {
         console.log("Running database migrations...");
         await updateIssueCommentsSchema();
+        await addSortOrderToTeamMembers();
       } catch (migrationError) {
         console.error("Error during database migration:", migrationError);
         // Continue with server startup even if migrations fail
