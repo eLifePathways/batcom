@@ -183,12 +183,16 @@ export default function TeamMembersAdmin() {
         body: JSON.stringify({ memberIds })
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Success",
         description: "Team member order updated successfully!",
       });
+      // Update the ordered members state with the response data
+      setOrderedMembers(data);
+      // Update the cache
       queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
+      // Exit reorder mode
       setIsReorderMode(false);
     },
     onError: (error: any) => {
@@ -515,8 +519,14 @@ export default function TeamMembersAdmin() {
                   </TableRow>
                 ))
               ) : teamMembers && teamMembers.length > 0 ? (
-                // Regular view mode
-                teamMembers.map((member) => (
+                // Regular view mode - sort by sortOrder here too
+                [...teamMembers]
+                  .sort((a, b) => {
+                    const aSortOrder = a.sortOrder !== undefined && a.sortOrder !== null ? a.sortOrder : 0;
+                    const bSortOrder = b.sortOrder !== undefined && b.sortOrder !== null ? b.sortOrder : 0;
+                    return aSortOrder - bSortOrder;
+                  })
+                  .map((member) => (
                   <TableRow key={member.id}>
                     <TableCell>
                       {member.imageUrl ? (
