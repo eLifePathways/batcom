@@ -26,7 +26,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, MoreHorizontal, Eye, XCircle, Check, AlertTriangle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, MoreHorizontal, Eye, XCircle, Check, AlertTriangle, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -53,6 +54,9 @@ export default function IssuesAdmin() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [issueCommentsMap, setIssueCommentsMap] = useState<Record<number, { lastCommentDate: string | null, hasUnreadComments: boolean }>>({});
+  const [selectedIssues, setSelectedIssues] = useState<Set<number>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -226,11 +230,91 @@ export default function IssuesAdmin() {
       return "Invalid date";
     }
   };
+  
+  // Handle bulk deletion of selected issues
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (issueIds: number[]) => {
+      const promises = issueIds.map(id => 
+        apiRequest(`/api/issues/${id}`, { method: 'DELETE' })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/issues'] });
+      setIsBulkDeleteDialogOpen(false);
+      setSelectedIssues(new Set());
+      setSelectAll(false);
+      toast({ title: `${selectedIssues.size} issues deleted successfully` });
+    },
+    onError: (error) => {
+      console.error("Error deleting issues:", error);
+      toast({ 
+        title: "Failed to delete issues", 
+        variant: "destructive" 
+      });
+    }
+  });
+  
+  // Handle single issue selection
+  const handleSelectIssue = (e: React.MouseEvent, issueId: number) => {
+    e.stopPropagation(); // Prevent row click event
+    
+    const newSelectedIssues = new Set(selectedIssues);
+    if (newSelectedIssues.has(issueId)) {
+      newSelectedIssues.delete(issueId);
+    } else {
+      newSelectedIssues.add(issueId);
+    }
+    
+    setSelectedIssues(newSelectedIssues);
+    
+    // Update selectAll state based on whether all issues are selected
+    if (issues && newSelectedIssues.size === issues.length) {
+      setSelectAll(true);
+    } else {
+      setSelectAll(false);
+    }
+  };
+  
+  // Handle select all checkbox change
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      // Select all issues
+      const allIssueIds = issues ? issues.map(issue => issue.id) : [];
+      setSelectedIssues(new Set(allIssueIds));
+    } else {
+      // Deselect all issues
+      setSelectedIssues(new Set());
+    }
+    setSelectAll(checked);
+  };
+  
+  // Handle bulk delete action
+  const handleBulkDelete = () => {
+    if (selectedIssues.size > 0) {
+      setIsBulkDeleteDialogOpen(true);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Issue Reports</h1>
+        
+        {issues && issues.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={handleBulkDelete}
+              disabled={selectedIssues.size === 0}
+              className="flex items-center"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedIssues.size})
+            </Button>
+          </div>
+        )}
       </div>
       
       {isLoading ? (
@@ -242,6 +326,13 @@ export default function IssuesAdmin() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox 
+                    checked={selectAll} 
+                    onCheckedChange={handleSelectAll} 
+                    aria-label="Select all issues"
+                  />
+                </TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
@@ -253,6 +344,13 @@ export default function IssuesAdmin() {
             <TableBody>
               {issues.map((issue) => (
                 <TableRow key={issue.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleViewDetails(issue)}>
+                  <TableCell onClick={(e) => e.stopPropagation()} className="px-4 py-2">
+                    <Checkbox
+                      checked={selectedIssues.has(issue.id)}
+                      onCheckedChange={() => handleSelectIssue(new MouseEvent('click') as any, issue.id)}
+                      aria-label={`Select issue ${issue.title}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium truncate max-w-[280px]">
                     <div className="flex items-center">
                       {issueCommentsMap[issue.id]?.hasUnreadComments && (
@@ -371,6 +469,34 @@ export default function IssuesAdmin() {
                 </>
               ) : (
                 "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIssues.size} issues?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete {selectedIssues.size} issues and all associated comments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => bulkDeleteMutation.mutate(Array.from(selectedIssues))}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {bulkDeleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete All Selected"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
