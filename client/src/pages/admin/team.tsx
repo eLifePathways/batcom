@@ -24,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Edit, Plus, Trash2, User, MoveUp, MoveDown, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Edit, Plus, Trash2, User, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeamMember } from "@shared/schema";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -50,6 +50,7 @@ export default function TeamMembersAdmin() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isReorderMode, setIsReorderMode] = useState(false);
   
   // Reset form data
   const resetFormData = () => {
@@ -174,6 +175,71 @@ export default function TeamMembersAdmin() {
     }
   });
   
+  // Reorder team members mutation
+  const reorderTeamMembers = useMutation({
+    mutationFn: async (memberIds: number[]) => {
+      return apiRequest('/api/team-members/reorder', {
+        method: 'POST',
+        body: JSON.stringify({ memberIds })
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Team member order updated successfully!",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
+      setIsReorderMode(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reorder team members.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // State for managing the ordered list during reordering
+  const [orderedMembers, setOrderedMembers] = useState<TeamMember[]>([]);
+  
+  // Initialize ordered members when team members are loaded
+  useEffect(() => {
+    if (teamMembers) {
+      setOrderedMembers([...teamMembers]);
+    }
+  }, [teamMembers]);
+  
+  // Move a team member up in the order
+  const moveUp = (index: number) => {
+    if (index === 0) return; // Already at the top
+    
+    const newOrderedMembers = [...orderedMembers];
+    const temp = newOrderedMembers[index];
+    newOrderedMembers[index] = newOrderedMembers[index - 1];
+    newOrderedMembers[index - 1] = temp;
+    
+    setOrderedMembers(newOrderedMembers);
+  };
+  
+  // Move a team member down in the order
+  const moveDown = (index: number) => {
+    if (index === orderedMembers.length - 1) return; // Already at the bottom
+    
+    const newOrderedMembers = [...orderedMembers];
+    const temp = newOrderedMembers[index];
+    newOrderedMembers[index] = newOrderedMembers[index + 1];
+    newOrderedMembers[index + 1] = temp;
+    
+    setOrderedMembers(newOrderedMembers);
+  };
+  
+  // Save the reordered list
+  const saveReordering = () => {
+    const memberIds = orderedMembers.map(member => member.id);
+    reorderTeamMembers.mutate(memberIds);
+  };
+  
   // Handle form submission for creating a new team member
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,13 +277,48 @@ export default function TeamMembersAdmin() {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Team Members</h1>
-        <Button onClick={() => {
-          resetFormData();
-          setAddDialogOpen(true);
-        }}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Team Member
-        </Button>
+        <div className="flex gap-2">
+          {isReorderMode ? (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  // Reset to original order
+                  if (teamMembers) {
+                    setOrderedMembers([...teamMembers]);
+                  }
+                  setIsReorderMode(false);
+                }}
+                disabled={reorderTeamMembers.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={saveReordering}
+                disabled={reorderTeamMembers.isPending}
+              >
+                {reorderTeamMembers.isPending ? "Saving..." : "Save Order"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsReorderMode(true)}
+              >
+                <ArrowUpDown className="mr-2 h-4 w-4" />
+                Reorder Members
+              </Button>
+              <Button onClick={() => {
+                resetFormData();
+                setAddDialogOpen(true);
+              }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Team Member
+              </Button>
+            </>
+          )}
+        </div>
       </div>
       
       {/* Add Team Member Dialog */}
@@ -354,7 +455,52 @@ export default function TeamMembersAdmin() {
                     </div>
                   </TableCell>
                 </TableRow>
+              ) : isReorderMode && orderedMembers.length > 0 ? (
+                // Reorder mode view
+                orderedMembers.map((member, index) => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      {member.imageUrl ? (
+                        <div className="relative h-12 w-12 rounded-full overflow-hidden">
+                          <img
+                            src={member.imageUrl}
+                            alt={member.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-12 w-12 bg-gray-100 rounded-full">
+                          <User className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{member.name}</TableCell>
+                    <TableCell>{member.title}</TableCell>
+                    <TableCell>{member.institution}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => moveUp(index)}
+                          disabled={index === 0}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          onClick={() => moveDown(index)}
+                          disabled={index === orderedMembers.length - 1}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : teamMembers && teamMembers.length > 0 ? (
+                // Regular view mode
                 teamMembers.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell>
