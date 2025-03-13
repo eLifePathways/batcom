@@ -188,12 +188,9 @@ export default function TeamMembersAdmin() {
         title: "Success",
         description: "Team member order updated successfully!",
       });
-      // Update the ordered members state with the response data
-      setOrderedMembers(data);
-      // Update the cache
-      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] });
-      // Exit reorder mode
-      setIsReorderMode(false);
+      
+      // Force a hard refresh to guarantee the latest data
+      window.location.reload();
     },
     onError: (error: any) => {
       toast({
