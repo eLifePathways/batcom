@@ -62,7 +62,6 @@ export function ImageUpload({
         method: "POST",
         body: formData,
         // Don't set Content-Type header when using FormData
-        // The browser will set it automatically with the boundary parameter
       });
 
       // Set the preview and notify parent component
@@ -119,6 +118,7 @@ export function ImageUpload({
                 src={previewUrl} 
                 alt="Preview" 
                 className="h-48 w-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">

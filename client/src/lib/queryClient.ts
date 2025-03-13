@@ -160,7 +160,7 @@ export function clearApiCache() {
  * - Optimized retry and refetch settings
  */
 export const queryClient = new QueryClient({
-  // Optimize query client with performance settings
+  // Optimize query client with performance settings that are compatible with TanStack Query v5
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
@@ -169,10 +169,7 @@ export const queryClient = new QueryClient({
       staleTime: Infinity, // Using our own cache invalidation
       retry: false,
       gcTime: 10 * 60 * 1000, // 10 minutes (uses gcTime instead of cacheTime in v5)
-      // Additional optimizations that work with TanStack Query v5
-      refetchOnMount: false, // Minimize refetches on component mount
-      suspense: false, // Don't use React Suspense to avoid unnecessary renders
-      structuralSharing: true, // Enable structural sharing for better performance
+      refetchOnMount: false // Minimize refetches on component mount
     },
     mutations: {
       retry: false,
@@ -181,8 +178,7 @@ export const queryClient = new QueryClient({
         // Return context for potential rollback
         return { timestamp: Date.now() };
       },
-      // Set garbage collection time for mutation cache (v5 compatible)
-      gcTime: 5 * 60 * 1000 // 5 minutes
+      gcTime: 5 * 60 * 1000 // 5 minutes in v5
     },
   },
 });
