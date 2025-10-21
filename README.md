@@ -32,42 +32,50 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
 ### Installation
 
 1. Clone the repository
+
    ```bash
    git clone https://github.com/Shippies-org/bats.git
    cd bats
    ```
 
 2. Install dependencies
+
    ```bash
    npm install
    ```
 
 3. Set up environment variables
    Create a `.env` file in the root directory with the following variables:
+
    ```
    DATABASE_URL=postgresql://username:password@localhost:5432/database
-   PORT=5000
+   PORT=5120
+   JWT_SECRET="your-secure-session-secret"
+   JWT_EXPIRES_IN="7d"
+   ADMIN_PASSWORD="temporary-admin-password"
    ```
 
 4. Initialize the database
+
    ```bash
    npm run db:push
    ```
 
 5. Start the development server
+
    ```bash
    npm run dev
    ```
 
-6. Open your browser and navigate to `http://localhost:5000`
+6. Open your browser and navigate to `http://localhost:5120`
 
 ## Project Structure
 
 ```
 ├── client/               # Frontend code
-│   ├── src/              
+│   ├── src/
 │   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Page components 
+│   │   ├── pages/        # Page components
 │   │   ├── lib/          # Utility libraries
 │   │   ├── hooks/        # Custom React hooks
 │   │   └── data/         # Static data and types
@@ -160,13 +168,14 @@ The application can be deployed on any Node.js hosting platform that supports Po
 ### Docker Deployment
 
 1. Build the Docker image
+
    ```bash
    docker build -t bat-com-platform .
    ```
 
 2. Run the container
    ```bash
-   docker run -p 5000:5000 -e DATABASE_URL=your_db_url bat-com-platform
+   docker run -p 5120:5120 -e DATABASE_URL=your_db_url bat-com-platform
    ```
 
 ## Contributing

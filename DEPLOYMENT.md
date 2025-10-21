@@ -36,11 +36,13 @@ Create a `.env` file with the following variables:
 DATABASE_URL=postgresql://username:password@localhost:5432/database_name
 
 # Server
-PORT=5000
+PORT=5120
 NODE_ENV=production
 
 # Security
-SESSION_SECRET=your-secure-session-secret
+JWT_SECRET="your-secure-session-secret"
+JWT_EXPIRES_IN="7d"
+ADMIN_PASSWORD="temporary-admin-password"
 ```
 
 For production environments, use environment-specific configuration systems:
@@ -54,6 +56,7 @@ For production environments, use environment-specific configuration systems:
 ### PostgreSQL Setup
 
 1. Create a PostgreSQL database:
+
    ```sql
    CREATE DATABASE batcom;
    CREATE USER batcom_user WITH ENCRYPTED PASSWORD 'secure_password';
@@ -74,6 +77,7 @@ npm run db:push
 ```
 
 This will:
+
 1. Create all necessary tables
 2. Set up relationships
 3. Apply any pending migrations
@@ -83,11 +87,13 @@ This will:
 ### Building for Production
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Build the frontend assets:
+
    ```bash
    npm run build
    ```
@@ -104,7 +110,7 @@ This will:
 1. Fork the repository on Replit
 2. Set up environment secrets in the Replit Secrets panel:
    - `DATABASE_URL`
-   - `SESSION_SECRET`
+   - `JWT_SECRET`
 3. Run the database initialization:
    ```bash
    npm run db:push
@@ -128,12 +134,14 @@ This will:
 ### Node.js Server
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/Shippies-org/bats.git
    cd bats
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -141,6 +149,7 @@ This will:
 3. Create a `.env` file with environment variables
 
 4. Build the application:
+
    ```bash
    npm run build
    ```
@@ -155,11 +164,13 @@ This will:
 For production environments, use PM2 to manage the Node.js process:
 
 1. Install PM2:
+
    ```bash
    npm install -g pm2
    ```
 
 2. Start the application with PM2:
+
    ```bash
    pm2 start npm --name "batcom" -- start
    ```
@@ -180,7 +191,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:5000;
+        proxy_pass http://localhost:5120;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -208,12 +219,14 @@ services:
   app:
     build: .
     ports:
-      - "5000:5000"
+      - '5120:5120'
     environment:
       - DATABASE_URL=postgresql://batcom_user:secure_password@db:5432/batcom
       - NODE_ENV=production
-      - PORT=5000
-      - SESSION_SECRET=your-secure-session-secret
+      - PORT=5120
+      - JWT_SECRET="your-secure-session-secret"
+      - JWT_EXPIRES_IN="7d"
+      - ADMIN_PASSWORD="temporary-admin-password"
     depends_on:
       - db
     restart: always
@@ -221,7 +234,7 @@ services:
   db:
     image: postgres:14
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       - POSTGRES_USER=batcom_user
       - POSTGRES_PASSWORD=secure_password
@@ -235,6 +248,7 @@ volumes:
 ```
 
 2. Start the services:
+
    ```bash
    docker-compose up -d
    ```
@@ -249,6 +263,7 @@ volumes:
 For deploying to Kubernetes, create the following manifests:
 
 1. `deployment.yaml`:
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -265,28 +280,29 @@ spec:
         app: batcom
     spec:
       containers:
-      - name: batcom
-        image: your-registry/batcom:latest
-        ports:
-        - containerPort: 5000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: batcom-secrets
-              key: database-url
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "5000"
-        - name: SESSION_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: batcom-secrets
-              key: session-secret
+        - name: batcom
+          image: your-registry/batcom:latest
+          ports:
+            - containerPort: 5120
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: batcom-secrets
+                  key: database-url
+            - name: NODE_ENV
+              value: 'production'
+            - name: PORT
+              value: '5120'
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: batcom-secrets
+                  key: session-secret
 ```
 
 2. `service.yaml`:
+
 ```yaml
 apiVersion: v1
 kind: Service
@@ -296,12 +312,13 @@ spec:
   selector:
     app: batcom
   ports:
-  - port: 80
-    targetPort: 5000
+    - port: 80
+      targetPort: 5120
   type: ClusterIP
 ```
 
 3. `ingress.yaml`:
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -312,23 +329,24 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
-  - host: your-domain.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: batcom
-            port:
-              number: 80
+    - host: your-domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: batcom
+                port:
+                  number: 80
   tls:
-  - hosts:
-    - your-domain.com
-    secretName: batcom-tls
+    - hosts:
+        - your-domain.com
+      secretName: batcom-tls
 ```
 
 4. Apply the manifests:
+
 ```bash
 kubectl apply -f deployment.yaml
 kubectl apply -f service.yaml
@@ -346,30 +364,30 @@ name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build application
         run: npm run build
-        
+
       - name: Run database migrations
         run: npm run db:push
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          
+
       - name: Deploy to production
         uses: appleboy/ssh-action@master
         with:
@@ -426,6 +444,7 @@ If you encounter database connection issues:
 If the application fails to start:
 
 1. Check the logs for error messages:
+
    ```bash
    npm run logs
    # or if using PM2
@@ -436,7 +455,7 @@ If the application fails to start:
 
 3. Check for port conflicts:
    ```bash
-   netstat -tuln | grep 5000
+   netstat -tuln | grep 5120
    ```
 
 #### Static Assets Not Loading

@@ -7,24 +7,31 @@ This guide provides detailed information for developers working on the Bat-Com R
 ### Local Development
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Shippies-org/bats.git
    cd bats
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
    Create a `.env` file in the root directory with:
+
    ```
    DATABASE_URL=postgresql://username:password@localhost:5432/database
-   PORT=5000
+   PORT=5120
+   JWT_SECRET="your-secure-session-secret"
+   JWT_EXPIRES_IN="7d"
+   ADMIN_PASSWORD="temporary-admin-password"
    ```
 
 4. **Initialize the database**
+
    ```bash
    npm run db:push
    ```
@@ -109,24 +116,26 @@ The frontend is built with React and uses several key patterns:
 To add a new entity to the system:
 
 1. Define the entity in `shared/schema.ts`
+
    ```typescript
-   export const newEntities = pgTable("new_entities", {
-     id: serial("id").primaryKey(),
-     name: text("name").notNull(),
-     description: text("description"),
-     createdAt: timestamp("created_at").defaultNow(),
-   });
+   export const newEntities = pgTable('new_entities', {
+     id: serial('id').primaryKey(),
+     name: text('name').notNull(),
+     description: text('description'),
+     createdAt: timestamp('created_at').defaultNow(),
+   })
 
    export const insertNewEntitySchema = createInsertSchema(newEntities).omit({
      id: true,
      createdAt: true,
-   });
+   })
 
-   export type InsertNewEntity = z.infer<typeof insertNewEntitySchema>;
-   export type NewEntity = typeof newEntities.$inferSelect;
+   export type InsertNewEntity = z.infer<typeof insertNewEntitySchema>
+   export type NewEntity = typeof newEntities.$inferSelect
    ```
 
 2. Add CRUD operations to the storage interface in `server/storage.ts`
+
    ```typescript
    // In IStorage interface
    getAllNewEntities(): Promise<NewEntity[]>;
@@ -137,6 +146,7 @@ To add a new entity to the system:
    ```
 
 3. Implement the methods in `server/db-storage.ts`
+
    ```typescript
    // Example implementation
    async getAllNewEntities(): Promise<NewEntity[]> {
@@ -145,15 +155,16 @@ To add a new entity to the system:
    ```
 
 4. Add API routes in `server/routes.ts`
+
    ```typescript
    app.get('/api/new-entities', async (req: Request, res: Response) => {
      try {
-       const entities = await storage.getAllNewEntities();
-       res.json(entities);
+       const entities = await storage.getAllNewEntities()
+       res.json(entities)
      } catch (error) {
-       res.status(500).json({ error: "Failed to fetch entities" });
+       res.status(500).json({ error: 'Failed to fetch entities' })
      }
-   });
+   })
    ```
 
 5. Create the frontend components in `client/src/pages/` and `client/src/components/`
@@ -174,27 +185,27 @@ Forms use React Hook Form with Zod validation:
 ```typescript
 // Form schema
 const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
-});
+})
 
 // Form component
 const form = useForm<z.infer<typeof formSchema>>({
   resolver: zodResolver(formSchema),
   defaultValues: {
-    name: "",
-    description: "",
+    name: '',
+    description: '',
   },
-});
+})
 
 // Form submission
 const onSubmit = async (data: z.infer<typeof formSchema>) => {
-  await apiRequest("/api/endpoint", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  await apiRequest('/api/endpoint', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  });
-};
+  })
+}
 ```
 
 ## Performance Optimization
@@ -238,7 +249,7 @@ npm test
 API endpoints can be tested using tools like Postman or curl:
 
 ```bash
-curl -X GET http://localhost:5000/api/virus-categories
+curl -X GET http://localhost:5120/api/virus-categories
 ```
 
 ## Common Issues and Solutions
@@ -265,14 +276,14 @@ Common patterns for API error handling:
 
 ```typescript
 try {
-  const result = await storage.getSomeData();
+  const result = await storage.getSomeData()
   if (!result) {
-    return res.status(404).json({ error: "Not found" });
+    return res.status(404).json({ error: 'Not found' })
   }
-  res.json(result);
+  res.json(result)
 } catch (error) {
-  console.error("Error:", error);
-  res.status(500).json({ error: "Internal server error" });
+  console.error('Error:', error)
+  res.status(500).json({ error: 'Internal server error' })
 }
 ```
 
@@ -293,7 +304,7 @@ try {
 Production deployments require these environment variables:
 
 - `DATABASE_URL` - PostgreSQL connection string
-- `PORT` - Server port (default: 5000)
+- `PORT` - Server port (default: 5120)
 - `NODE_ENV` - Set to "production"
 
 ## Continuous Integration

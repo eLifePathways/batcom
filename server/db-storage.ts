@@ -1,272 +1,342 @@
-import { 
-  users, type User, type InsertUser,
-  virusCategories, type VirusCategory, type InsertVirusCategory,
-  teamMembers, type TeamMember, type InsertTeamMember,
-  publications, type Publication, type InsertPublication,
-  backgroundPapers, type BackgroundPaper, type InsertBackgroundPaper,
-  issues, type Issue, type InsertIssue,
-  issueComments, type IssueComment, type InsertIssueComment,
-  whatWeDoSections, type WhatWeDoSection, type InsertWhatWeDoSection,
-  whatWeDoContent, type WhatWeDoContent, type InsertWhatWeDoContent
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, like, and, gte, lte, or } from "drizzle-orm";
-import { IStorage } from "./storage";
+import {
+  users,
+  type User,
+  type InsertUser,
+  virusCategories,
+  type VirusCategory,
+  type InsertVirusCategory,
+  teamMembers,
+  type TeamMember,
+  type InsertTeamMember,
+  publications,
+  type Publication,
+  type InsertPublication,
+  backgroundPapers,
+  type BackgroundPaper,
+  type InsertBackgroundPaper,
+  issues,
+  type Issue,
+  type InsertIssue,
+  issueComments,
+  type IssueComment,
+  type InsertIssueComment,
+  whatWeDoSections,
+  type WhatWeDoSection,
+  type InsertWhatWeDoSection,
+  whatWeDoContent,
+  type WhatWeDoContent,
+  type InsertWhatWeDoContent,
+} from '@shared/schema'
+import { db } from './db'
+import { eq, like, and, gte, lte, or } from 'drizzle-orm'
+import { IStorage } from './storage'
+import { hashPassword } from './auth'
 
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    const [user] = await db.select().from(users).where(eq(users.id, id))
+    return user || undefined
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username))
+    return user || undefined
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
+    const [adminUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, 'admin'))
+
+    if (adminUser) {
+      await db.delete(users).where(eq(users.id, adminUser.id))
+    }
+
+    const [user] = await db.insert(users).values(insertUser).returning()
+
+    return user
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
+    return await db.select().from(users)
   }
 
   async updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
-    const existingUser = await this.getUser(id);
+    const existingUser = await this.getUser(id)
     if (!existingUser) {
-      return undefined;
+      return undefined
     }
-    
+
     const [updatedUser] = await db
       .update(users)
       .set(data)
       .where(eq(users.id, id))
-      .returning();
-    
-    return updatedUser;
+      .returning()
+
+    return updatedUser
   }
-  
+
   async deleteUser(id: number): Promise<boolean> {
-    const result = await db.delete(users).where(eq(users.id, id));
-    return result.count > 0;
+    const result = await db.delete(users).where(eq(users.id, id))
+    return result.count > 0
   }
 
   // Virus category operations
   async getAllVirusCategories(): Promise<VirusCategory[]> {
-    return await db.select().from(virusCategories);
+    return await db.select().from(virusCategories)
   }
 
   async getVirusCategory(id: number): Promise<VirusCategory | undefined> {
-    const [category] = await db.select().from(virusCategories).where(eq(virusCategories.id, id));
-    return category || undefined;
+    const [category] = await db
+      .select()
+      .from(virusCategories)
+      .where(eq(virusCategories.id, id))
+    return category || undefined
   }
 
-  async createVirusCategory(category: InsertVirusCategory): Promise<VirusCategory> {
+  async createVirusCategory(
+    category: InsertVirusCategory,
+  ): Promise<VirusCategory> {
     const [newCategory] = await db
       .insert(virusCategories)
       .values(category)
-      .returning();
-    return newCategory;
+      .returning()
+    return newCategory
   }
-  
-  async updateVirusCategory(id: number, data: Partial<VirusCategory>): Promise<VirusCategory | undefined> {
-    const existingCategory = await this.getVirusCategory(id);
+
+  async updateVirusCategory(
+    id: number,
+    data: Partial<VirusCategory>,
+  ): Promise<VirusCategory | undefined> {
+    const existingCategory = await this.getVirusCategory(id)
     if (!existingCategory) {
-      return undefined;
+      return undefined
     }
-    
+
     const [updatedCategory] = await db
       .update(virusCategories)
       .set(data)
       .where(eq(virusCategories.id, id))
-      .returning();
-      
-    return updatedCategory;
+      .returning()
+
+    return updatedCategory
   }
-  
+
   async deleteVirusCategory(id: number): Promise<boolean> {
     const result = await db
       .delete(virusCategories)
-      .where(eq(virusCategories.id, id));
-    
-    return true; // Postgres doesn't easily return affected rows count
+      .where(eq(virusCategories.id, id))
+
+    return true // Postgres doesn't easily return affected rows count
   }
 
   // Team member operations
   async getAllTeamMembers(): Promise<TeamMember[]> {
-    console.log("Fetching team members sorted by sortOrder");
-    const result = await db.select().from(teamMembers).orderBy(teamMembers.sortOrder);
-    console.log("Team members ordering:", result.map(m => ({ id: m.id, name: m.name, sortOrder: m.sortOrder })));
-    return result;
+    console.log('Fetching team members sorted by sortOrder')
+    const result = await db
+      .select()
+      .from(teamMembers)
+      .orderBy(teamMembers.sortOrder)
+    console.log(
+      'Team members ordering:',
+      result.map(m => ({ id: m.id, name: m.name, sortOrder: m.sortOrder })),
+    )
+    return result
   }
 
   async getTeamMember(id: number): Promise<TeamMember | undefined> {
-    const [member] = await db.select().from(teamMembers).where(eq(teamMembers.id, id));
-    return member || undefined;
+    const [member] = await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.id, id))
+    return member || undefined
   }
 
   async createTeamMember(member: InsertTeamMember): Promise<TeamMember> {
     // Get the current max sort order and add 1 for the new member
-    const existingMembers = await db.select().from(teamMembers);
-    const maxSortOrder = existingMembers.length > 0 
-      ? Math.max(...existingMembers
-          .map(m => (m.sortOrder !== undefined && m.sortOrder !== null) ? m.sortOrder : 0))
-      : -1;
-    const newSortOrder = maxSortOrder + 1;
-    
-    console.log(`Creating new team member with sortOrder: ${newSortOrder}`);
-    
+    const existingMembers = await db.select().from(teamMembers)
+    const maxSortOrder =
+      existingMembers.length > 0
+        ? Math.max(
+            ...existingMembers.map(m =>
+              m.sortOrder !== undefined && m.sortOrder !== null
+                ? m.sortOrder
+                : 0,
+            ),
+          )
+        : -1
+    const newSortOrder = maxSortOrder + 1
+
+    console.log(`Creating new team member with sortOrder: ${newSortOrder}`)
+
     // Insert with the calculated sort order
     const [newMember] = await db
       .insert(teamMembers)
       .values({
         ...member,
-        sortOrder: newSortOrder
+        sortOrder: newSortOrder,
       })
-      .returning();
-      
-    return newMember;
+      .returning()
+
+    return newMember
   }
-  
-  async updateTeamMember(id: number, data: Partial<TeamMember>): Promise<TeamMember | undefined> {
-    const existingMember = await this.getTeamMember(id);
+
+  async updateTeamMember(
+    id: number,
+    data: Partial<TeamMember>,
+  ): Promise<TeamMember | undefined> {
+    const existingMember = await this.getTeamMember(id)
     if (!existingMember) {
-      return undefined;
+      return undefined
     }
-    
+
     const [updatedMember] = await db
       .update(teamMembers)
       .set(data)
       .where(eq(teamMembers.id, id))
-      .returning();
-      
-    return updatedMember;
+      .returning()
+
+    return updatedMember
   }
-  
+
   async deleteTeamMember(id: number): Promise<boolean> {
-    const result = await db
-      .delete(teamMembers)
-      .where(eq(teamMembers.id, id));
-    
-    return true; // Postgres doesn't easily return affected rows count
+    const result = await db.delete(teamMembers).where(eq(teamMembers.id, id))
+
+    return true // Postgres doesn't easily return affected rows count
   }
-  
+
   async reorderTeamMembers(memberIds: number[]): Promise<TeamMember[]> {
-    console.log("Starting reorderTeamMembers with memberIds:", memberIds);
-    
+    console.log('Starting reorderTeamMembers with memberIds:', memberIds)
+
     // Update sort order for each team member
     for (let i = 0; i < memberIds.length; i++) {
-      console.log(`Setting sortOrder ${i} for member ID ${memberIds[i]}`);
+      console.log(`Setting sortOrder ${i} for member ID ${memberIds[i]}`)
       await db
         .update(teamMembers)
         .set({ sortOrder: i })
-        .where(eq(teamMembers.id, memberIds[i]));
+        .where(eq(teamMembers.id, memberIds[i]))
     }
-    
+
     // Verify the sort order was updated correctly
-    const updatedMembers = await this.getAllTeamMembers();
-    console.log("Updated member order:", updatedMembers.map(m => ({ id: m.id, name: m.name, sortOrder: m.sortOrder })));
-    
+    const updatedMembers = await this.getAllTeamMembers()
+    console.log(
+      'Updated member order:',
+      updatedMembers.map(m => ({
+        id: m.id,
+        name: m.name,
+        sortOrder: m.sortOrder,
+      })),
+    )
+
     // Return the reordered team members
-    return updatedMembers;
+    return updatedMembers
   }
 
   // Publication operations
   async getAllPublications(): Promise<Publication[]> {
-    return await db.select().from(publications);
+    return await db.select().from(publications)
   }
 
   async getPublication(id: number): Promise<Publication | undefined> {
-    const [publication] = await db.select().from(publications).where(eq(publications.id, id));
-    return publication || undefined;
+    const [publication] = await db
+      .select()
+      .from(publications)
+      .where(eq(publications.id, id))
+    return publication || undefined
   }
 
-  async createPublication(publication: InsertPublication): Promise<Publication> {
+  async createPublication(
+    publication: InsertPublication,
+  ): Promise<Publication> {
     const [newPublication] = await db
       .insert(publications)
       .values(publication)
-      .returning();
-    return newPublication;
+      .returning()
+    return newPublication
   }
-  
-  async updatePublication(id: number, data: Partial<Publication>): Promise<Publication | undefined> {
-    const existingPublication = await this.getPublication(id);
+
+  async updatePublication(
+    id: number,
+    data: Partial<Publication>,
+  ): Promise<Publication | undefined> {
+    const existingPublication = await this.getPublication(id)
     if (!existingPublication) {
-      return undefined;
+      return undefined
     }
-    
+
     const [updatedPublication] = await db
       .update(publications)
       .set(data)
       .where(eq(publications.id, id))
-      .returning();
-      
-    return updatedPublication;
+      .returning()
+
+    return updatedPublication
   }
-  
+
   async deletePublication(id: number): Promise<boolean> {
-    const result = await db
-      .delete(publications)
-      .where(eq(publications.id, id));
-    
-    return true; // Postgres doesn't easily return affected rows count
+    const result = await db.delete(publications).where(eq(publications.id, id))
+
+    return true // Postgres doesn't easily return affected rows count
   }
 
-  async getPublicationsByVirusCategory(virusCategoryId: number): Promise<Publication[]> {
+  async getPublicationsByVirusCategory(
+    virusCategoryId: number,
+  ): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
-      .where(eq(publications.virusCategoryId, virusCategoryId));
+      .where(eq(publications.virusCategoryId, virusCategoryId))
   }
 
-  async getPublicationsByEvidenceQuality(quality: string): Promise<Publication[]> {
+  async getPublicationsByEvidenceQuality(
+    quality: string,
+  ): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
-      .where(eq(publications.evidenceQuality, quality));
+      .where(eq(publications.evidenceQuality, quality))
   }
 
   async getPublicationsByEvidenceType(type: string): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
-      .where(eq(publications.evidenceType, type));
+      .where(eq(publications.evidenceType, type))
   }
 
   async getPublicationsByYear(year: number): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
-      .where(eq(publications.year, year));
+      .where(eq(publications.year, year))
   }
 
-  async getPublicationsByYearRange(startYear: number, endYear: number): Promise<Publication[]> {
+  async getPublicationsByYearRange(
+    startYear: number,
+    endYear: number,
+  ): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
       .where(
-        and(
-          gte(publications.year, startYear),
-          lte(publications.year, endYear)
-        )
-      );
+        and(gte(publications.year, startYear), lte(publications.year, endYear)),
+      )
   }
 
   async getPublicationsByRegion(region: string): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
-      .where(eq(publications.region, region));
+      .where(eq(publications.region, region))
   }
 
   async searchPublications(query: string): Promise<Publication[]> {
-    const searchPattern = `%${query}%`;
+    const searchPattern = `%${query}%`
     return await db
       .select()
       .from(publications)
@@ -274,88 +344,98 @@ export class DatabaseStorage implements IStorage {
         or(
           like(publications.title, searchPattern),
           like(publications.authors, searchPattern),
-          like(publications.abstract, searchPattern)
-        )
-      );
+          like(publications.abstract, searchPattern),
+        ),
+      )
   }
 
   // Background paper operations
   async getAllBackgroundPapers(): Promise<BackgroundPaper[]> {
-    return await db.select().from(backgroundPapers);
+    return await db.select().from(backgroundPapers)
   }
 
   async getBackgroundPaper(id: number): Promise<BackgroundPaper | undefined> {
-    const [paper] = await db.select().from(backgroundPapers).where(eq(backgroundPapers.id, id));
-    return paper || undefined;
+    const [paper] = await db
+      .select()
+      .from(backgroundPapers)
+      .where(eq(backgroundPapers.id, id))
+    return paper || undefined
   }
 
-  async createBackgroundPaper(paper: InsertBackgroundPaper): Promise<BackgroundPaper> {
+  async createBackgroundPaper(
+    paper: InsertBackgroundPaper,
+  ): Promise<BackgroundPaper> {
     // Properly handle the description field
-    const paperData = { ...paper };
+    const paperData = { ...paper }
     if (paperData.description === '') {
-      paperData.description = null;
+      paperData.description = null
     }
-    
-    console.log('Creating background paper with data:', paperData);
-    
+
+    console.log('Creating background paper with data:', paperData)
+
     const [newPaper] = await db
       .insert(backgroundPapers)
       .values(paperData)
-      .returning();
-      
-    console.log('Created background paper result:', newPaper);
-    
-    return newPaper;
+      .returning()
+
+    console.log('Created background paper result:', newPaper)
+
+    return newPaper
   }
-  
-  async updateBackgroundPaper(id: number, data: Partial<BackgroundPaper>): Promise<BackgroundPaper | undefined> {
-    const existingPaper = await this.getBackgroundPaper(id);
+
+  async updateBackgroundPaper(
+    id: number,
+    data: Partial<BackgroundPaper>,
+  ): Promise<BackgroundPaper | undefined> {
+    const existingPaper = await this.getBackgroundPaper(id)
     if (!existingPaper) {
-      return undefined;
+      return undefined
     }
-    
+
     // Properly handle the description field to avoid 's' character issue
-    const updatedData = { ...data };
+    const updatedData = { ...data }
     if (updatedData.description === '') {
-      updatedData.description = null;
+      updatedData.description = null
     }
-    
-    console.log('DB storage update paper data:', updatedData);
-    
+
+    console.log('DB storage update paper data:', updatedData)
+
     const [updatedPaper] = await db
       .update(backgroundPapers)
       .set(updatedData)
       .where(eq(backgroundPapers.id, id))
-      .returning();
-    
-    console.log('DB storage updated paper result:', updatedPaper);
-      
-    return updatedPaper;
+      .returning()
+
+    console.log('DB storage updated paper result:', updatedPaper)
+
+    return updatedPaper
   }
-  
+
   async deleteBackgroundPaper(id: number): Promise<boolean> {
     const result = await db
       .delete(backgroundPapers)
-      .where(eq(backgroundPapers.id, id));
-    
-    return true; // Postgres doesn't easily return affected rows count
+      .where(eq(backgroundPapers.id, id))
+
+    return true // Postgres doesn't easily return affected rows count
   }
 
-  async getBackgroundPapersByVirusCategory(virusCategoryId: number): Promise<BackgroundPaper[]> {
+  async getBackgroundPapersByVirusCategory(
+    virusCategoryId: number,
+  ): Promise<BackgroundPaper[]> {
     return await db
       .select()
       .from(backgroundPapers)
-      .where(eq(backgroundPapers.virusCategoryId, virusCategoryId));
+      .where(eq(backgroundPapers.virusCategoryId, virusCategoryId))
   }
 
   // Issue operations
   async getAllIssues(): Promise<Issue[]> {
-    return await db.select().from(issues);
+    return await db.select().from(issues)
   }
 
   async getIssue(id: number): Promise<Issue | undefined> {
-    const [issue] = await db.select().from(issues).where(eq(issues.id, id));
-    return issue || undefined;
+    const [issue] = await db.select().from(issues).where(eq(issues.id, id))
+    return issue || undefined
   }
 
   async createIssue(issueData: InsertIssue): Promise<Issue> {
@@ -363,59 +443,52 @@ export class DatabaseStorage implements IStorage {
       .insert(issues)
       .values({
         ...issueData,
-        status: "open",
-        priority: "medium",
+        status: 'open',
+        priority: 'medium',
         submittedAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
-      .returning();
-    return newIssue;
+      .returning()
+    return newIssue
   }
 
-  async updateIssue(id: number, data: Partial<Issue>): Promise<Issue | undefined> {
-    const existingIssue = await this.getIssue(id);
+  async updateIssue(
+    id: number,
+    data: Partial<Issue>,
+  ): Promise<Issue | undefined> {
+    const existingIssue = await this.getIssue(id)
     if (!existingIssue) {
-      return undefined;
+      return undefined
     }
-    
+
     const [updatedIssue] = await db
       .update(issues)
       .set({
         ...data,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(issues.id, id))
-      .returning();
-      
-    return updatedIssue;
+      .returning()
+
+    return updatedIssue
   }
 
   async deleteIssue(id: number): Promise<boolean> {
     // First delete all comments associated with this issue
-    await db
-      .delete(issueComments)
-      .where(eq(issueComments.issueId, id));
-      
+    await db.delete(issueComments).where(eq(issueComments.issueId, id))
+
     // Then delete the issue
-    const result = await db
-      .delete(issues)
-      .where(eq(issues.id, id));
-    
-    return true;
+    const result = await db.delete(issues).where(eq(issues.id, id))
+
+    return true
   }
 
   async getIssuesByStatus(status: string): Promise<Issue[]> {
-    return await db
-      .select()
-      .from(issues)
-      .where(eq(issues.status, status));
+    return await db.select().from(issues).where(eq(issues.status, status))
   }
 
   async getIssuesByPriority(priority: string): Promise<Issue[]> {
-    return await db
-      .select()
-      .from(issues)
-      .where(eq(issues.priority, priority));
+    return await db.select().from(issues).where(eq(issues.priority, priority))
   }
 
   // Issue comment operations
@@ -423,54 +496,59 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(issueComments)
-      .where(eq(issueComments.issueId, issueId));
+      .where(eq(issueComments.issueId, issueId))
   }
 
-  async createIssueComment(commentData: InsertIssueComment): Promise<IssueComment> {
+  async createIssueComment(
+    commentData: InsertIssueComment,
+  ): Promise<IssueComment> {
     const [newComment] = await db
       .insert(issueComments)
       .values(commentData)
-      .returning();
-    
+      .returning()
+
     // Update the issue's updatedAt timestamp
     await db
       .update(issues)
       .set({ updatedAt: new Date() })
-      .where(eq(issues.id, commentData.issueId));
-    
-    return newComment;
+      .where(eq(issues.id, commentData.issueId))
+
+    return newComment
   }
 
-  async updateIssueComment(id: number, data: Partial<IssueComment>): Promise<IssueComment | undefined> {
+  async updateIssueComment(
+    id: number,
+    data: Partial<IssueComment>,
+  ): Promise<IssueComment | undefined> {
     const [comment] = await db
       .select()
       .from(issueComments)
-      .where(eq(issueComments.id, id));
-      
+      .where(eq(issueComments.id, id))
+
     if (!comment) {
-      return undefined;
+      return undefined
     }
-    
+
     // Don't allow changing the issue
-    const updatedData = { ...data };
-    delete updatedData.issueId;
-    delete updatedData.createdAt;
-    
+    const updatedData = { ...data }
+    delete updatedData.issueId
+    delete updatedData.createdAt
+
     const [updatedComment] = await db
       .update(issueComments)
       .set(updatedData)
       .where(eq(issueComments.id, id))
-      .returning();
-      
-    return updatedComment;
+      .returning()
+
+    return updatedComment
   }
 
   async deleteIssueComment(id: number): Promise<boolean> {
     const result = await db
       .delete(issueComments)
-      .where(eq(issueComments.id, id));
-    
-    return true;
+      .where(eq(issueComments.id, id))
+
+    return true
   }
 
   // What We Do section operations
@@ -478,133 +556,144 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(whatWeDoSections)
-      .orderBy(whatWeDoSections.sortOrder);
+      .orderBy(whatWeDoSections.sortOrder)
   }
 
   async getWhatWeDoSection(id: number): Promise<WhatWeDoSection | undefined> {
     const [section] = await db
       .select()
       .from(whatWeDoSections)
-      .where(eq(whatWeDoSections.id, id));
-    return section || undefined;
+      .where(eq(whatWeDoSections.id, id))
+    return section || undefined
   }
-  
-  async getWhatWeDoSectionBySlug(slug: string): Promise<WhatWeDoSection | undefined> {
+
+  async getWhatWeDoSectionBySlug(
+    slug: string,
+  ): Promise<WhatWeDoSection | undefined> {
     const [section] = await db
       .select()
       .from(whatWeDoSections)
-      .where(eq(whatWeDoSections.slug, slug));
-    return section || undefined;
+      .where(eq(whatWeDoSections.slug, slug))
+    return section || undefined
   }
-  
-  async createWhatWeDoSection(section: InsertWhatWeDoSection): Promise<WhatWeDoSection> {
+
+  async createWhatWeDoSection(
+    section: InsertWhatWeDoSection,
+  ): Promise<WhatWeDoSection> {
     // Properly handle nullable fields
     const sectionData = {
       ...section,
       subtitle: section.subtitle || null,
       description: section.description || null,
       imageUrl: section.imageUrl || null,
-      sortOrder: section.sortOrder || 0
-    };
-    
+      sortOrder: section.sortOrder || 0,
+    }
+
     const [newSection] = await db
       .insert(whatWeDoSections)
       .values(sectionData)
-      .returning();
-      
-    return newSection;
+      .returning()
+
+    return newSection
   }
-  
-  async updateWhatWeDoSection(id: number, data: Partial<WhatWeDoSection>): Promise<WhatWeDoSection | undefined> {
-    const existingSection = await this.getWhatWeDoSection(id);
+
+  async updateWhatWeDoSection(
+    id: number,
+    data: Partial<WhatWeDoSection>,
+  ): Promise<WhatWeDoSection | undefined> {
+    const existingSection = await this.getWhatWeDoSection(id)
     if (!existingSection) {
-      return undefined;
+      return undefined
     }
-    
+
     // Handle the nullable fields
-    const updateData = { ...data };
-    
+    const updateData = { ...data }
+
     const [updatedSection] = await db
       .update(whatWeDoSections)
       .set(updateData)
       .where(eq(whatWeDoSections.id, id))
-      .returning();
-      
-    return updatedSection;
+      .returning()
+
+    return updatedSection
   }
-  
+
   async deleteWhatWeDoSection(id: number): Promise<boolean> {
     // First delete all content associated with this section
-    await db
-      .delete(whatWeDoContent)
-      .where(eq(whatWeDoContent.sectionId, id));
-      
+    await db.delete(whatWeDoContent).where(eq(whatWeDoContent.sectionId, id))
+
     // Then delete the section
-    await db
-      .delete(whatWeDoSections)
-      .where(eq(whatWeDoSections.id, id));
-    
-    return true;
+    await db.delete(whatWeDoSections).where(eq(whatWeDoSections.id, id))
+
+    return true
   }
-  
+
   // What We Do content operations
-  async getWhatWeDoContentBySection(sectionId: number): Promise<WhatWeDoContent[]> {
+  async getWhatWeDoContentBySection(
+    sectionId: number,
+  ): Promise<WhatWeDoContent[]> {
     return await db
       .select()
       .from(whatWeDoContent)
       .where(eq(whatWeDoContent.sectionId, sectionId))
-      .orderBy(whatWeDoContent.sortOrder);
+      .orderBy(whatWeDoContent.sortOrder)
   }
-  
+
   async getWhatWeDoContent(id: number): Promise<WhatWeDoContent | undefined> {
     const [content] = await db
       .select()
       .from(whatWeDoContent)
-      .where(eq(whatWeDoContent.id, id));
-    return content || undefined;
+      .where(eq(whatWeDoContent.id, id))
+    return content || undefined
   }
-  
-  async createWhatWeDoContent(content: InsertWhatWeDoContent): Promise<WhatWeDoContent> {
+
+  async createWhatWeDoContent(
+    content: InsertWhatWeDoContent,
+  ): Promise<WhatWeDoContent> {
     // Handle nullable fields
     const contentData = {
       ...content,
       title: content.title || null,
       sortOrder: content.sortOrder || 0,
-      metadata: content.metadata || null
-    };
-    
+      metadata: content.metadata || null,
+    }
+
     const [newContent] = await db
       .insert(whatWeDoContent)
       .values(contentData)
-      .returning();
-      
-    return newContent;
+      .returning()
+
+    return newContent
   }
-  
-  async updateWhatWeDoContent(id: number, data: Partial<WhatWeDoContent>): Promise<WhatWeDoContent | undefined> {
-    const existingContent = await this.getWhatWeDoContent(id);
+
+  async updateWhatWeDoContent(
+    id: number,
+    data: Partial<WhatWeDoContent>,
+  ): Promise<WhatWeDoContent | undefined> {
+    const existingContent = await this.getWhatWeDoContent(id)
     if (!existingContent) {
-      return undefined;
+      return undefined
     }
-    
+
     const [updatedContent] = await db
       .update(whatWeDoContent)
       .set(data)
       .where(eq(whatWeDoContent.id, id))
-      .returning();
-      
-    return updatedContent;
+      .returning()
+
+    return updatedContent
   }
-  
+
   async deleteWhatWeDoContent(id: number): Promise<boolean> {
-    await db
-      .delete(whatWeDoContent)
-      .where(eq(whatWeDoContent.id, id));
-    
-    return true;
+    await db.delete(whatWeDoContent).where(eq(whatWeDoContent.id, id))
+
+    return true
   }
-  
-  async reorderWhatWeDoContent(sectionId: number, contentIds: number[]): Promise<WhatWeDoContent[]> {
+
+  async reorderWhatWeDoContent(
+    sectionId: number,
+    contentIds: number[],
+  ): Promise<WhatWeDoContent[]> {
     // Update sort order for each content item
     for (let i = 0; i < contentIds.length; i++) {
       await db
@@ -613,24 +702,24 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(whatWeDoContent.id, contentIds[i]),
-            eq(whatWeDoContent.sectionId, sectionId)
-          )
-        );
+            eq(whatWeDoContent.sectionId, sectionId),
+          ),
+        )
     }
-    
+
     // Return the reordered content
-    return this.getWhatWeDoContentBySection(sectionId);
+    return this.getWhatWeDoContentBySection(sectionId)
   }
 
   // Database initialization
   async initializeDatabase(): Promise<void> {
-    console.log("Initializing database with sample data...");
+    console.log('Initializing database with sample data...')
 
     // Check if we already have data
-    const existingCategories = await this.getAllVirusCategories();
+    const existingCategories = await this.getAllVirusCategories()
     if (existingCategories.length > 0) {
-      console.log("Database already contains data, skipping initialization.");
-      return;
+      console.log('Database already contains data, skipping initialization.')
+      return
     }
 
     try {
@@ -638,379 +727,364 @@ export class DatabaseStorage implements IStorage {
       const [coronaviridae] = await db
         .insert(virusCategories)
         .values({
-          name: "Coronaviridae",
-          description: "Family of enveloped, positive-sense, single-stranded RNA viruses.",
-          imageUrl: "/assets/viruses/coronavirus.svg"
+          name: 'Coronaviridae',
+          description:
+            'Family of enveloped, positive-sense, single-stranded RNA viruses.',
+          imageUrl: '/assets/viruses/coronavirus.svg',
         })
-        .returning();
+        .returning()
 
       const [filoviridae] = await db
         .insert(virusCategories)
         .values({
-          name: "Filoviridae",
-          description: "Family of filamentous, enveloped, negative-sense RNA viruses.",
-          imageUrl: "/assets/viruses/filovirus.svg"
+          name: 'Filoviridae',
+          description:
+            'Family of filamentous, enveloped, negative-sense RNA viruses.',
+          imageUrl: '/assets/viruses/filovirus.svg',
         })
-        .returning();
+        .returning()
 
       const [paramyxoviridae] = await db
         .insert(virusCategories)
         .values({
-          name: "Paramyxoviridae",
-          description: "Family of negative-sense RNA viruses, including measles and mumps.",
-          imageUrl: "/assets/viruses/paramyxovirus.svg"
+          name: 'Paramyxoviridae',
+          description:
+            'Family of negative-sense RNA viruses, including measles and mumps.',
+          imageUrl: '/assets/viruses/paramyxovirus.svg',
         })
-        .returning();
+        .returning()
 
       const [sedoreoviridae] = await db
         .insert(virusCategories)
         .values({
-          name: "Sedoreoviridae",
-          description: "Subfamily of viruses within the family Reoviridae.",
-          imageUrl: "/assets/viruses/sedoreovirus.svg"
+          name: 'Sedoreoviridae',
+          description: 'Subfamily of viruses within the family Reoviridae.',
+          imageUrl: '/assets/viruses/sedoreovirus.svg',
         })
-        .returning();
+        .returning()
 
       const [rhabdoviridae] = await db
         .insert(virusCategories)
         .values({
-          name: "Rhabdoviridae",
-          description: "Family of negative-sense RNA viruses, including rabies virus.",
-          imageUrl: "/assets/viruses/rhabdovirus.svg"
+          name: 'Rhabdoviridae',
+          description:
+            'Family of negative-sense RNA viruses, including rabies virus.',
+          imageUrl: '/assets/viruses/rhabdovirus.svg',
         })
-        .returning();
+        .returning()
 
       const [otherUnknown] = await db
         .insert(virusCategories)
         .values({
-          name: "Other/Unknown",
-          description: "Additional viral families and unclassified viruses under investigation.",
-          imageUrl: "/assets/viruses/unknown-virus.svg"
+          name: 'Other/Unknown',
+          description:
+            'Additional viral families and unclassified viruses under investigation.',
+          imageUrl: '/assets/viruses/unknown-virus.svg',
         })
-        .returning();
+        .returning()
+
+      // Add default admin
+      const rawPassword = process.env.ADMIN_PASSWORD || 'ADM!N_PASSW0RD'
+      const hashedPassword = await hashPassword(rawPassword)
+
+      await db.insert(users).values({
+        username: 'admin',
+        password: hashedPassword,
+      })
 
       // Add team members
-      await db
-        .insert(teamMembers)
-        .values({
-          name: "Emily Gurley",
-          title: "Professor of Epidemiology",
-          institution: "Johns Hopkins University - Bloomberg School of Public Health",
-          description: "Professor of Epidemiology specializing in zoonotic disease transmission and viral spillover events.",
-          imageUrl: "/assets/team/emily-gurley.png",
-          email: "egurley@jhu.edu",
-          website: "https://www.jhsph.edu/faculty/directory/profile/emily-gurley",
-          socialMedia: "https://www.linkedin.com/in/emily-gurley"
-        });
+      await db.insert(teamMembers).values({
+        name: 'Emily Gurley',
+        title: 'Professor of Epidemiology',
+        institution:
+          'Johns Hopkins University - Bloomberg School of Public Health',
+        description:
+          'Professor of Epidemiology specializing in zoonotic disease transmission and viral spillover events.',
+        imageUrl: '/assets/team/emily-gurley.png',
+        email: 'egurley@jhu.edu',
+        website: 'https://www.jhsph.edu/faculty/directory/profile/emily-gurley',
+        socialMedia: 'https://www.linkedin.com/in/emily-gurley',
+      })
 
-      await db
-        .insert(teamMembers)
-        .values({
-          name: "Clif McKee",
-          title: "Research Scientist",
-          institution: "Johns Hopkins University - Bloomberg School of Public Health",
-          description: "Research Scientist focused on bat ecology and viral evolution in bat populations.",
-          imageUrl: "/assets/team/cliff-whitworth.png",
-          email: "cmckee@jhu.edu",
-          website: "https://www.jhsph.edu/faculty/directory/profile/clif-mckee",
-          socialMedia: "https://twitter.com/clif_mckee"
-        });
+      await db.insert(teamMembers).values({
+        name: 'Clif McKee',
+        title: 'Research Scientist',
+        institution:
+          'Johns Hopkins University - Bloomberg School of Public Health',
+        description:
+          'Research Scientist focused on bat ecology and viral evolution in bat populations.',
+        imageUrl: '/assets/team/cliff-whitworth.png',
+        email: 'cmckee@jhu.edu',
+        website: 'https://www.jhsph.edu/faculty/directory/profile/clif-mckee',
+        socialMedia: 'https://twitter.com/clif_mckee',
+      })
 
       // Add publications
-      await db
-        .insert(publications)
-        .values({
-          title: "Bat Coronaviruses in China",
-          authors: "Li et al.",
-          year: 2018,
-          abstract: "Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.",
-          evidenceQuality: "high",
-          evidenceType: "infection",
-          virusCategoryId: coronaviridae.id,
-          region: "Asia",
-          publicationDate: "2018-03-15",
-          link: "https://example.com/bat-coronaviruses-china"
-        });
+      await db.insert(publications).values({
+        title: 'Bat Coronaviruses in China',
+        authors: 'Li et al.',
+        year: 2018,
+        abstract:
+          'Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.',
+        evidenceQuality: 'high',
+        evidenceType: 'infection',
+        virusCategoryId: coronaviridae.id,
+        region: 'Asia',
+        publicationDate: '2018-03-15',
+        link: 'https://example.com/bat-coronaviruses-china',
+      })
 
-      await db
-        .insert(publications)
-        .values({
-          title: "Nipah Virus Emergence in Malaysia",
-          authors: "Chua et al.",
-          year: 2000,
-          abstract: "Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.",
-          evidenceQuality: "medium",
-          evidenceType: "spillover",
-          virusCategoryId: paramyxoviridae.id,
-          region: "Asia",
-          publicationDate: "2000-09-26",
-          link: "https://example.com/nipah-virus-emergence"
-        });
+      await db.insert(publications).values({
+        title: 'Nipah Virus Emergence in Malaysia',
+        authors: 'Chua et al.',
+        year: 2000,
+        abstract:
+          'Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.',
+        evidenceQuality: 'medium',
+        evidenceType: 'spillover',
+        virusCategoryId: paramyxoviridae.id,
+        region: 'Asia',
+        publicationDate: '2000-09-26',
+        link: 'https://example.com/nipah-virus-emergence',
+      })
 
-      await db
-        .insert(publications)
-        .values({
-          title: "Ebola Virus Antibodies in Fruit Bats",
-          authors: "Leroy et al.",
-          year: 2005,
-          abstract: "Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.",
-          evidenceQuality: "low",
-          evidenceType: "infection",
-          virusCategoryId: filoviridae.id,
-          region: "Africa",
-          publicationDate: "2005-12-01",
-          link: "https://example.com/ebola-antibodies-bats"
-        });
+      await db.insert(publications).values({
+        title: 'Ebola Virus Antibodies in Fruit Bats',
+        authors: 'Leroy et al.',
+        year: 2005,
+        abstract:
+          'Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.',
+        evidenceQuality: 'low',
+        evidenceType: 'infection',
+        virusCategoryId: filoviridae.id,
+        region: 'Africa',
+        publicationDate: '2005-12-01',
+        link: 'https://example.com/ebola-antibodies-bats',
+      })
 
-      await db
-        .insert(publications)
-        .values({
-          title: "MERS-CoV in Saudi Arabian Camels",
-          authors: "Azhar et al.",
-          year: 2014,
-          abstract: "Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.",
-          evidenceQuality: "high",
-          evidenceType: "spillover",
-          virusCategoryId: coronaviridae.id,
-          region: "Middle East",
-          publicationDate: "2014-06-05",
-          link: "https://example.com/mers-cov-camels"
-        });
+      await db.insert(publications).values({
+        title: 'MERS-CoV in Saudi Arabian Camels',
+        authors: 'Azhar et al.',
+        year: 2014,
+        abstract:
+          'Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.',
+        evidenceQuality: 'high',
+        evidenceType: 'spillover',
+        virusCategoryId: coronaviridae.id,
+        region: 'Middle East',
+        publicationDate: '2014-06-05',
+        link: 'https://example.com/mers-cov-camels',
+      })
 
       // Add background papers
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Origin and evolution of pathogenic coronaviruses",
-          virusCategoryId: coronaviridae.id,
-          link: "https://example.com/coronavirus-evolution",
-          imageUrl: "/assets/viruses/bat-hanging.png"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Origin and evolution of pathogenic coronaviruses',
+        virusCategoryId: coronaviridae.id,
+        link: 'https://example.com/coronavirus-evolution',
+        imageUrl: '/assets/viruses/bat-hanging.png',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Bat coronaviruses in China: A comprehensive review",
-          virusCategoryId: coronaviridae.id,
-          link: "https://example.com/bat-coronavirus-review",
-          imageUrl: "/assets/viruses/bat-flying.png"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Bat coronaviruses in China: A comprehensive review',
+        virusCategoryId: coronaviridae.id,
+        link: 'https://example.com/bat-coronavirus-review',
+        imageUrl: '/assets/viruses/bat-flying.png',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "SARS-CoV-2: Zoonotic origins and wildlife reservoirs",
-          virusCategoryId: coronaviridae.id,
-          link: "https://example.com/sars-cov-2-origins"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'SARS-CoV-2: Zoonotic origins and wildlife reservoirs',
+        virusCategoryId: coronaviridae.id,
+        link: 'https://example.com/sars-cov-2-origins',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Fruit bats as reservoirs of Ebola virus",
-          virusCategoryId: filoviridae.id,
-          link: "https://example.com/fruit-bats-ebola"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Fruit bats as reservoirs of Ebola virus',
+        virusCategoryId: filoviridae.id,
+        link: 'https://example.com/fruit-bats-ebola',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Marburg virus ecology in African bat populations",
-          virusCategoryId: filoviridae.id,
-          link: "https://example.com/marburg-ecology"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Marburg virus ecology in African bat populations',
+        virusCategoryId: filoviridae.id,
+        link: 'https://example.com/marburg-ecology',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Molecular characterization of filoviruses in bats",
-          virusCategoryId: filoviridae.id,
-          link: "https://example.com/filovirus-characterization"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Molecular characterization of filoviruses in bats',
+        virusCategoryId: filoviridae.id,
+        link: 'https://example.com/filovirus-characterization',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Nipah virus: Transmission dynamics and epidemiology",
-          virusCategoryId: paramyxoviridae.id,
-          link: "https://example.com/nipah-transmission"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Nipah virus: Transmission dynamics and epidemiology',
+        virusCategoryId: paramyxoviridae.id,
+        link: 'https://example.com/nipah-transmission',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Hendra virus: Bat-horse-human transmission pathways",
-          virusCategoryId: paramyxoviridae.id,
-          link: "https://example.com/hendra-pathways"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Hendra virus: Bat-horse-human transmission pathways',
+        virusCategoryId: paramyxoviridae.id,
+        link: 'https://example.com/hendra-pathways',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Evolutionary dynamics of bat paramyxoviruses",
-          virusCategoryId: paramyxoviridae.id,
-          link: "https://example.com/paramyxovirus-evolution"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Evolutionary dynamics of bat paramyxoviruses',
+        virusCategoryId: paramyxoviridae.id,
+        link: 'https://example.com/paramyxovirus-evolution',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Bat lyssaviruses: Antigenic and genetic diversity",
-          virusCategoryId: rhabdoviridae.id,
-          link: "https://example.com/bat-lyssaviruses"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Bat lyssaviruses: Antigenic and genetic diversity',
+        virusCategoryId: rhabdoviridae.id,
+        link: 'https://example.com/bat-lyssaviruses',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Global patterns of rabies virus persistence in bat reservoirs",
-          virusCategoryId: rhabdoviridae.id,
-          link: "https://example.com/rabies-persistence"
-        });
+      await db.insert(backgroundPapers).values({
+        title: 'Global patterns of rabies virus persistence in bat reservoirs',
+        virusCategoryId: rhabdoviridae.id,
+        link: 'https://example.com/rabies-persistence',
+      })
 
-      await db
-        .insert(backgroundPapers)
-        .values({
-          title: "Ecological factors influencing bat-associated rhabdoviruses",
-          virusCategoryId: rhabdoviridae.id,
-          link: "https://example.com/rhabdovirus-ecology"
-        });
-        
+      await db.insert(backgroundPapers).values({
+        title: 'Ecological factors influencing bat-associated rhabdoviruses',
+        virusCategoryId: rhabdoviridae.id,
+        link: 'https://example.com/rhabdovirus-ecology',
+      })
+
       // Add "What We Do" sections
       const [researchSection] = await db
         .insert(whatWeDoSections)
         .values({
-          title: "Research Initiatives",
-          subtitle: "Our Bat-CoV Research Initiatives",
-          description: "We study bat-borne viruses with an emphasis on understanding viral ecology, host factors, and transmission dynamics.",
-          slug: "research-initiatives",
-          imageUrl: "/assets/what-we-do/research.jpg",
-          sortOrder: 0
+          title: 'Research Initiatives',
+          subtitle: 'Our Bat-CoV Research Initiatives',
+          description:
+            'We study bat-borne viruses with an emphasis on understanding viral ecology, host factors, and transmission dynamics.',
+          slug: 'research-initiatives',
+          imageUrl: '/assets/what-we-do/research.jpg',
+          sortOrder: 0,
         })
-        .returning();
-      
+        .returning()
+
       const [fieldSection] = await db
         .insert(whatWeDoSections)
         .values({
-          title: "Field Work",
-          subtitle: "Bat Population Sampling & Monitoring",
-          description: "Our field teams collect samples from bat populations across multiple continents to track viral prevalence and diversity.",
-          slug: "field-work",
-          imageUrl: "/assets/what-we-do/field-work.jpg",
-          sortOrder: 1
+          title: 'Field Work',
+          subtitle: 'Bat Population Sampling & Monitoring',
+          description:
+            'Our field teams collect samples from bat populations across multiple continents to track viral prevalence and diversity.',
+          slug: 'field-work',
+          imageUrl: '/assets/what-we-do/field-work.jpg',
+          sortOrder: 1,
         })
-        .returning();
-      
+        .returning()
+
       const [labSection] = await db
         .insert(whatWeDoSections)
         .values({
-          title: "Laboratory Analysis",
-          subtitle: "State-of-the-art Diagnostic Capabilities",
-          description: "We employ cutting-edge molecular techniques to identify and characterize novel viruses.",
-          slug: "laboratory-analysis",
-          imageUrl: "/assets/what-we-do/lab-analysis.jpg",
-          sortOrder: 2
+          title: 'Laboratory Analysis',
+          subtitle: 'State-of-the-art Diagnostic Capabilities',
+          description:
+            'We employ cutting-edge molecular techniques to identify and characterize novel viruses.',
+          slug: 'laboratory-analysis',
+          imageUrl: '/assets/what-we-do/lab-analysis.jpg',
+          sortOrder: 2,
         })
-        .returning();
-      
+        .returning()
+
       const [modelingSection] = await db
         .insert(whatWeDoSections)
         .values({
-          title: "Epidemic Modeling",
-          subtitle: "Predicting Spillover Events",
-          description: "We develop computational models to predict viral spillover events and identify high-risk areas.",
-          slug: "epidemic-modeling",
-          imageUrl: "/assets/what-we-do/modeling.jpg",
-          sortOrder: 3
+          title: 'Epidemic Modeling',
+          subtitle: 'Predicting Spillover Events',
+          description:
+            'We develop computational models to predict viral spillover events and identify high-risk areas.',
+          slug: 'epidemic-modeling',
+          imageUrl: '/assets/what-we-do/modeling.jpg',
+          sortOrder: 3,
         })
-        .returning();
-      
+        .returning()
+
       const [capacitySection] = await db
         .insert(whatWeDoSections)
         .values({
-          title: "Capacity Building",
-          subtitle: "Training the Next Generation",
-          description: "We train researchers and public health professionals in low and middle-income countries to enhance global surveillance capacity.",
-          slug: "capacity-building",
-          imageUrl: "/assets/what-we-do/capacity-building.jpg",
-          sortOrder: 4
+          title: 'Capacity Building',
+          subtitle: 'Training the Next Generation',
+          description:
+            'We train researchers and public health professionals in low and middle-income countries to enhance global surveillance capacity.',
+          slug: 'capacity-building',
+          imageUrl: '/assets/what-we-do/capacity-building.jpg',
+          sortOrder: 4,
         })
-        .returning();
-      
-      // Add content for Research Initiatives section
-      await db
-        .insert(whatWeDoContent)
-        .values({
-          sectionId: researchSection.id,
-          title: "Viral Discovery Program",
-          contentType: "text",
-          content: "Our viral discovery program focuses on identifying novel coronaviruses and other bat-borne viruses with pandemic potential. Using metagenomic sequencing approaches, we have characterized dozens of previously unknown viral species.",
-          sortOrder: 0
-        });
-      
-      await db
-        .insert(whatWeDoContent)
-        .values({
-          sectionId: researchSection.id,
-          title: "Host-Pathogen Interactions",
-          contentType: "text",
-          content: "We study the molecular mechanisms that allow bats to harbor viruses without developing disease. Understanding these immune adaptations may provide insights for human therapeutics.",
-          sortOrder: 1
-        });
-      
-      await db
-        .insert(whatWeDoContent)
-        .values({
-          sectionId: researchSection.id,
-          title: "Ecological Monitoring",
-          contentType: "image",
-          content: "/assets/what-we-do/ecological-monitoring.jpg",
-          metadata: JSON.stringify({
-            caption: "Our team setting up acoustic monitors to track bat population movements in Southeast Asia.",
-            altText: "Researchers installing bat acoustic monitoring equipment"
-          }),
-          sortOrder: 2
-        });
-      
-      // Add content for Field Work section
-      await db
-        .insert(whatWeDoContent)
-        .values({
-          sectionId: fieldSection.id,
-          title: "Global Study Sites",
-          contentType: "text",
-          content: "We operate field sites in over 20 countries across Asia, Africa, and Latin America. These sites represent diverse ecological settings where bat-human interfaces occur frequently.",
-          sortOrder: 0
-        });
-      
-      await db
-        .insert(whatWeDoContent)
-        .values({
-          sectionId: fieldSection.id,
-          title: "Sampling Methods",
-          contentType: "image",
-          content: "/assets/what-we-do/bat-sampling.jpg",
-          metadata: JSON.stringify({
-            caption: "Our team collecting samples from a cave-dwelling bat colony in Uganda.",
-            altText: "Researchers in PPE collecting bat samples"
-          }),
-          sortOrder: 1
-        });
-      
-      await db
-        .insert(whatWeDoContent)
-        .values({
-          sectionId: fieldSection.id,
-          title: "Community Engagement",
-          contentType: "text",
-          content: "We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.",
-          sortOrder: 2
-        });
+        .returning()
 
-      console.log("Sample data successfully inserted.");
+      // Add content for Research Initiatives section
+      await db.insert(whatWeDoContent).values({
+        sectionId: researchSection.id,
+        title: 'Viral Discovery Program',
+        contentType: 'text',
+        content:
+          'Our viral discovery program focuses on identifying novel coronaviruses and other bat-borne viruses with pandemic potential. Using metagenomic sequencing approaches, we have characterized dozens of previously unknown viral species.',
+        sortOrder: 0,
+      })
+
+      await db.insert(whatWeDoContent).values({
+        sectionId: researchSection.id,
+        title: 'Host-Pathogen Interactions',
+        contentType: 'text',
+        content:
+          'We study the molecular mechanisms that allow bats to harbor viruses without developing disease. Understanding these immune adaptations may provide insights for human therapeutics.',
+        sortOrder: 1,
+      })
+
+      await db.insert(whatWeDoContent).values({
+        sectionId: researchSection.id,
+        title: 'Ecological Monitoring',
+        contentType: 'image',
+        content: '/assets/what-we-do/ecological-monitoring.jpg',
+        metadata: JSON.stringify({
+          caption:
+            'Our team setting up acoustic monitors to track bat population movements in Southeast Asia.',
+          altText: 'Researchers installing bat acoustic monitoring equipment',
+        }),
+        sortOrder: 2,
+      })
+
+      // Add content for Field Work section
+      await db.insert(whatWeDoContent).values({
+        sectionId: fieldSection.id,
+        title: 'Global Study Sites',
+        contentType: 'text',
+        content:
+          'We operate field sites in over 20 countries across Asia, Africa, and Latin America. These sites represent diverse ecological settings where bat-human interfaces occur frequently.',
+        sortOrder: 0,
+      })
+
+      await db.insert(whatWeDoContent).values({
+        sectionId: fieldSection.id,
+        title: 'Sampling Methods',
+        contentType: 'image',
+        content: '/assets/what-we-do/bat-sampling.jpg',
+        metadata: JSON.stringify({
+          caption:
+            'Our team collecting samples from a cave-dwelling bat colony in Uganda.',
+          altText: 'Researchers in PPE collecting bat samples',
+        }),
+        sortOrder: 1,
+      })
+
+      await db.insert(whatWeDoContent).values({
+        sectionId: fieldSection.id,
+        title: 'Community Engagement',
+        contentType: 'text',
+        content:
+          'We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.',
+        sortOrder: 2,
+      })
+
+      console.log('Sample data successfully inserted.')
     } catch (error) {
-      console.error("Error inserting sample data:", error);
-      throw error;
+      console.error('Error inserting sample data:', error)
+      throw error
     }
   }
 }
