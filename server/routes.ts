@@ -571,8 +571,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, password } = userValidation.data
       const user = await storage.getUserByUsername(username)
 
-      console.error('found user:', user)
-
       if (!user) {
         return res.status(401).json({ error: 'Invalid username or password' })
       }
@@ -665,8 +663,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: 'Invalid user ID' })
         }
 
-        const userData = req.body
-        const updatedUser = await storage.updateUser(id, userData)
+        const userValidation = insertUserSchema.safeParse(req.body)
+        if (!userValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid user data',
+            errors: userValidation.error.errors,
+          })
+        }
+
+        const { username, password } = userValidation.data
+        const hashedPassword = await hashPassword(password)
+        const updatedUser = await storage.updateUser(id, {
+          username,
+          password: hashedPassword,
+        })
 
         if (!updatedUser) {
           return res.status(404).json({ message: 'User not found' })

@@ -48,10 +48,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    const hashedPassword = await hashPassword(
+      process.env.ADMIN_PASSWORD || 'ADM!N_PASSW0RD',
+    )
     const [adminUser] = await db
       .select()
       .from(users)
-      .where(eq(users.username, 'admin'))
+      .where(
+        and(eq(users.username, 'admin'), eq(users.password, hashedPassword)),
+      )
 
     if (adminUser) {
       await db.delete(users).where(eq(users.id, adminUser.id))

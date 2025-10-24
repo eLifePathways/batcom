@@ -1,17 +1,17 @@
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { neon } from '@neondatabase/serverless';
-import * as schema from '@shared/schema';
-import { migrate } from 'drizzle-orm/neon-serverless/migrator';
-import { PostgresStorage } from './pg-storage';
+import { drizzle } from 'drizzle-orm/neon-serverless'
+import { neon } from '@neondatabase/serverless'
+import * as schema from '@shared/schema'
+import { migrate } from 'drizzle-orm/neon-serverless/migrator'
+import { PostgresStorage } from './pg-storage'
 
 export async function runMigrations() {
-  const sql_url = process.env.DATABASE_URL || '';
-  console.log('Running database migrations...');
-  
+  const sql_url = process.env.POSTGRES_URL || ''
+  console.log('Running database migrations...')
+
   try {
-    const client = neon(sql_url);
-    const db = drizzle(client, { schema });
-    
+    const client = neon(sql_url)
+    const db = drizzle(client, { schema })
+
     // Create tables
     await db.execute(`
       CREATE TABLE IF NOT EXISTS virus_categories (
@@ -60,17 +60,17 @@ export async function runMigrations() {
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL
       );
-    `);
-    
-    console.log('Database tables created successfully.');
-    
+    `)
+
+    console.log('Database tables created successfully.')
+
     // Initialize database with sample data
-    const storage = new PostgresStorage();
-    await storage.initializeDatabase();
-    
-    return true;
+    const storage = new PostgresStorage()
+    await storage.initializeDatabase()
+
+    return true
   } catch (error) {
-    console.error('Error during migration:', error);
-    return false;
+    console.error('Error during migration:', error)
+    return false
   }
 }

@@ -51,7 +51,7 @@ app.use((req, res, next) => {
 ;(async () => {
   try {
     // Initialize database if using PostgreSQL
-    if (process.env.DATABASE_URL) {
+    if (process.env.POSTGRES_URL) {
       console.log('Initializing database...')
       await initDatabase()
 
@@ -94,9 +94,9 @@ app.use((req, res, next) => {
     serveStatic(app)
   }
 
-  // ALWAYS serve the app on port 5120
+  // ALWAYS serve the app on port 3000
   // this serves both the API and the client
-  const port = 5120
+  const port = process.env.PORT || 3000
   server.listen(
     {
       port,

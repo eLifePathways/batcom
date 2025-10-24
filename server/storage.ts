@@ -1192,6 +1192,6 @@ import { DatabaseStorage } from './db-storage'
 import { hashPassword } from './auth'
 
 // Choose which storage implementation to use
-export const storage = process.env.DATABASE_URL
+export const storage = process.env.POSTGRES_URL
   ? new DatabaseStorage()
   : new MemStorage()

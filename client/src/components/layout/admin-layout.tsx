@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'wouter'
-import { cn, getToken } from '@/lib/utils'
+import { clearToken, cn, getToken } from '@/lib/utils'
 import {
   Home,
   Users,
@@ -15,9 +15,15 @@ import {
   Layout,
   Globe,
 } from 'lucide-react'
+import { Button } from '../ui/button'
 
 const AdminSidebar = () => {
-  const [location] = useLocation()
+  const [location, navigate] = useLocation()
+
+  const handleLogout = () => {
+    clearToken()
+    navigate('/login')
+  }
 
   const navItems = [
     {
@@ -110,6 +116,9 @@ const AdminSidebar = () => {
         <p className="text-sm text-muted-foreground">
           Content Management System
         </p>
+        <div className="pt-4">
+          <Button onClick={handleLogout}>Logout</Button>
+        </div>
       </div>
 
       <nav className="flex-1 pt-4 pb-4 overflow-y-auto">
