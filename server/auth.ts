@@ -5,7 +5,6 @@ import { User } from '../shared/schema'
 const SALT_ROUNDS = 13
 
 export const hashPassword = async (password: string) => {
-  console.log('hashing password', password)
   return bcrypt.hash(password, SALT_ROUNDS)
 }
 

@@ -9,8 +9,8 @@ This guide provides detailed information for developers working on the Bat-Com R
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/Shippies-org/bats.git
-   cd bats
+   git clone https://gitlab.coko.foundation/kotahi/batcom.git
+   cd batcom
    ```
 
 2. **Install dependencies**
@@ -23,8 +23,9 @@ This guide provides detailed information for developers working on the Bat-Com R
    Create a `.env` file in the root directory with:
 
    ```
-   DATABASE_URL=postgresql://username:password@localhost:5432/database
-   PORT=5120
+   POSTGRES_URL=postgresql://username:password@localhost:5432/database
+   POSTGRES_CA_CERT=<optional base64-encoded CA cert>
+   PORT=3000
    JWT_SECRET="your-secure-session-secret"
    JWT_EXPIRES_IN="7d"
    ADMIN_PASSWORD="temporary-admin-password"
@@ -249,7 +250,7 @@ npm test
 API endpoints can be tested using tools like Postman or curl:
 
 ```bash
-curl -X GET http://localhost:5120/api/virus-categories
+curl -X GET http://localhost:3000/api/virus-categories
 ```
 
 ## Common Issues and Solutions
@@ -258,7 +259,7 @@ curl -X GET http://localhost:5120/api/virus-categories
 
 If you encounter database connection issues:
 
-1. Verify the `DATABASE_URL` environment variable is correct
+1. Verify the `POSTGRES_URL` environment variable is correct
 2. Check that PostgreSQL is running
 3. Ensure the database exists and is accessible
 
@@ -303,8 +304,8 @@ try {
 
 Production deployments require these environment variables:
 
-- `DATABASE_URL` - PostgreSQL connection string
-- `PORT` - Server port (default: 5120)
+- `POSTGRES_URL` - PostgreSQL connection string
+- `PORT` - Server port (default: 3000)
 - `NODE_ENV` - Set to "production"
 
 ## Continuous Integration

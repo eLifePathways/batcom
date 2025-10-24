@@ -34,8 +34,8 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
 1. Clone the repository
 
    ```bash
-   git clone https://github.com/Shippies-org/bats.git
-   cd bats
+   git clone https://gitlab.coko.foundation/kotahi/batcom.git
+   cd batcom
    ```
 
 2. Install dependencies
@@ -48,8 +48,8 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
    Create a `.env` file in the root directory with the following variables:
 
    ```
-   DATABASE_URL=postgresql://username:password@localhost:5432/database
-   PORT=5120
+   POSTGRES_URL=postgresql://username:password@localhost:5432/database
+   PORT=3000
    JWT_SECRET="your-secure-session-secret"
    JWT_EXPIRES_IN="7d"
    ADMIN_PASSWORD="temporary-admin-password"
@@ -67,7 +67,7 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
    npm run dev
    ```
 
-6. Open your browser and navigate to `http://localhost:5120`
+6. Open your browser and navigate to `http://localhost:3000`
 
 ## Project Structure
 
@@ -175,7 +175,7 @@ The application can be deployed on any Node.js hosting platform that supports Po
 
 2. Run the container
    ```bash
-   docker run -p 5120:5120 -e DATABASE_URL=your_db_url bat-com-platform
+   docker run -p 3000:3000 -e POSTGRES_URL=your_db_url bat-com-platform
    ```
 
 ## Contributing

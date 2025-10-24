@@ -33,10 +33,11 @@ Create a `.env` file with the following variables:
 
 ```
 # Database
-DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+POSTGRES_URL=postgresql://username:password@localhost:5432/database_name
+POSTGRES_CA_CERT=<optional base64-encoded CA cert>
 
 # Server
-PORT=5120
+PORT=3000
 NODE_ENV=production
 
 # Security
@@ -65,7 +66,8 @@ For production environments, use environment-specific configuration systems:
 
 2. Set up the connection string in your environment:
    ```
-   DATABASE_URL=postgresql://batcom_user:secure_password@localhost:5432/batcom
+   POSTGRES_URL=postgresql://batcom_user:secure_password@localhost:5432/batcom
+   POSTGRES_CA_CERT=<optional base64-encoded CA cert>
    ```
 
 ### Database Migration
@@ -109,7 +111,7 @@ This will:
 
 1. Fork the repository on Replit
 2. Set up environment secrets in the Replit Secrets panel:
-   - `DATABASE_URL`
+   - `POSTGRES_URL`
    - `JWT_SECRET`
 3. Run the database initialization:
    ```bash
@@ -136,8 +138,8 @@ This will:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/Shippies-org/bats.git
-   cd bats
+   git clone https://gitlab.coko.foundation/kotahi/batcom.git
+   cd batcom
    ```
 
 2. Install dependencies:
@@ -191,7 +193,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:5120;
+        proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -219,11 +221,12 @@ services:
   app:
     build: .
     ports:
-      - '5120:5120'
+      - '3000:3000'
     environment:
-      - DATABASE_URL=postgresql://batcom_user:secure_password@db:5432/batcom
+      - POSTGRES_URL=postgresql://batcom_user:secure_password@db:5432/batcom
+	  - POSTGRES_CA_CERT=<optional base64-encoded CA cert>
       - NODE_ENV=production
-      - PORT=5120
+      - PORT=3000
       - JWT_SECRET="your-secure-session-secret"
       - JWT_EXPIRES_IN="7d"
       - ADMIN_PASSWORD="temporary-admin-password"
@@ -283,9 +286,9 @@ spec:
         - name: batcom
           image: your-registry/batcom:latest
           ports:
-            - containerPort: 5120
+            - containerPort: 3000
           env:
-            - name: DATABASE_URL
+            - name: POSTGRES_URL
               valueFrom:
                 secretKeyRef:
                   name: batcom-secrets
@@ -293,7 +296,7 @@ spec:
             - name: NODE_ENV
               value: 'production'
             - name: PORT
-              value: '5120'
+              value: '3000'
             - name: SESSION_SECRET
               valueFrom:
                 secretKeyRef:
@@ -313,7 +316,7 @@ spec:
     app: batcom
   ports:
     - port: 80
-      targetPort: 5120
+      targetPort: 3000
   type: ClusterIP
 ```
 
@@ -386,7 +389,7 @@ jobs:
       - name: Run database migrations
         run: npm run db:push
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
 
       - name: Deploy to production
         uses: appleboy/ssh-action@master
@@ -434,7 +437,7 @@ npm run db:verify
 
 If you encounter database connection issues:
 
-1. Verify the `DATABASE_URL` environment variable is correct
+1. Verify the `POSTGRES_URL` environment variable is correct
 2. Check that PostgreSQL is running and accessible
 3. Ensure the database exists and permissions are set correctly
 4. Check network connectivity between the application and database servers
@@ -455,7 +458,7 @@ If the application fails to start:
 
 3. Check for port conflicts:
    ```bash
-   netstat -tuln | grep 5120
+   netstat -tuln | grep 3000
    ```
 
 #### Static Assets Not Loading
