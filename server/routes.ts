@@ -126,6 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/team-members', async (req: Request, res: Response) => {
     try {
       const members = await storage.getAllTeamMembers()
+      console.log('got team members', members)
       res.json(members)
     } catch (error) {
       console.error('Error fetching team members:', error)

@@ -829,11 +829,11 @@ export class MemStorage implements IStorage {
       imageUrl: '/assets/viruses/paramyxovirus.svg',
     })
 
-    const sedoreoviridae = this.createVirusCategory({
-      name: 'Sedoreoviridae',
-      description: 'Subfamily of viruses within the family Reoviridae.',
-      imageUrl: '/assets/viruses/sedoreovirus.svg',
-    })
+    // const sedoreoviridae = this.createVirusCategory({
+    //   name: 'Sedoreoviridae',
+    //   description: 'Subfamily of viruses within the family Reoviridae.',
+    //   imageUrl: '/assets/viruses/sedoreovirus.svg',
+    // })
 
     const rhabdoviridae = this.createVirusCategory({
       name: 'Rhabdoviridae',

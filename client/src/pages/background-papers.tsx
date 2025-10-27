@@ -1,36 +1,52 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import HeroSection from "@/components/sections/hero-section";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import HeroSection from '@/components/sections/hero-section'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { FileText, ExternalLink } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useLocation } from 'wouter'
 
 interface BackgroundPaper {
-  id: number;
-  title: string;
-  virusCategoryId: number;
-  link?: string;
-  imageUrl?: string;
-  description?: string;
+  id: number
+  title: string
+  virusCategoryId: number
+  link?: string
+  imageUrl?: string
+  description?: string
 }
 
 interface VirusCategory {
-  id: number;
-  name: string;
-  description: string;
-  imageUrl: string;
+  id: number
+  name: string
+  description: string
+  imageUrl: string
 }
 
 // Paper card component
-const PaperCard = ({ paper, category }: { paper: BackgroundPaper; category?: VirusCategory }) => {
+const PaperCard = ({
+  paper,
+  category,
+}: {
+  paper: BackgroundPaper
+  category?: VirusCategory
+}) => {
   return (
     <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow duration-200">
       <CardHeader className="pb-0">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold line-clamp-2 text-primary mb-1">{paper.title}</CardTitle>
+            <CardTitle className="text-lg font-semibold line-clamp-2 text-primary mb-1">
+              {paper.title}
+            </CardTitle>
             {category && (
               <CardDescription className="text-sm flex items-center gap-1">
                 <div className="w-3 h-3 rounded-full bg-primary/70 inline-block"></div>
@@ -40,10 +56,10 @@ const PaperCard = ({ paper, category }: { paper: BackgroundPaper; category?: Vir
           </div>
           {paper.imageUrl && (
             <div className="w-20 h-20 flex-shrink-0 overflow-hidden rounded">
-              <img 
-                src={paper.imageUrl} 
-                alt="Bat visual" 
-                className="w-full h-full object-cover" 
+              <img
+                src={paper.imageUrl}
+                alt="Bat visual"
+                className="w-full h-full object-cover"
               />
             </div>
           )}
@@ -56,15 +72,16 @@ const PaperCard = ({ paper, category }: { paper: BackgroundPaper; category?: Vir
       </CardHeader>
       <CardContent className="pb-3 pt-3 flex-grow">
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          {paper.description || "This background paper provides essential context for understanding bat-borne viruses and their potential for human spillover."}
+          {paper.description ||
+            'This background paper provides essential context for understanding bat-borne viruses and their potential for human spillover.'}
         </p>
       </CardContent>
       <CardFooter className="pt-0">
         {paper.link ? (
           <Button variant="outline" size="sm" className="w-full" asChild>
-            <a 
-              href={paper.link} 
-              target="_blank" 
+            <a
+              href={paper.link}
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1"
             >
@@ -73,14 +90,19 @@ const PaperCard = ({ paper, category }: { paper: BackgroundPaper; category?: Vir
             </a>
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="w-full opacity-70" disabled>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full opacity-70"
+            disabled
+          >
             Coming Soon
           </Button>
         )}
       </CardFooter>
     </Card>
-  );
-};
+  )
+}
 
 // Loading skeleton
 const PaperCardSkeleton = () => (
@@ -103,63 +125,82 @@ const PaperCardSkeleton = () => (
       <Skeleton className="h-8 w-full" />
     </CardFooter>
   </Card>
-);
+)
 
 export default function BackgroundPapers() {
-  const [activeTab, setActiveTab] = useState<string>("all");
-  
+  const [activeTab, setActiveTab] = useState<string>('all')
+  const [location] = useLocation()
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+    const category = searchParams.get('category')
+
+    if (category) {
+      setActiveTab(category)
+    }
+  }, [location])
+
   // Fetch background papers
-  const { data: papers, isLoading: papersLoading } = useQuery<BackgroundPaper[]>({
+  const { data: papers, isLoading: papersLoading } = useQuery<
+    BackgroundPaper[]
+  >({
     queryKey: ['/api/background-papers'],
     staleTime: 1000 * 60 * 5,
-  });
-  
+  })
+
   // Fetch virus categories
-  const { data: categories, isLoading: categoriesLoading } = useQuery<VirusCategory[]>({
+  const { data: categories, isLoading: categoriesLoading } = useQuery<
+    VirusCategory[]
+  >({
     queryKey: ['/api/virus-categories'],
     staleTime: 1000 * 60 * 5,
-  });
-  
-  const isLoading = papersLoading || categoriesLoading;
+  })
+
+  const isLoading = papersLoading || categoriesLoading
 
   // Filter papers by virus category and sort by ID
-  const filteredPapers = papers ? 
-    [...papers]
-      .sort((a, b) => a.id - b.id)
-      .filter((paper: BackgroundPaper) => {
-        if (activeTab === "all") return true;
-        return paper.virusCategoryId === parseInt(activeTab);
-      }) 
-    : [];
+  const filteredPapers = papers
+    ? [...papers]
+        .sort((a, b) => a.id - b.id)
+        .filter((paper: BackgroundPaper) => {
+          if (activeTab === 'all') return true
+          return paper.virusCategoryId === parseInt(activeTab)
+        })
+    : []
 
   // Get category name for a paper
   const getCategoryForPaper = (paper: BackgroundPaper) => {
-    return categories?.find((cat: VirusCategory) => cat.id === paper.virusCategoryId);
-  };
+    return categories?.find(
+      (cat: VirusCategory) => cat.id === paper.virusCategoryId,
+    )
+  }
 
   return (
     <main className="container mx-auto px-4">
-      <HeroSection 
-        title="Background Papers" 
+      <HeroSection
+        title="Background Papers"
         description="Our background papers provide comprehensive overviews of bat virus research, synthesizing key findings and highlighting important knowledge gaps. These papers are designed to be accessible to researchers, public health officials, and policymakers."
       />
       <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
-      
+
       <div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex flex-wrap mb-8 w-full max-w-full overflow-x-auto justify-start">
-            <TabsTrigger value="all" className="flex-shrink-0">All Papers</TabsTrigger>
-            
-            {!categoriesLoading && categories?.map((category: VirusCategory) => (
-              <TabsTrigger 
-                key={category.id} 
-                value={category.id.toString()}
-                className="flex-shrink-0"
-              >
-                {category.name}
-              </TabsTrigger>
-            ))}
-            
+            <TabsTrigger value="all" className="flex-shrink-0">
+              All Papers
+            </TabsTrigger>
+
+            {!categoriesLoading &&
+              categories?.map((category: VirusCategory) => (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id.toString()}
+                  className="flex-shrink-0"
+                >
+                  {category.name}
+                </TabsTrigger>
+              ))}
+
             {categoriesLoading && (
               <>
                 <Skeleton className="h-9 w-24 rounded-full mx-1" />
@@ -168,7 +209,7 @@ export default function BackgroundPapers() {
               </>
             )}
           </TabsList>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {isLoading && (
               <>
@@ -180,24 +221,32 @@ export default function BackgroundPapers() {
                 <PaperCardSkeleton />
               </>
             )}
-            
+
             {!isLoading && filteredPapers?.length === 0 && (
               <div className="col-span-full py-12 text-center">
-                <h3 className="text-xl font-medium text-gray-500">No background papers found for this category</h3>
-                <p className="mt-2 text-gray-400">Please check back later as we continuously update our resources.</p>
+                <h3 className="text-xl font-medium text-gray-500">
+                  No background papers found for this category
+                </h3>
+                <p className="mt-2 text-gray-400">
+                  Please check back later as we continuously update our
+                  resources.
+                </p>
               </div>
             )}
-            
-            {!isLoading && filteredPapers?.map((paper: BackgroundPaper) => (
-              <PaperCard 
-                key={paper.id} 
-                paper={paper} 
-                category={activeTab === "all" ? getCategoryForPaper(paper) : undefined}
-              />
-            ))}
+
+            {!isLoading &&
+              filteredPapers?.map((paper: BackgroundPaper) => (
+                <PaperCard
+                  key={paper.id}
+                  paper={paper}
+                  category={
+                    activeTab === 'all' ? getCategoryForPaper(paper) : undefined
+                  }
+                />
+              ))}
           </div>
         </Tabs>
       </div>
     </main>
-  );
+  )
 }

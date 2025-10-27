@@ -2,8 +2,6 @@ services:
   app:
     build: .
     container_name: batcom
-    platform: linux/amd64
-    image: vukilelanga/batcom:2025.10.23-2
     ports:
       - ${PORT:-3000}:3000
     command: >

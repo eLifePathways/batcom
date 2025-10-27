@@ -759,14 +759,14 @@ export class DatabaseStorage implements IStorage {
         })
         .returning()
 
-      const [sedoreoviridae] = await db
-        .insert(virusCategories)
-        .values({
-          name: 'Sedoreoviridae',
-          description: 'Subfamily of viruses within the family Reoviridae.',
-          imageUrl: '/assets/viruses/sedoreovirus.svg',
-        })
-        .returning()
+      //   const [sedoreoviridae] = await db
+      //     .insert(virusCategories)
+      //     .values({
+      //       name: 'Sedoreoviridae',
+      //       description: 'Subfamily of viruses within the family Reoviridae.',
+      //       imageUrl: '/assets/viruses/sedoreovirus.svg',
+      //     })
+      //     .returning()
 
       const [rhabdoviridae] = await db
         .insert(virusCategories)

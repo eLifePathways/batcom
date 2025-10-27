@@ -77,8 +77,7 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
 │   │   ├── components/   # Reusable UI components
 │   │   ├── pages/        # Page components
 │   │   ├── lib/          # Utility libraries
-│   │   ├── hooks/        # Custom React hooks
-│   │   └── data/         # Static data and types
+│   │   └── hooks/        # Custom React hooks
 ├── server/               # Backend code
 │   ├── routes.ts         # API routes
 │   ├── storage.ts        # Storage interface
