@@ -26,6 +26,12 @@ import {
   whatWeDoContent,
   type WhatWeDoContent,
   type InsertWhatWeDoContent,
+  type Settings,
+  EvidenceQuality,
+  EvidenceType,
+  Review,
+  InsertReview,
+  KotahiReviewUser,
 } from '@shared/schema'
 
 export interface IStorage {
@@ -67,6 +73,14 @@ export interface IStorage {
     data: Partial<Publication>,
   ): Promise<Publication | undefined>
   deletePublication(id: number): Promise<boolean>
+  getFilteredPublications(
+    virusCategories?: number[],
+    evidenceQualities?: EvidenceQuality[],
+    evidenceTypes?: EvidenceType[],
+    yearRanges?: string,
+    regions?: string[],
+    searchQuery?: string,
+  ): Promise<Array<Publication>>
   getPublicationsByVirusCategory(
     virusCategoryId: number,
   ): Promise<Publication[]>
@@ -79,6 +93,12 @@ export interface IStorage {
   ): Promise<Publication[]>
   getPublicationsByRegion(region: string): Promise<Publication[]>
   searchPublications(query: string): Promise<Publication[]>
+
+  // Review operations
+  getAllReviews(): Promise<Review[]>
+  getReview(id: number): Promise<Review | undefined>
+  createReview(review: InsertReview): Promise<Review>
+  getReviewsForPublication(publicationId: number): Promise<Review[]>
 
   // Background paper operations
   getAllBackgroundPapers(): Promise<BackgroundPaper[]>
@@ -140,6 +160,14 @@ export interface IStorage {
     contentIds: number[],
   ): Promise<WhatWeDoContent[]>
 
+  // Settings operations
+  getAllSettings(): Promise<Settings[]>
+  getSettings(purpose: string): Promise<Settings | undefined>
+  updateSettings(
+    id: number,
+    data: Partial<Settings>,
+  ): Promise<Settings | undefined>
+
   // Database initialization
   initializeDatabase(): Promise<void>
 }
@@ -149,16 +177,19 @@ export class MemStorage implements IStorage {
   private virusCategories: Map<number, VirusCategory>
   private teamMembers: Map<number, TeamMember>
   private publications: Map<number, Publication>
+  private reviews: Map<number, Review>
   private backgroundPapers: Map<number, BackgroundPaper>
   private issues: Map<number, Issue>
   private issueComments: Map<number, IssueComment>
   private whatWeDoSections: Map<number, WhatWeDoSection>
   private whatWeDoContents: Map<number, WhatWeDoContent>
+  private settings: Map<number, Settings>
 
   private userCurrentId: number
   private virusCategoryCurrentId: number
   private teamMemberCurrentId: number
   private publicationCurrentId: number
+  private reviewCurrentId: number
   private backgroundPaperCurrentId: number
   private issueCurrentId: number
   private issueCommentCurrentId: number
@@ -170,16 +201,19 @@ export class MemStorage implements IStorage {
     this.virusCategories = new Map()
     this.teamMembers = new Map()
     this.publications = new Map()
+    this.reviews = new Map()
     this.backgroundPapers = new Map()
     this.issues = new Map()
     this.issueComments = new Map()
     this.whatWeDoSections = new Map()
     this.whatWeDoContents = new Map()
+    this.settings = new Map()
 
     this.userCurrentId = 1
     this.virusCategoryCurrentId = 1
     this.teamMemberCurrentId = 1
     this.publicationCurrentId = 1
+    this.reviewCurrentId = 1
     this.backgroundPaperCurrentId = 1
     this.issueCurrentId = 1
     this.issueCommentCurrentId = 1
@@ -392,6 +426,17 @@ export class MemStorage implements IStorage {
     return this.publications.delete(id)
   }
 
+  async getFilteredPublications(
+    virusCategories?: number[],
+    evidenceQualities?: EvidenceQuality[],
+    evidenceTypes?: EvidenceType[],
+    yearRanges?: string,
+    regions?: string[],
+    searchQuery?: string,
+  ): Promise<Array<Publication>> {
+    return []
+  }
+
   async getPublicationsByVirusCategory(
     virusCategoryId: number,
   ): Promise<Publication[]> {
@@ -444,6 +489,28 @@ export class MemStorage implements IStorage {
         publication.authors.toLowerCase().includes(lowercaseQuery) ||
         publication.abstract.toLowerCase().includes(lowercaseQuery),
     )
+  }
+
+  // TODO: review operations
+  async getAllReviews(): Promise<Review[]> {
+    return []
+  }
+  async getReview(id: number): Promise<Review | undefined> {
+    return undefined
+  }
+  async createReview(review: InsertReview): Promise<Review> {
+    const id = this.reviewCurrentId++
+    const newReview: Review = {
+      ...review,
+      id,
+      users: review.users as KotahiReviewUser[],
+    }
+    this.reviews.set(id, newReview)
+    return newReview
+  }
+
+  async getReviewsForPublication(publicationId: number): Promise<Review[]> {
+    return []
   }
 
   // Background paper operations
@@ -797,6 +864,34 @@ export class MemStorage implements IStorage {
 
     // Return the reordered content
     return this.getWhatWeDoContentBySection(sectionId)
+  }
+
+  // Settings operations
+  async getAllSettings(): Promise<Settings[]> {
+    return Array.from(this.settings.values())
+  }
+  async getSettings(purpose: string): Promise<Settings | undefined> {
+    return Array.from(this.settings.values()).find(
+      setting => setting.purpose === purpose,
+    )
+  }
+  async updateSettings(
+    id: number,
+    data: Partial<Settings>,
+  ): Promise<Settings | undefined> {
+    const content = this.settings.get(id)
+    if (!content) {
+      return undefined
+    }
+
+    const updatedSettings: Settings = {
+      ...content,
+      ...data,
+      id, // Ensure id doesn't change
+    }
+
+    this.settings.set(id, updatedSettings)
+    return updatedSettings
   }
 
   // Database initialization method for interface compliance
@@ -1185,6 +1280,43 @@ export class MemStorage implements IStorage {
 
     // Update the content ID counter
     this.whatWeDoContentCurrentId = 7
+
+    const generalSettingsId = 1
+    this.settings.set(generalSettingsId, {
+      id: generalSettingsId,
+      purpose: 'general',
+      formData: {
+        website: {
+          siteName: 'Bat-Com Research Group',
+          siteDescription: 'Research on bat-borne virus spillover',
+          contactEmail: 'info@batcom.org',
+          allowRegistration: true,
+          maintenanceMode: false,
+          theme: 'default',
+        },
+        api: {
+          apiRateLimit: '100',
+          enablePublicAPI: true,
+          requireAPIKey: false,
+        },
+        security: {
+          adminLoginAttempts: '5',
+          sessionTimeout: '60',
+          enableTwoFactor: false,
+        },
+      },
+    })
+
+    const kotahiSettingsId = 2
+    this.settings.set(1, {
+      id: kotahiSettingsId,
+      purpose: 'kotahi',
+      formData: {
+        endpoint: '',
+        groupId: '',
+        apiKey: '',
+      },
+    })
   }
 }
 

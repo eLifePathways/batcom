@@ -60,6 +60,20 @@ export async function runMigrations() {
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL
       );
+
+	  CREATE TABLE IF NOT EXISTS settings (
+		id SERIAL PRIMARY KEY,
+		purpose TEXT NOT NULL UNIQUE,
+		form_data JSONB NOT NULL DEFAULT '{}'
+	  );
+
+	  CREATE TABLE IF NOT EXISTS reviews (
+        id SERIAL PRIMARY KEY,
+        publication_id INTEGER NOT NULL,
+        users JSONB NOT NULL DEFAULT '[]',
+        json_data JSONB NOT NULL DEFAULT '{}',
+        is_decision BOOLEAN NOT NULL DEFAULT FALSE
+	  );
     `)
 
     console.log('Database tables created successfully.')

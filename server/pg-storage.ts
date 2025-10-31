@@ -14,6 +14,12 @@ import {
   backgroundPapers,
   type BackgroundPaper,
   type InsertBackgroundPaper,
+  settings,
+  EvidenceQuality,
+  EvidenceType,
+  Review,
+  reviews,
+  InsertReview,
 } from '@shared/schema'
 import { IStorage } from './storage'
 import { eq, and, gte, lte, like, sql } from 'drizzle-orm'
@@ -98,6 +104,17 @@ export class PostgresStorage implements IStorage {
     return result[0]
   }
 
+  async getFilteredPublications(
+    virusCategories?: number[],
+    evidenceQualities?: EvidenceQuality[],
+    evidenceTypes?: EvidenceType[],
+    yearRanges?: string,
+    regions?: string[],
+    searchQuery?: string,
+  ): Promise<Array<Publication>> {
+    return []
+  }
+
   async getPublicationsByVirusCategory(
     virusCategoryId: number,
   ): Promise<Publication[]> {
@@ -154,6 +171,28 @@ export class PostgresStorage implements IStorage {
            LOWER(${publications.authors}) LIKE ${searchQuery} OR 
            LOWER(${publications.abstract}) LIKE ${searchQuery})`,
       )
+  }
+
+  // Review operations
+  async getAllReviews(): Promise<Review[]> {
+    return db.select().from(reviews)
+  }
+
+  async getReview(id: number): Promise<Review | undefined> {
+    const result = await db.select().from(reviews).where(eq(reviews.id, id))
+    return result[0]
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const result = await db.insert(reviews).values(review).returning()
+    return result[0]
+  }
+
+  async getReviewsForPublication(publicationId: number): Promise<Review[]> {
+    return db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.publicationId, publicationId))
   }
 
   // Background paper operations
@@ -426,6 +465,40 @@ export class PostgresStorage implements IStorage {
         title: 'Ecological factors influencing bat-associated rhabdoviruses',
         virusCategoryId: rhabdoviridae.id,
         link: 'https://example.com/rhabdovirus-ecology',
+      })
+
+      // settings
+      await db.insert(settings).values({
+        purpose: 'general',
+        formData: {
+          website: {
+            siteName: 'Bat-Com Research Group',
+            siteDescription: 'Research on bat-borne virus spillover',
+            contactEmail: 'info@batcom.org',
+            allowRegistration: true,
+            maintenanceMode: false,
+            theme: 'default',
+          },
+          api: {
+            apiRateLimit: '100',
+            enablePublicAPI: true,
+            requireAPIKey: false,
+          },
+          security: {
+            adminLoginAttempts: '5',
+            sessionTimeout: '60',
+            enableTwoFactor: false,
+          },
+        },
+      })
+
+      await db.insert(settings).values({
+        purpose: 'kotahi',
+        formData: {
+          endpoint: '',
+          groupId: null,
+          apiKey: null,
+        },
       })
 
       console.log('Database initialization complete.')

@@ -7,9 +7,10 @@ import { storage } from './storage'
 import { DatabaseStorage } from './db-storage'
 import { analyticsMiddleware } from './analytics'
 import { spaMiddleware } from './spa-middleware'
-import { updateIssueCommentsSchema } from './db-migration'
-import { addSortOrderToTeamMembers } from './team-migration'
+import { updateIssueCommentsSchema } from './migrations/1761500001-db-migration'
+import { addSortOrderToTeamMembers } from './migrations/1761500002-team-migration'
 import cookieParser from 'cookie-parser'
+import { addDefaultSettings } from './migrations/1761588154-default-settings-migration'
 
 const app = express()
 // Increase the payload size limit to handle larger screenshots (50MB)
@@ -60,6 +61,7 @@ app.use((req, res, next) => {
         console.log('Running database migrations...')
         await updateIssueCommentsSchema()
         await addSortOrderToTeamMembers()
+        await addDefaultSettings()
       } catch (migrationError) {
         console.error('Error during database migration:', migrationError)
         // Continue with server startup even if migrations fail

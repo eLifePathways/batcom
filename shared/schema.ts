@@ -8,9 +8,113 @@ import {
   timestamp,
   index,
   json,
+  jsonb,
+  uuid,
 } from 'drizzle-orm/pg-core'
 import { createInsertSchema } from 'drizzle-zod'
-import { z } from 'zod'
+import { string, z } from 'zod'
+
+export type FilterState = Record<string, string[]>
+
+export type SettingsFormData = {
+  endpoint: string
+  groupId: string
+  apiKey?: string | undefined
+}
+
+export type EvidenceQuality = 'high' | 'medium' | 'low'
+export type EvidenceType = 'infection' | 'spillover'
+
+export type KotahiConfig = {
+  id: string
+  active: boolean
+  flaxSiteUrl: string
+}
+
+export type KotahiGroup = {
+  id: string
+  name: string
+  configs: Array<KotahiConfig>
+}
+
+export type KotahiManuscriptMeta = {
+  title?: string
+  source?: string
+  comments?: string
+  abstract?: string
+}
+
+export type KotahiPublishedArtifact = {
+  id: string
+  created: Date
+  updated?: Date
+  manuscriptId: string
+  platform: string
+  externalId?: string
+  title?: string
+  content?: string
+  hostedInKotahi: boolean
+  relatedDocumentUri?: string
+  relatedDocumentType?: string
+}
+
+export type KotahiEditor = {
+  id?: string
+  name: string
+  role: string
+}
+
+export type KotahiReviewIdentity = {
+  id?: string
+  name?: string
+  aff?: string
+  email?: string
+  type?: string
+  identifier?: string
+}
+
+export type KotahiReviewUser = {
+  id?: string
+  username?: string
+  defaultIdentity?: KotahiReviewIdentity
+}
+
+export type KotahiPublishedReview = {
+  id: string
+  created: Date
+  updated?: Date
+  isDecision: boolean
+  open: boolean
+  users: Array<KotahiReviewUser>
+  isHiddenFromAuthor?: boolean
+  isCollaborative?: boolean
+  isLock?: boolean
+  isHiddenReviewerName?: boolean
+  isSharedWithCurrentUser: boolean
+  canBePublishedPublicly: boolean
+  jsonData?: string
+  userId?: string
+}
+
+export type KotahiPublishedManuscript = {
+  id: string
+  shortId: number
+  status?: string
+  meta?: KotahiManuscriptMeta
+  submission: string
+  submissionWithFields?: string
+  supplementaryFiles?: string
+  publishedArtifacts: Array<KotahiPublishedArtifact>
+  publishedDate?: Date
+  printReadyPdfUrl?: string
+  styledHtml?: string
+  css?: string
+  decision?: string
+  totalCount?: number
+  editors?: Array<KotahiEditor>
+  reviews: Array<KotahiPublishedReview>
+  decisions: Array<KotahiPublishedReview>
+}
 
 export const virusCategories = pgTable('virus_categories', {
   id: serial('id').primaryKey(),
@@ -34,16 +138,25 @@ export const teamMembers = pgTable('team_members', {
 
 export const publications = pgTable('publications', {
   id: serial('id').primaryKey(),
+  //   kotahiManuscriptId: uuid('kotahi_manuscript_id').notNull(),
   title: text('title').notNull(),
   authors: text('authors').notNull(),
   year: integer('year').notNull(),
   abstract: text('abstract').notNull(),
-  evidenceQuality: text('evidence_quality').notNull(), // 'high', 'medium', 'low'
-  evidenceType: text('evidence_type').notNull(), // 'infection', 'spillover'
+  evidenceQuality: text('evidence_quality').$type<EvidenceQuality>().notNull(),
+  evidenceType: text('evidence_type').$type<EvidenceType>().notNull(),
   virusCategoryId: integer('virus_category_id').notNull(),
   region: text('region').notNull(),
   publicationDate: date('publication_date').notNull(),
   link: text('link'),
+})
+
+export const reviews = pgTable('reviews', {
+  id: serial('id').primaryKey(),
+  publicationId: integer('publication_id').notNull(),
+  users: jsonb('users').$type<KotahiReviewUser[]>().notNull(),
+  jsonData: jsonb('json_data').$type<any>().notNull(),
+  isDecision: boolean('is_decision').notNull(),
 })
 
 export const backgroundPapers = pgTable('background_papers', {
@@ -61,6 +174,15 @@ export const users = pgTable('users', {
   password: text('password').notNull(),
 })
 
+export const settings = pgTable('settings', {
+  id: serial('id').primaryKey(),
+  purpose: text('purpose').notNull(),
+  formData: jsonb('form_data')
+    .$type<SettingsFormData>()
+    .notNull()
+    .default({} as SettingsFormData),
+})
+
 // Insert schemas
 export const insertVirusCategorySchema = createInsertSchema(
   virusCategories,
@@ -75,6 +197,20 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
 export const insertPublicationSchema = createInsertSchema(publications).omit({
   id: true,
 })
+
+export const insertReviewSchema = createInsertSchema(reviews)
+  .omit({
+    id: true,
+  })
+  .extend({
+    users: z.array(
+      z.object({
+        id: z.string().optional(),
+        username: z.string().optional(),
+        defaultIdentity: z.any().optional(),
+      }),
+    ),
+  })
 
 export const insertBackgroundPaperSchema = createInsertSchema(
   backgroundPapers,
@@ -97,6 +233,9 @@ export type TeamMember = typeof teamMembers.$inferSelect
 export type InsertPublication = z.infer<typeof insertPublicationSchema>
 export type Publication = typeof publications.$inferSelect
 
+export type InsertReview = z.infer<typeof insertReviewSchema>
+export type Review = typeof reviews.$inferSelect
+
 export type InsertBackgroundPaper = z.infer<typeof insertBackgroundPaperSchema>
 export type BackgroundPaper = typeof backgroundPapers.$inferSelect
 
@@ -107,6 +246,8 @@ export type AuthResponse = {
   token: string
   user: Partial<User>
 }
+
+export type Settings = typeof settings.$inferSelect
 
 // Analytics tables
 export const pageViews = pgTable(
@@ -125,13 +266,11 @@ export const pageViews = pgTable(
     isExit: boolean('is_exit').default(true), // Initially true, updated if user views another page
     scrollDepth: integer('scroll_depth'), // percentage of page scrolled
   },
-  table => {
-    return {
-      pathIdx: index('page_views_path_idx').on(table.path),
-      sessionIdx: index('page_views_session_idx').on(table.sessionId),
-      dateIdx: index('page_views_date_idx').on(table.visitedAt),
-    }
-  },
+  table => [
+    index('page_views_path_idx').on(table.path),
+    index('page_views_session_idx').on(table.sessionId),
+    index('page_views_date_idx').on(table.visitedAt),
+  ],
 )
 
 export const sessions = pgTable(

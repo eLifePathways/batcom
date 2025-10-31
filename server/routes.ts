@@ -10,7 +10,12 @@ import {
   getPopularPages,
   resetAnalytics,
 } from './analytics-api'
-import { insertUserSchema } from '@shared/schema'
+import {
+  EvidenceQuality,
+  EvidenceType,
+  insertUserSchema,
+  KotahiPublishedManuscript,
+} from '@shared/schema'
 import {
   comparePassword,
   generateToken,
@@ -18,6 +23,7 @@ import {
   stripUserPassword,
 } from './auth'
 import { requireAuth } from './middleware'
+import { MANUSCRIPTS_PUBLISHED_SINCE_DATE } from '@shared/queries'
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes
@@ -126,7 +132,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/team-members', async (req: Request, res: Response) => {
     try {
       const members = await storage.getAllTeamMembers()
-      console.log('got team members', members)
       res.json(members)
     } catch (error) {
       console.error('Error fetching team members:', error)
@@ -248,54 +253,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Handle filter params
       const {
-        virusCategoryId,
-        evidenceQuality,
-        evidenceType,
-        year,
-        yearStart,
-        yearEnd,
-        region,
-        query,
+        virusCategories,
+        evidenceQualities,
+        evidenceTypes,
+        yearRanges,
+        regions,
+        searchQuery,
+      }: {
+        virusCategories?: string
+        evidenceQualities?: string
+        evidenceTypes?: string
+        yearRanges?: string
+        regions?: string
+        searchQuery?: string
       } = req.query
 
-      let publications
+      const parsedVirusCategoryIds = virusCategories?.split(',').map(parseInt)
+      const parsedEvidenceQualities = evidenceQualities?.split(',') as
+        | EvidenceQuality[]
+        | undefined
+      const parsedEvidenceTypes = evidenceTypes?.split(',') as
+        | EvidenceType[]
+        | undefined
+      const parsedRegions = regions?.split(',')
 
-      if (virusCategoryId) {
-        const id = parseInt(virusCategoryId as string)
-        if (isNaN(id)) {
-          return res.status(400).json({ message: 'Invalid virus category ID' })
-        }
-        publications = await storage.getPublicationsByVirusCategory(id)
-      } else if (evidenceQuality) {
-        publications = await storage.getPublicationsByEvidenceQuality(
-          evidenceQuality as string,
-        )
-      } else if (evidenceType) {
-        publications = await storage.getPublicationsByEvidenceType(
-          evidenceType as string,
-        )
-      } else if (year) {
-        const yearNum = parseInt(year as string)
-        if (isNaN(yearNum)) {
-          return res.status(400).json({ message: 'Invalid year' })
-        }
-        publications = await storage.getPublicationsByYear(yearNum)
-      } else if (yearStart && yearEnd) {
-        const start = parseInt(yearStart as string)
-        const end = parseInt(yearEnd as string)
-        if (isNaN(start) || isNaN(end)) {
-          return res.status(400).json({ message: 'Invalid year range' })
-        }
-        publications = await storage.getPublicationsByYearRange(start, end)
-      } else if (region) {
-        publications = await storage.getPublicationsByRegion(region as string)
-      } else if (query) {
-        publications = await storage.searchPublications(query as string)
-      } else {
-        publications = await storage.getAllPublications()
-      }
+      const filteredPublications = await storage.getFilteredPublications(
+        parsedVirusCategoryIds,
+        parsedEvidenceQualities,
+        parsedEvidenceTypes,
+        yearRanges,
+        parsedRegions,
+        searchQuery,
+      )
 
-      res.json(publications)
+      res.json(filteredPublications)
     } catch (error) {
       console.error('Error fetching publications:', error)
       res.status(500).json({ message: 'Failed to fetch publications' })
@@ -315,6 +306,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json(publication)
+    } catch (error) {
+      console.error('Error fetching publication:', error)
+      res.status(500).json({ message: 'Failed to fetch publication' })
+    }
+  })
+
+  app.get('/api/publication/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id)
+      console.log('fetching pub', id)
+      if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid publication ID' })
+      }
+
+      const publication = await storage.getPublication(id)
+      if (!publication) {
+        return res.status(404).json({ message: 'Publication not found' })
+      }
+
+      const reviews = await storage.getReviewsForPublication(id)
+
+      res.json({ publication, reviews })
     } catch (error) {
       console.error('Error fetching publication:', error)
       res.status(500).json({ message: 'Failed to fetch publication' })
@@ -1201,6 +1214,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   )
+
+  app.get('/api/settings', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.getAllSettings()
+      res.json(settings)
+    } catch (error) {
+      console.error('Error getting settings:', error)
+      res.status(500).json({ message: 'Failed to get settings' })
+    }
+  })
+
+  app.get(
+    '/api/settings/:purpose',
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const { purpose } = req.params
+
+        console.log('fetching settings for purpose', purpose)
+
+        const settings = await storage.getSettings(purpose)
+
+        if (!settings) {
+          return res.status(400).json({ message: 'Invalid request parameters' })
+        }
+
+        console.log('sending settings', settings)
+        res.json(settings)
+      } catch (error) {
+        console.error('Error getting settings:', error)
+        res.status(500).json({ message: 'Failed to get settings' })
+      }
+    },
+  )
+
+  app.put(
+    '/api/settings/:id',
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const id = parseInt(req.params.id)
+
+        if (isNaN(id)) {
+          return res.status(400).json({ message: 'Invalid setting ID' })
+        }
+
+        const updatedSettings = await storage.updateSettings(id, req.body)
+
+        if (!updatedSettings) {
+          return res.status(400).json({ message: 'Setting not found' })
+        }
+
+        res.json(updatedSettings)
+      } catch (error) {
+        console.error('Error updating settings:', error)
+        res.status(500).json({ message: 'Failed to update settings' })
+      }
+    },
+  )
+
+  app.post('/api/kotahi/sync', async (req: Request, res, Response) => {
+    const settings = await storage.getSettings('kotahi')
+
+    if (!settings?.formData.endpoint) {
+      return res.status(400).json({ message: 'Invalid Kotahi endpoint' })
+    }
+
+    const { endpoint, groupId } = settings.formData
+
+    try {
+      const results = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'group-id': groupId,
+        },
+        body: JSON.stringify(MANUSCRIPTS_PUBLISHED_SINCE_DATE),
+      })
+
+      const rawManuscripts: Array<KotahiPublishedManuscript> =
+        await results.json()
+
+      //   console.log('Got results:', JSON.stringify(data, null, 2))
+
+      const existingPublications = await storage.getAllPublications()
+      const virusCategories = await storage.getAllVirusCategories()
+
+      const existingPublicationsMap = new Map(
+        existingPublications.map(pub => [pub.id, pub]),
+      )
+      const virusCategoriesMap = new Map(
+        virusCategories.map(virus => [virus.name.toLocaleLowerCase(), virus]),
+      )
+
+      await Promise.all(
+        // insert only for now, update later
+        rawManuscripts.map(async manuscript => {
+          //   if (!existingPublicationsMap.has(manuscript.id)) {
+          //     const {
+          //       $abstract = '',
+          //       $sourceUri = '',
+          //       $title = '',
+          //       datePublished = '',
+          //       firstAuthor = '',
+          //     } = JSON.parse(manuscript.submission)
+          //     // const newPublication = await storage.createPublication({
+          //     // 	title: $title,
+          //     // 	kotahiManuscriptId: manuscript.id,
+          //     // 	authors: firstAuthor,
+          //     // 	// year:
+          //     // 	abstract: $abstract,
+          //     // 	// evidenceQuality:
+          //     // 	// evidenceType:
+          //     // 	virusCategoryId: virusCategoriesMap.get('other/unknown')?.id || -1,
+          //     // 	// region:
+          //     // 	publicationDate: datePublished,
+          //     // 	link: $sourceUri
+          //     // })
+          //   }
+        }),
+      )
+
+      res.json(rawManuscripts)
+    } catch (error) {
+      console.error('Error fetching publications:', error)
+      res.status(500).json({ message: 'Failed to fetch publications' })
+    }
+  })
 
   // GraphQL API proxy endpoint to avoid CORS issues
   app.post('/api/graphql-proxy', async (req: Request, res: Response) => {
