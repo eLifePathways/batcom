@@ -25,7 +25,7 @@ This guide provides detailed information for developers working on the Bat-Com R
    ```
    POSTGRES_URL=postgresql://username:password@localhost:5432/database
    POSTGRES_CA_CERT=<optional base64-encoded CA cert>
-   PORT=3000
+   PORT=5120
    JWT_SECRET="your-secure-session-secret"
    JWT_EXPIRES_IN="7d"
    ADMIN_PASSWORD="temporary-admin-password"
@@ -250,7 +250,7 @@ npm test
 API endpoints can be tested using tools like Postman or curl:
 
 ```bash
-curl -X GET http://localhost:3000/api/virus-categories
+curl -X GET http://localhost:5120/api/virus-categories
 ```
 
 ## Common Issues and Solutions
@@ -305,7 +305,7 @@ try {
 Production deployments require these environment variables:
 
 - `POSTGRES_URL` - PostgreSQL connection string
-- `PORT` - Server port (default: 3000)
+- `PORT` - Server port (default: 5120)
 - `NODE_ENV` - Set to "production"
 
 ## Continuous Integration

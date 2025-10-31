@@ -37,7 +37,7 @@ POSTGRES_URL=postgresql://username:password@localhost:5432/database_name
 POSTGRES_CA_CERT=<optional base64-encoded CA cert>
 
 # Server
-PORT=3000
+PORT=5120
 NODE_ENV=production
 
 # Security
@@ -193,7 +193,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:5120;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -221,12 +221,12 @@ services:
   app:
     build: .
     ports:
-      - '3000:3000'
+      - '5120:5120'
     environment:
       - POSTGRES_URL=postgresql://batcom_user:secure_password@db:5432/batcom
 	  - POSTGRES_CA_CERT=<optional base64-encoded CA cert>
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=5120
       - JWT_SECRET="your-secure-session-secret"
       - JWT_EXPIRES_IN="7d"
       - ADMIN_PASSWORD="temporary-admin-password"
@@ -286,7 +286,7 @@ spec:
         - name: batcom
           image: your-registry/batcom:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 5120
           env:
             - name: POSTGRES_URL
               valueFrom:
@@ -296,7 +296,7 @@ spec:
             - name: NODE_ENV
               value: 'production'
             - name: PORT
-              value: '3000'
+              value: '5120'
             - name: SESSION_SECRET
               valueFrom:
                 secretKeyRef:
@@ -316,7 +316,7 @@ spec:
     app: batcom
   ports:
     - port: 80
-      targetPort: 3000
+      targetPort: 5120
   type: ClusterIP
 ```
 
@@ -458,7 +458,7 @@ If the application fails to start:
 
 3. Check for port conflicts:
    ```bash
-   netstat -tuln | grep 3000
+   netstat -tuln | grep 5120
    ```
 
 #### Static Assets Not Loading

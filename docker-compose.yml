@@ -3,7 +3,7 @@ services:
     build: .
     container_name: batcom
     ports:
-      - ${PORT:-3000}:3000
+      - ${PORT:-5120}:5120
     command: >
       sh -c "NODE_TLS_REJECT_UNAUTHORIZED=0 npx drizzle-kit push && node dist/index.js"
     environment:
@@ -11,7 +11,7 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       POSTGRES_URL: ${POSTGRES_URL}
       POSTGRES_CA_CERT: ${POSTGRES_CA_CERT}
-      PORT: ${PORT:-3000}
+      PORT: ${PORT:-5120}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}

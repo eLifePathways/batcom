@@ -94,9 +94,9 @@ app.use((req, res, next) => {
     serveStatic(app)
   }
 
-  // ALWAYS serve the app on port 3000
+  // ALWAYS serve the app on port 5120
   // this serves both the API and the client
-  const port = process.env.PORT || 3000
+  const port = process.env.PORT || 5120
   server.listen(
     {
       port,
