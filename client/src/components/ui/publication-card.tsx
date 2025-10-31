@@ -11,6 +11,7 @@ type PublicationCardProps = {
   abstract: string
   evidenceQuality: 'high' | 'medium' | 'low'
   virusCategory: string
+  virusCategoryId: number
   region: string
   link?: string | null
 }
@@ -23,6 +24,7 @@ const PublicationCard = ({
   abstract,
   evidenceQuality,
   virusCategory,
+  virusCategoryId,
   region,
   link,
 }: PublicationCardProps) => {
@@ -45,28 +47,24 @@ const PublicationCard = ({
         <p className="text-gray-700 mb-4">{abstract}</p>
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
           <div className="flex items-center flex-wrap gap-2">
-            <Badge variant="default" className="bg-primary hover:bg-primary/90">
-              {virusCategory}
-            </Badge>
-            <Badge variant="secondary">{region}</Badge>
-          </div>
-          {link ? (
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-700 transition inline-flex items-center gap-1"
-            >
-              Read More <ArrowRight size={14} />
-            </a>
-          ) : (
-            <Link
-              to={`/publications/${id}`}
-              className="text-blue-500 hover:text-blue-700 transition inline-flex items-center gap-1"
-            >
-              Read More <ArrowRight size={14} />
+            <Link to={`/publications?virusCategories=${virusCategoryId}`}>
+              <Badge
+                variant="default"
+                className="bg-primary hover:bg-primary/90"
+              >
+                {virusCategory}
+              </Badge>
             </Link>
-          )}
+            <Link to={`/publications?regions=${region}`}>
+              <Badge variant="secondary">{region}</Badge>
+            </Link>
+          </div>
+          <Link
+            to={`/publications/${id}`}
+            className="text-blue-500 hover:text-blue-700 transition inline-flex items-center gap-1"
+          >
+            Read More <ArrowRight size={14} />
+          </Link>
         </div>
       </CardContent>
     </Card>

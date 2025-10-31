@@ -583,9 +583,9 @@ export default function AdminDashboard() {
               <Label htmlFor="imageUrl">Profile Image</Label>
               <ImageUpload
                 currentImageUrl={teamMemberFormData.imageUrl}
-                onImageUploaded={url =>
+                onImageUploaded={url => {
                   setTeamMemberFormData(prev => ({ ...prev, imageUrl: url }))
-                }
+                }}
                 label="Upload a profile image"
                 description="Recommended size: 400x400px"
               />

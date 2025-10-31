@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiRequest } from '@/lib/queryClient'
+import { useToast } from '@/hooks/use-toast'
 import {
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 import {
   Dialog,
   DialogContent,
@@ -19,23 +19,23 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Loader2, Plus, Pencil, Trash } from "lucide-react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+} from '@/components/ui/select'
+import { Loader2, Plus, Pencil, Trash, RefreshCw } from 'lucide-react'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import {
   Form,
   FormControl,
@@ -43,91 +43,80 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import AdminLayout from "@/components/layout/admin-layout";
-
-type VirusCategory = {
-  id: number;
-  name: string;
-  description: string;
-  imageUrl: string;
-};
-
-type Publication = {
-  id: number;
-  title: string;
-  authors: string;
-  year: number;
-  abstract: string;
-  evidenceQuality: "high" | "medium" | "low";
-  evidenceType: "infection" | "spillover";
-  virusCategoryId: number;
-  region: string;
-  publicationDate: string;
-  link?: string;
-};
+} from '@/components/ui/form'
+import AdminLayout from '@/components/layout/admin-layout'
+import { Publication, Settings, VirusCategory } from '@shared/schema'
 
 const formSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  authors: z.string().min(3, "Authors must be at least 3 characters"),
+  title: z.string().min(3, 'Title must be at least 3 characters'),
+  authors: z.string().min(3, 'Authors must be at least 3 characters'),
   year: z.coerce.number().min(1900).max(new Date().getFullYear()),
-  abstract: z.string().min(10, "Abstract must be at least 10 characters"),
-  evidenceQuality: z.enum(["high", "medium", "low"]),
-  evidenceType: z.enum(["infection", "spillover"]),
-  virusCategoryId: z.coerce.number().min(1, "Please select a virus category"),
-  region: z.string().min(2, "Region must be at least 2 characters"),
+  abstract: z.string().min(10, 'Abstract must be at least 10 characters'),
+  evidenceQuality: z.enum(['high', 'medium', 'low']),
+  evidenceType: z.enum(['infection', 'spillover']),
+  virusCategoryId: z.coerce.number().min(1, 'Please select a virus category'),
+  region: z.string().min(2, 'Region must be at least 2 characters'),
   publicationDate: z.string(),
-  link: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-});
+  link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+})
 
 export default function PublicationsAdmin() {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedPublication, setSelectedPublication] = useState<Publication | null>(null);
-  
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
-  const { data: publications, isLoading: isLoadingPublications } = useQuery({
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedPublication, setSelectedPublication] =
+    useState<Publication | null>(null)
+  const [isFetchingPublications, setIsFetchingPublications] = useState(false)
+
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  const { data: publications, isLoading: isLoadingPublications } = useQuery<
+    Array<Publication>
+  >({
     queryKey: ['/api/publications'],
-  });
-  
-  const { data: categories, isLoading: isLoadingCategories } = useQuery({
+  })
+
+  const { data: categories, isLoading: isLoadingCategories } = useQuery<
+    Array<VirusCategory>
+  >({
     queryKey: ['/api/virus-categories'],
-  });
-  
+  })
+
+  const { data: settings, isLoading: isSettingsQueryLoading } =
+    useQuery<Settings>({ queryKey: ['/api/settings/kotahi'] })
+
   const addForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      authors: "",
+      title: '',
+      authors: '',
       year: new Date().getFullYear(),
-      abstract: "",
-      evidenceQuality: "medium",
-      evidenceType: "spillover",
+      abstract: '',
+      evidenceQuality: 'medium',
+      evidenceType: 'spillover',
       virusCategoryId: 0,
-      region: "",
+      region: '',
       publicationDate: new Date().toISOString().split('T')[0],
-      link: "",
+      link: '',
     },
-  });
-  
+  })
+
   const editForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      authors: "",
+      title: '',
+      authors: '',
       year: new Date().getFullYear(),
-      abstract: "",
-      evidenceQuality: "medium",
-      evidenceType: "spillover",
+      abstract: '',
+      evidenceQuality: 'medium',
+      evidenceType: 'spillover',
       virusCategoryId: 0,
-      region: "",
+      region: '',
       publicationDate: new Date().toISOString().split('T')[0],
-      link: "",
+      link: '',
     },
-  });
+  })
 
   const createPublication = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
@@ -137,93 +126,99 @@ export default function PublicationsAdmin() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
-      setIsAddDialogOpen(false);
-      addForm.reset();
+      queryClient.invalidateQueries({ queryKey: ['/api/publications'] })
+      setIsAddDialogOpen(false)
+      addForm.reset()
       toast({
-        title: "Publication created",
-        description: "The publication has been added successfully.",
-      });
+        title: 'Publication created',
+        description: 'The publication has been added successfully.',
+      })
     },
-    onError: (error) => {
-      console.error("Error creating publication:", error);
+    onError: error => {
+      console.error('Error creating publication:', error)
       toast({
-        title: "Error",
-        description: "Failed to create publication. Please try again.",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: 'Failed to create publication. Please try again.',
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const updatePublication = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: z.infer<typeof formSchema> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number
+      data: z.infer<typeof formSchema>
+    }) => {
       return apiRequest(`/api/publications/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-      });
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
-      setIsEditDialogOpen(false);
-      setSelectedPublication(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/publications'] })
+      setIsEditDialogOpen(false)
+      setSelectedPublication(null)
       toast({
-        title: "Publication updated",
-        description: "The publication has been updated successfully.",
-      });
+        title: 'Publication updated',
+        description: 'The publication has been updated successfully.',
+      })
     },
-    onError: (error) => {
-      console.error("Error updating publication:", error);
+    onError: error => {
+      console.error('Error updating publication:', error)
       toast({
-        title: "Error",
-        description: "Failed to update publication. Please try again.",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: 'Failed to update publication. Please try again.',
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const deletePublication = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest(`/api/publications/${id}`, {
         method: 'DELETE',
-      });
+      })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/publications'] });
-      setIsDeleteDialogOpen(false);
-      setSelectedPublication(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/publications'] })
+      setIsDeleteDialogOpen(false)
+      setSelectedPublication(null)
       toast({
-        title: "Publication deleted",
-        description: "The publication has been deleted successfully.",
-      });
+        title: 'Publication deleted',
+        description: 'The publication has been deleted successfully.',
+      })
     },
-    onError: (error) => {
-      console.error("Error deleting publication:", error);
+    onError: error => {
+      console.error('Error deleting publication:', error)
       toast({
-        title: "Error",
-        description: "Failed to delete publication. Please try again.",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: 'Failed to delete publication. Please try again.',
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const onAddSubmit = (data: z.infer<typeof formSchema>) => {
-    createPublication.mutate(data);
-  };
+    createPublication.mutate(data)
+  }
 
   const onEditSubmit = (data: z.infer<typeof formSchema>) => {
     if (selectedPublication) {
-      updatePublication.mutate({ id: selectedPublication.id, data });
+      updatePublication.mutate({ id: selectedPublication.id, data })
     }
-  };
+  }
 
   const loadPublicationData = (publication: Publication) => {
-    setSelectedPublication(publication);
+    setSelectedPublication(publication)
     editForm.reset({
       title: publication.title,
       authors: publication.authors,
@@ -234,28 +229,23 @@ export default function PublicationsAdmin() {
       virusCategoryId: publication.virusCategoryId,
       region: publication.region,
       publicationDate: publication.publicationDate,
-      link: publication.link || "",
-    });
-    setIsEditDialogOpen(true);
-  };
+      link: publication.link || '',
+    })
+    setIsEditDialogOpen(true)
+  }
 
   const getCategoryName = (id: number) => {
-    const category = categories?.find((cat: VirusCategory) => cat.id === id);
-    return category ? category.name : "Unknown";
-  };
+    const category = categories?.find((cat: VirusCategory) => cat.id === id)
+    return category ? category.name : 'Unknown'
+  }
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Publications</h1>
-          
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Publication
-          </Button>
         </div>
-        
+
         {isLoadingPublications ? (
           <div className="space-y-4">
             <Skeleton className="h-12 w-full" />
@@ -279,10 +269,14 @@ export default function PublicationsAdmin() {
               <TableBody>
                 {publications?.map((publication: Publication) => (
                   <TableRow key={publication.id}>
-                    <TableCell className="font-medium">{publication.title}</TableCell>
+                    <TableCell className="font-medium">
+                      {publication.title}
+                    </TableCell>
                     <TableCell>{publication.authors}</TableCell>
                     <TableCell>{publication.year}</TableCell>
-                    <TableCell>{getCategoryName(publication.virusCategoryId)}</TableCell>
+                    <TableCell>
+                      {getCategoryName(publication.virusCategoryId)}
+                    </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -293,7 +287,8 @@ export default function PublicationsAdmin() {
                             : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {publication.evidenceQuality.charAt(0).toUpperCase() + publication.evidenceQuality.slice(1)}
+                        {publication.evidenceQuality.charAt(0).toUpperCase() +
+                          publication.evidenceQuality.slice(1)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -305,16 +300,24 @@ export default function PublicationsAdmin() {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        
-                        <Dialog open={isDeleteDialogOpen && selectedPublication?.id === publication.id} onOpenChange={(open) => !open && setSelectedPublication(null)}>
+
+                        <Dialog
+                          open={
+                            isDeleteDialogOpen &&
+                            selectedPublication?.id === publication.id
+                          }
+                          onOpenChange={open =>
+                            !open && setSelectedPublication(null)
+                          }
+                        >
                           <DialogTrigger asChild>
                             <Button
                               variant="outline"
                               size="sm"
                               className="text-red-600 border-red-200 hover:bg-red-50"
                               onClick={() => {
-                                setSelectedPublication(publication);
-                                setIsDeleteDialogOpen(true);
+                                setSelectedPublication(publication)
+                                setIsDeleteDialogOpen(true)
                               }}
                             >
                               <Trash className="h-4 w-4" />
@@ -324,7 +327,9 @@ export default function PublicationsAdmin() {
                             <DialogHeader>
                               <DialogTitle>Delete Publication</DialogTitle>
                               <DialogDescription>
-                                Are you sure you want to delete "{publication.title}"? This action cannot be undone.
+                                Are you sure you want to delete "
+                                {publication.title}"? This action cannot be
+                                undone.
                               </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
@@ -334,10 +339,14 @@ export default function PublicationsAdmin() {
                               <DialogClose asChild>
                                 <Button
                                   variant="destructive"
-                                  onClick={() => deletePublication.mutate(publication.id)}
+                                  onClick={() =>
+                                    deletePublication.mutate(publication.id)
+                                  }
                                   disabled={deletePublication.isPending}
                                 >
-                                  {deletePublication.isPending ? "Deleting..." : "Delete"}
+                                  {deletePublication.isPending
+                                    ? 'Deleting...'
+                                    : 'Delete'}
                                 </Button>
                               </DialogClose>
                             </DialogFooter>
@@ -351,7 +360,7 @@ export default function PublicationsAdmin() {
             </Table>
           </div>
         )}
-        
+
         {/* Add Publication Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -361,9 +370,12 @@ export default function PublicationsAdmin() {
                 Fill in the details to add a new publication to the database.
               </DialogDescription>
             </DialogHeader>
-            
+
             <Form {...addForm}>
-              <form onSubmit={addForm.handleSubmit(onAddSubmit)} className="space-y-4">
+              <form
+                onSubmit={addForm.handleSubmit(onAddSubmit)}
+                className="space-y-4"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={addForm.control}
@@ -378,7 +390,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="authors"
@@ -392,7 +404,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="year"
@@ -411,7 +423,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="virusCategoryId"
@@ -421,7 +433,9 @@ export default function PublicationsAdmin() {
                         <FormControl>
                           <Select
                             value={field.value.toString()}
-                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                            onValueChange={value =>
+                              field.onChange(parseInt(value, 10))
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -442,7 +456,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="evidenceQuality"
@@ -468,7 +482,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="evidenceType"
@@ -484,8 +498,12 @@ export default function PublicationsAdmin() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="infection">Infection</SelectItem>
-                              <SelectItem value="spillover">Spillover</SelectItem>
+                              <SelectItem value="infection">
+                                Infection
+                              </SelectItem>
+                              <SelectItem value="spillover">
+                                Spillover
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </FormControl>
@@ -493,7 +511,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="region"
@@ -507,7 +525,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="publicationDate"
@@ -521,7 +539,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={addForm.control}
                     name="link"
@@ -536,7 +554,7 @@ export default function PublicationsAdmin() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={addForm.control}
                   name="abstract"
@@ -544,31 +562,29 @@ export default function PublicationsAdmin() {
                     <FormItem>
                       <FormLabel>Abstract</FormLabel>
                       <FormControl>
-                        <Textarea
-                          rows={4}
-                          {...field}
-                        />
+                        <Textarea rows={4} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAddDialogOpen(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={createPublication.isPending}
-                  >
+                  <Button type="submit" disabled={createPublication.isPending}>
                     {createPublication.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Saving...
                       </>
                     ) : (
-                      "Save Publication"
+                      'Save Publication'
                     )}
                   </Button>
                 </DialogFooter>
@@ -576,12 +592,15 @@ export default function PublicationsAdmin() {
             </Form>
           </DialogContent>
         </Dialog>
-        
+
         {/* Edit Publication Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-          setIsEditDialogOpen(open);
-          if (!open) setSelectedPublication(null);
-        }}>
+        <Dialog
+          open={isEditDialogOpen}
+          onOpenChange={open => {
+            setIsEditDialogOpen(open)
+            if (!open) setSelectedPublication(null)
+          }}
+        >
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Publication</DialogTitle>
@@ -589,9 +608,12 @@ export default function PublicationsAdmin() {
                 Update the details of this publication.
               </DialogDescription>
             </DialogHeader>
-            
+
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <form
+                onSubmit={editForm.handleSubmit(onEditSubmit)}
+                className="space-y-4"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
@@ -606,7 +628,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="authors"
@@ -620,7 +642,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="year"
@@ -639,7 +661,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="virusCategoryId"
@@ -649,7 +671,9 @@ export default function PublicationsAdmin() {
                         <FormControl>
                           <Select
                             value={field.value.toString()}
-                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                            onValueChange={value =>
+                              field.onChange(parseInt(value, 10))
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -670,7 +694,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="evidenceQuality"
@@ -696,7 +720,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="evidenceType"
@@ -712,8 +736,12 @@ export default function PublicationsAdmin() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="infection">Infection</SelectItem>
-                              <SelectItem value="spillover">Spillover</SelectItem>
+                              <SelectItem value="infection">
+                                Infection
+                              </SelectItem>
+                              <SelectItem value="spillover">
+                                Spillover
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </FormControl>
@@ -721,7 +749,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="region"
@@ -735,7 +763,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="publicationDate"
@@ -749,7 +777,7 @@ export default function PublicationsAdmin() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="link"
@@ -764,7 +792,7 @@ export default function PublicationsAdmin() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={editForm.control}
                   name="abstract"
@@ -772,31 +800,29 @@ export default function PublicationsAdmin() {
                     <FormItem>
                       <FormLabel>Abstract</FormLabel>
                       <FormControl>
-                        <Textarea
-                          rows={4}
-                          {...field}
-                        />
+                        <Textarea rows={4} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsEditDialogOpen(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={updatePublication.isPending}
-                  >
+                  <Button type="submit" disabled={updatePublication.isPending}>
                     {updatePublication.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Updating...
                       </>
                     ) : (
-                      "Update Publication"
+                      'Update Publication'
                     )}
                   </Button>
                 </DialogFooter>
@@ -806,5 +832,5 @@ export default function PublicationsAdmin() {
         </Dialog>
       </div>
     </AdminLayout>
-  );
+  )
 }

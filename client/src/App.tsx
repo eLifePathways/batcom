@@ -6,6 +6,7 @@ import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
 import Home from '@/pages/home'
 import Team from '@/pages/team'
+import Publication from '@/pages/publication'
 import Publications from '@/pages/publications'
 import BackgroundPapers from '@/pages/background-papers'
 import Search from '@/pages/search'
@@ -89,6 +90,7 @@ function Router() {
             <Route path="/" component={Home} />
             <Route path="/team" component={Team} />
             <Route path="/publications" component={Publications} />
+            <Route path="/publications/:id" component={Publication} />
             <Route path="/background-papers" component={BackgroundPapers} />
             <Route path="/what-we-do" component={WhatWeDo} />
             <Route path="/search" component={Search} />

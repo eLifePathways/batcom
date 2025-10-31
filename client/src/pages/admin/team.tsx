@@ -469,7 +469,7 @@ export default function TeamMembersAdmin() {
                   setFormData(prev => ({ ...prev, imageUrl }))
                 }}
                 label="Profile Image"
-                description="Upload a profile image (PNG, JPG up to 5MB)"
+                description="Upload a profile image (PNG, JPG up to 10MB)"
               />
             </div>
             <DialogFooter>
@@ -710,7 +710,7 @@ export default function TeamMembersAdmin() {
                                       }))
                                     }}
                                     label="Profile Image"
-                                    description="Upload a profile image (PNG, JPG up to 5MB)"
+                                    description="Upload a profile image (PNG, JPG up to 10MB)"
                                   />
                                 </div>
                                 <DialogFooter>

@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useLocation } from 'wouter'
+import { apiRequest } from '@/lib/queryClient'
+import { useToast } from '@/hooks/use-toast'
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 import {
   Dialog,
   DialogContent,
@@ -19,217 +19,228 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Edit, Trash2, Image } from "lucide-react";
-import { ImageUpload } from "@/components/ui/image-upload";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Plus, Edit, Trash2, Image } from 'lucide-react'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 type VirusCategory = {
-  id: number;
-  name: string;
-  description: string;
-  imageUrl: string;
-};
+  id: number
+  name: string
+  description: string
+  imageUrl: string
+}
 
 export default function VirusCategoriesAdmin() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+
   // Get URL query parameters and location control
-  const [location, setLocation] = useLocation();
-  const searchParams = new URLSearchParams(location.split('?')[1]);
-  const action = searchParams.get('action');
-  
+  const [location, setLocation] = useLocation()
+  const searchParams = new URLSearchParams(location.split('?')[1])
+  const action = searchParams.get('action')
+
   // Form data state
   const [formData, setFormData] = useState<Partial<VirusCategory>>({
-    name: "",
-    description: "",
-    imageUrl: ""
-  });
-  
-  const [selectedCategory, setSelectedCategory] = useState<VirusCategory | null>(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(action === 'new');
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  
+    name: '',
+    description: '',
+    imageUrl: '',
+  })
+
+  const [selectedCategory, setSelectedCategory] =
+    useState<VirusCategory | null>(null)
+  const [addDialogOpen, setAddDialogOpen] = useState(action === 'new')
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+
   // Reset form data
   const resetFormData = () => {
     setFormData({
-      name: "",
-      description: "",
-      imageUrl: ""
-    });
-  };
-  
+      name: '',
+      description: '',
+      imageUrl: '',
+    })
+  }
+
   // Load category data for editing
   const loadCategoryData = (category: VirusCategory) => {
     setFormData({
       name: category.name,
       description: category.description,
-      imageUrl: category.imageUrl
-    });
-  };
-  
+      imageUrl: category.imageUrl,
+    })
+  }
+
   // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value
-    }));
-  };
-  
+      [name]: value,
+    }))
+  }
+
   // Fetch virus categories
   const { data: categories, isLoading } = useQuery<VirusCategory[]>({
     queryKey: ['/api/virus-categories'],
-  });
-  
+  })
+
   // Create virus category mutation
   const createVirusCategory = useMutation({
     mutationFn: async (categoryData: Partial<VirusCategory>) => {
       return apiRequest('/api/virus-categories', {
         method: 'POST',
-        body: JSON.stringify(categoryData)
-      });
+        body: JSON.stringify(categoryData),
+      })
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Virus category created successfully!",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
-      setAddDialogOpen(false);
-      resetFormData();
+        title: 'Success',
+        description: 'Virus category created successfully!',
+      })
+      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] })
+      setAddDialogOpen(false)
+      resetFormData()
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create virus category.",
-        variant: "destructive",
-      });
-    }
-  });
-  
+        title: 'Error',
+        description: error.message || 'Failed to create virus category.',
+        variant: 'destructive',
+      })
+    },
+  })
+
   // Update virus category mutation
   const updateVirusCategory = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: Partial<VirusCategory> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number
+      data: Partial<VirusCategory>
+    }) => {
       return apiRequest(`/api/virus-categories/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(data)
-      });
+        body: JSON.stringify(data),
+      })
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Virus category updated successfully!",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
-      setEditDialogOpen(false);
-      setSelectedCategory(null);
-      resetFormData();
+        title: 'Success',
+        description: 'Virus category updated successfully!',
+      })
+      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] })
+      setEditDialogOpen(false)
+      setSelectedCategory(null)
+      resetFormData()
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update virus category.",
-        variant: "destructive",
-      });
-    }
-  });
-  
+        title: 'Error',
+        description: error.message || 'Failed to update virus category.',
+        variant: 'destructive',
+      })
+    },
+  })
+
   // Delete virus category mutation
   const deleteVirusCategory = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest(`/api/virus-categories/${id}`, {
-        method: 'DELETE'
-      });
+        method: 'DELETE',
+      })
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Virus category deleted successfully!",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] });
-      setDeleteDialogOpen(false);
-      setSelectedCategory(null);
+        title: 'Success',
+        description: 'Virus category deleted successfully!',
+      })
+      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] })
+      setDeleteDialogOpen(false)
+      setSelectedCategory(null)
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete virus category.",
-        variant: "destructive",
-      });
-    }
-  });
-  
+        title: 'Error',
+        description: error.message || 'Failed to delete virus category.',
+        variant: 'destructive',
+      })
+    },
+  })
+
   // Handle form submission for creating a new category
   const handleAddSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!formData.name || !formData.description) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      })
+      return
     }
-    
-    createVirusCategory.mutate(formData);
-  };
-  
+
+    createVirusCategory.mutate(formData)
+  }
+
   // Handle form submission for updating a category
   const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!selectedCategory || !formData.name || !formData.description) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      })
+      return
     }
-    
+
     updateVirusCategory.mutate({
       id: selectedCategory.id,
-      data: formData
-    });
-  };
-  
+      data: formData,
+    })
+  }
+
   // Handle category deletion
   const handleDelete = () => {
     if (selectedCategory) {
-      deleteVirusCategory.mutate(selectedCategory.id);
+      deleteVirusCategory.mutate(selectedCategory.id)
     }
-  };
+  }
 
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Virus Categories</h1>
-        <Button onClick={() => {
-          resetFormData();
-          setAddDialogOpen(true);
-        }}>
+        <Button
+          onClick={() => {
+            resetFormData()
+            setAddDialogOpen(true)
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Category
         </Button>
       </div>
-      
+
       {/* Add Category Dialog */}
       <Dialog
         open={addDialogOpen}
-        onOpenChange={(open) => {
-          setAddDialogOpen(open);
+        onOpenChange={open => {
+          setAddDialogOpen(open)
           if (!open) {
             // Reset form data when dialog is closed
-            resetFormData();
+            resetFormData()
             // Also clear the URL if it has the 'new' action
             if (action === 'new') {
-              setLocation('/admin/virus-categories');
+              setLocation('/admin/virus-categories')
             }
           }
         }}
@@ -242,45 +253,47 @@ export default function VirusCategoriesAdmin() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Category Name *</Label>
-                <Input 
-                  id="name" 
-                  name="name" 
+                <Input
+                  id="name"
+                  name="name"
                   value={formData.name}
                   onChange={handleChange}
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="description">Description *</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
+                <Textarea
+                  id="description"
+                  name="description"
                   value={formData.description}
                   onChange={handleChange}
                   rows={4}
                   required
                 />
               </div>
-              
+
               <ImageUpload
                 currentImageUrl={formData.imageUrl}
-                onImageUploaded={(imageUrl) => {
-                  setFormData(prev => ({ ...prev, imageUrl }));
+                onImageUploaded={imageUrl => {
+                  setFormData(prev => ({ ...prev, imageUrl }))
                 }}
                 label="Category Image"
-                description="Upload an image for this virus category (PNG, JPG up to 5MB)"
+                description="Upload an image for this virus category (PNG, JPG up to 10MB)"
               />
             </div>
             <DialogFooter>
               <Button type="submit" disabled={createVirusCategory.isPending}>
-                {createVirusCategory.isPending ? "Creating..." : "Create Category"}
+                {createVirusCategory.isPending
+                  ? 'Creating...'
+                  : 'Create Category'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-      
+
       <div className="bg-white rounded-lg shadow">
         <div className="overflow-x-auto">
           <Table>
@@ -304,7 +317,7 @@ export default function VirusCategoriesAdmin() {
                   </TableCell>
                 </TableRow>
               ) : categories && categories.length > 0 ? (
-                categories.map((category) => (
+                categories.map(category => (
                   <TableRow key={category.id}>
                     <TableCell>
                       {category.imageUrl ? (
@@ -321,7 +334,9 @@ export default function VirusCategoriesAdmin() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {category.name}
+                    </TableCell>
                     <TableCell className="max-w-md">
                       <div className="truncate">{category.description}</div>
                     </TableCell>
@@ -329,12 +344,15 @@ export default function VirusCategoriesAdmin() {
                       <div className="flex items-center gap-2">
                         {/* Edit Dialog */}
                         <Dialog
-                          open={editDialogOpen && selectedCategory?.id === category.id}
-                          onOpenChange={(open) => {
-                            setEditDialogOpen(open);
+                          open={
+                            editDialogOpen &&
+                            selectedCategory?.id === category.id
+                          }
+                          onOpenChange={open => {
+                            setEditDialogOpen(open)
                             if (open) {
-                              setSelectedCategory(category);
-                              loadCategoryData(category);
+                              setSelectedCategory(category)
+                              loadCategoryData(category)
                             }
                           }}
                         >
@@ -350,59 +368,75 @@ export default function VirusCategoriesAdmin() {
                             <form onSubmit={handleEditSubmit}>
                               <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                  <Label htmlFor="edit-name">Category Name *</Label>
-                                  <Input 
-                                    id="edit-name" 
-                                    name="name" 
+                                  <Label htmlFor="edit-name">
+                                    Category Name *
+                                  </Label>
+                                  <Input
+                                    id="edit-name"
+                                    name="name"
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
                                   />
                                 </div>
-                                
+
                                 <div className="space-y-2">
-                                  <Label htmlFor="edit-description">Description *</Label>
-                                  <Textarea 
-                                    id="edit-description" 
-                                    name="description" 
+                                  <Label htmlFor="edit-description">
+                                    Description *
+                                  </Label>
+                                  <Textarea
+                                    id="edit-description"
+                                    name="description"
                                     value={formData.description}
                                     onChange={handleChange}
                                     rows={4}
                                     required
                                   />
                                 </div>
-                                
+
                                 <ImageUpload
                                   currentImageUrl={formData.imageUrl}
-                                  onImageUploaded={(imageUrl) => {
-                                    setFormData(prev => ({ ...prev, imageUrl }));
+                                  onImageUploaded={imageUrl => {
+                                    setFormData(prev => ({ ...prev, imageUrl }))
                                   }}
                                   label="Category Image"
-                                  description="Upload an image for this virus category (PNG, JPG up to 5MB)"
+                                  description="Upload an image for this virus category (PNG, JPG up to 10MB)"
                                 />
-                                
+
                                 <DialogFooter>
-                                  <Button type="submit" disabled={updateVirusCategory.isPending}>
-                                    {updateVirusCategory.isPending ? "Saving..." : "Save Changes"}
+                                  <Button
+                                    type="submit"
+                                    disabled={updateVirusCategory.isPending}
+                                  >
+                                    {updateVirusCategory.isPending
+                                      ? 'Saving...'
+                                      : 'Save Changes'}
                                   </Button>
                                 </DialogFooter>
                               </div>
                             </form>
                           </DialogContent>
                         </Dialog>
-                        
+
                         {/* Delete Dialog */}
                         <Dialog
-                          open={deleteDialogOpen && selectedCategory?.id === category.id}
-                          onOpenChange={(open) => {
-                            setDeleteDialogOpen(open);
+                          open={
+                            deleteDialogOpen &&
+                            selectedCategory?.id === category.id
+                          }
+                          onOpenChange={open => {
+                            setDeleteDialogOpen(open)
                             if (open) {
-                              setSelectedCategory(category);
+                              setSelectedCategory(category)
                             }
                           }}
                         >
                           <DialogTrigger asChild>
-                            <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="text-red-500 hover:text-red-600"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
@@ -411,8 +445,17 @@ export default function VirusCategoriesAdmin() {
                               <DialogTitle>Delete Virus Category</DialogTitle>
                             </DialogHeader>
                             <div className="py-4">
-                              <p>Are you sure you want to delete <span className="font-semibold">{category.name}</span>?</p>
-                              <p className="text-sm text-gray-500 mt-2">This will also delete any associated publications and background papers.</p>
+                              <p>
+                                Are you sure you want to delete{' '}
+                                <span className="font-semibold">
+                                  {category.name}
+                                </span>
+                                ?
+                              </p>
+                              <p className="text-sm text-gray-500 mt-2">
+                                This will also delete any associated
+                                publications and background papers.
+                              </p>
                             </div>
                             <DialogFooter>
                               <Button
@@ -426,7 +469,9 @@ export default function VirusCategoriesAdmin() {
                                 onClick={handleDelete}
                                 disabled={deleteVirusCategory.isPending}
                               >
-                                {deleteVirusCategory.isPending ? "Deleting..." : "Delete"}
+                                {deleteVirusCategory.isPending
+                                  ? 'Deleting...'
+                                  : 'Delete'}
                               </Button>
                             </DialogFooter>
                           </DialogContent>
@@ -437,8 +482,12 @@ export default function VirusCategoriesAdmin() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                    No virus categories found. Click "Add Category" to create one.
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    No virus categories found. Click "Add Category" to create
+                    one.
                   </TableCell>
                 </TableRow>
               )}
@@ -447,5 +496,5 @@ export default function VirusCategoriesAdmin() {
         </div>
       </div>
     </div>
-  );
+  )
 }

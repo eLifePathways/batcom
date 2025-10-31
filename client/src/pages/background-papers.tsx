@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import HeroSection from '@/components/sections/hero-section'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -175,78 +175,94 @@ export default function BackgroundPapers() {
     )
   }
 
+  const papersByCategory = useMemo(() => {
+    if (!papers) return {}
+    return papers.reduce((acc, paper) => {
+      const catName = getCategoryForPaper(paper)?.name ?? 'Other/Unknown'
+      if (!acc[catName]) acc[catName] = []
+      acc[catName].push(paper)
+      return acc
+    }, {} as Record<string, BackgroundPaper[]>)
+  }, [papers])
+
   return (
     <main className="container mx-auto px-4">
       <HeroSection
         title="Background Papers"
         description="Our background papers provide comprehensive overviews of bat virus research, synthesizing key findings and highlighting important knowledge gaps. These papers are designed to be accessible to researchers, public health officials, and policymakers."
       />
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
+      {/* <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div> */}
 
-      <div>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap mb-8 w-full max-w-full overflow-x-auto justify-start">
-            <TabsTrigger value="all" className="flex-shrink-0">
-              All Papers
-            </TabsTrigger>
-
-            {!categoriesLoading &&
-              categories?.map((category: VirusCategory) => (
-                <TabsTrigger
-                  key={category.id}
-                  value={category.id.toString()}
-                  className="flex-shrink-0"
-                >
-                  {category.name}
-                </TabsTrigger>
-              ))}
-
-            {categoriesLoading && (
-              <>
-                <Skeleton className="h-9 w-24 rounded-full mx-1" />
-                <Skeleton className="h-9 w-24 rounded-full mx-1" />
-                <Skeleton className="h-9 w-24 rounded-full mx-1" />
-              </>
-            )}
-          </TabsList>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading && (
-              <>
-                <PaperCardSkeleton />
-                <PaperCardSkeleton />
-                <PaperCardSkeleton />
-                <PaperCardSkeleton />
-                <PaperCardSkeleton />
-                <PaperCardSkeleton />
-              </>
-            )}
-
-            {!isLoading && filteredPapers?.length === 0 && (
-              <div className="col-span-full py-12 text-center">
-                <h3 className="text-xl font-medium text-gray-500">
-                  No background papers found for this category
-                </h3>
-                <p className="mt-2 text-gray-400">
-                  Please check back later as we continuously update our
-                  resources.
-                </p>
+      {isLoading && (
+        <div className="space-y-6">
+          {[...Array(5)].map((_, i) => (
+            <div key={i}>
+              <Skeleton className="h-6 w-40 mb-3" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-3/4" />
               </div>
-            )}
+            </div>
+          ))}
+        </div>
+      )}
 
-            {!isLoading &&
-              filteredPapers?.map((paper: BackgroundPaper) => (
-                <PaperCard
-                  key={paper.id}
-                  paper={paper}
-                  category={
-                    activeTab === 'all' ? getCategoryForPaper(paper) : undefined
-                  }
-                />
-              ))}
+      {!isLoading &&
+      papersByCategory &&
+      Object.keys(papersByCategory).length > 0 ? (
+        <div className="space-y-8 pb-8">
+          {Object.entries(papersByCategory).map(([category, papers]) => (
+            <section key={category}>
+              <h2 className="text-xl font-semibold text-primary mb-4 border-b border-gray-300 pb-2">
+                {category}
+              </h2>
+              <ul className="list-decimal list-inside space-y-3 pl-2">
+                {papers.map((paper: BackgroundPaper, index: number) => (
+                  <li
+                    key={paper.id}
+                    className="text-sm leading-relaxed text-gray-700 dark:text-gray-300"
+                  >
+                    {/* <span className="font-medium">{paper.authors}</span>.{' '} */}
+                    <span className="italic">{paper.title}</span>.{' '}
+                    {/* <span>{paper.year ? `(${paper.})` : ''}</span>{' '} */}
+                    {paper.link ? (
+                      <a
+                        href={paper.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline ml-1"
+                      >
+                        [Full Paper]
+                      </a>
+                    ) : (
+                      // : paper.abstractLink ? (
+                      //   <a
+                      //     href={paper.abstractLink}
+                      //     target="_blank"
+                      //     rel="noopener noreferrer"
+                      //     className="text-blue-600 hover:underline ml-1"
+                      //   >
+                      //     [Abstract]
+                      //   </a>
+                      // )
+                      <span className="text-gray-400 ml-1">
+                        [Link unavailable]
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : (
+        !isLoading && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No background papers found.</p>
           </div>
-        </Tabs>
-      </div>
+        )
+      )}
     </main>
   )
 }

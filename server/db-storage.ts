@@ -26,9 +26,16 @@ import {
   whatWeDoContent,
   type WhatWeDoContent,
   type InsertWhatWeDoContent,
+  type Settings,
+  settings,
+  EvidenceQuality,
+  EvidenceType,
+  Review,
+  reviews,
+  InsertReview,
 } from '@shared/schema'
 import { db } from './db'
-import { eq, like, and, gte, lte, or } from 'drizzle-orm'
+import { eq, like, and, gte, lte, or, inArray } from 'drizzle-orm'
 import { IStorage } from './storage'
 import { hashPassword } from './auth'
 
@@ -178,6 +185,7 @@ export class DatabaseStorage implements IStorage {
     const newSortOrder = maxSortOrder + 1
 
     console.log(`Creating new team member with sortOrder: ${newSortOrder}`)
+    console.log('member details', member)
 
     // Insert with the calculated sort order
     const [newMember] = await db
@@ -289,6 +297,60 @@ export class DatabaseStorage implements IStorage {
     return true // Postgres doesn't easily return affected rows count
   }
 
+  async getFilteredPublications(
+    virusCategories?: number[],
+    evidenceQualities?: EvidenceQuality[],
+    evidenceTypes?: EvidenceType[],
+    yearRanges?: string,
+    regions?: string[],
+    searchQuery?: string,
+  ): Promise<Array<Publication>> {
+    let query = db.select().from(publications)
+
+    if (virusCategories)
+      query = query.where(
+        inArray(publications.virusCategoryId, virusCategories),
+      )
+
+    if (evidenceQualities)
+      query = query.where(
+        inArray(publications.evidenceQuality, evidenceQualities),
+      )
+
+    if (evidenceTypes)
+      query = query.where(inArray(publications.evidenceType, evidenceTypes))
+
+    if (regions) query = query.where(inArray(publications.region, regions))
+
+    if (yearRanges) {
+      const yearClauses = yearRanges.split(',').map(r => {
+        const [start, end] = r.split('-')
+        const endYear =
+          end === 'present' ? new Date().getFullYear() : parseInt(end)
+        return and(
+          gte(publications.year, parseInt(start)),
+          lte(publications.year, endYear),
+        )
+      })
+      query = query.where(or(...yearClauses))
+    }
+
+    if (searchQuery) {
+      const searchPattern = `%${query}%`
+      query = query.where(
+        or(
+          like(publications.title, searchPattern),
+          like(publications.authors, searchPattern),
+          like(publications.abstract, searchPattern),
+        ),
+      )
+    }
+
+    const results = await query
+
+    return results
+  }
+
   async getPublicationsByVirusCategory(
     virusCategoryId: number,
   ): Promise<Publication[]> {
@@ -352,6 +414,28 @@ export class DatabaseStorage implements IStorage {
           like(publications.abstract, searchPattern),
         ),
       )
+  }
+
+  // Review operations
+  async getAllReviews(): Promise<Review[]> {
+    return db.select().from(reviews)
+  }
+
+  async getReview(id: number): Promise<Review | undefined> {
+    const result = await db.select().from(reviews).where(eq(reviews.id, id))
+    return result[0]
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const result = await db.insert(reviews).values(review).returning()
+    return result[0]
+  }
+
+  async getReviewsForPublication(publicationId: number): Promise<Review[]> {
+    return db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.publicationId, publicationId))
   }
 
   // Background paper operations
@@ -714,6 +798,42 @@ export class DatabaseStorage implements IStorage {
 
     // Return the reordered content
     return this.getWhatWeDoContentBySection(sectionId)
+  }
+
+  // Settings operations
+  async getAllSettings(): Promise<Settings[]> {
+    return db.select().from(settings)
+  }
+
+  async getSettings(purpose: string): Promise<Settings | undefined> {
+    const [setting] = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.purpose, purpose))
+
+    return setting || undefined
+  }
+
+  async updateSettings(
+    id: number,
+    data: Partial<Settings>,
+  ): Promise<Settings | undefined> {
+    const existingSettings = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.id, id))
+
+    if (!existingSettings) {
+      return undefined
+    }
+
+    const [updatedSettings] = await db
+      .update(settings)
+      .set(data)
+      .where(eq(settings.id, id))
+      .returning()
+
+    return updatedSettings
   }
 
   // Database initialization
@@ -1084,6 +1204,40 @@ export class DatabaseStorage implements IStorage {
         content:
           'We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.',
         sortOrder: 2,
+      })
+
+      // settings
+      await db.insert(settings).values({
+        purpose: 'general',
+        formData: {
+          website: {
+            siteName: 'Bat-Com Research Group',
+            siteDescription: 'Research on bat-borne virus spillover',
+            contactEmail: 'info@batcom.org',
+            allowRegistration: true,
+            maintenanceMode: false,
+            theme: 'default',
+          },
+          api: {
+            apiRateLimit: '100',
+            enablePublicAPI: true,
+            requireAPIKey: false,
+          },
+          security: {
+            adminLoginAttempts: '5',
+            sessionTimeout: '60',
+            enableTwoFactor: false,
+          },
+        },
+      })
+
+      await db.insert(settings).values({
+        purpose: 'kotahi',
+        formData: {
+          endpoint: '',
+          groupId: null,
+          apiKey: null,
+        },
       })
 
       console.log('Sample data successfully inserted.')

@@ -328,9 +328,14 @@ export const getQueryFn: <T>(options: {
       return cachedData
     }
 
+    const token = getToken()
+
     // Make the request if not cached or expired
     const res = await fetch(url, {
       credentials: 'include',
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
     })
 
     // Handle unauthorized according to behavior
