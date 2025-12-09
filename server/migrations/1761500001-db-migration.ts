@@ -1,4 +1,5 @@
 import { client } from '../db'
+import { checkColumnExists } from './helpers'
 
 /**
  * Script to update the issue_comments table with new columns
@@ -72,33 +73,6 @@ export async function updateIssueCommentsSchema() {
     console.log('Database migration completed successfully')
   } catch (error) {
     console.error('Error during database migration:', error)
-    throw error
-  }
-}
-
-/**
- * Helper function to check if a column exists in a table
- */
-async function checkColumnExists(
-  tableName: string,
-  columnName: string,
-): Promise<boolean> {
-  try {
-    const result = await client`
-      SELECT EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
-        WHERE table_name = ${tableName}
-        AND column_name = ${columnName}
-      )
-    `
-
-    return result[0]?.exists ?? false
-  } catch (error) {
-    console.error(
-      `Error checking if column ${columnName} exists in table ${tableName}:`,
-      error,
-    )
     throw error
   }
 }

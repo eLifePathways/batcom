@@ -27,8 +27,8 @@ import {
   type WhatWeDoContent,
   type InsertWhatWeDoContent,
   type Settings,
-  EvidenceQuality,
-  EvidenceType,
+  EvidenceInfection,
+  EvidenceSpillover,
   Review,
   InsertReview,
   KotahiReviewUser,
@@ -75,8 +75,8 @@ export interface IStorage {
   deletePublication(id: number): Promise<boolean>
   getFilteredPublications(
     virusCategories?: number[],
-    evidenceQualities?: EvidenceQuality[],
-    evidenceTypes?: EvidenceType[],
+    evidenceInfections?: EvidenceInfection[],
+    evidenceSpillovers?: EvidenceSpillover[],
     yearRanges?: string,
     regions?: string[],
     searchQuery?: string,
@@ -84,8 +84,8 @@ export interface IStorage {
   getPublicationsByVirusCategory(
     virusCategoryId: number,
   ): Promise<Publication[]>
-  getPublicationsByEvidenceQuality(quality: string): Promise<Publication[]>
-  getPublicationsByEvidenceType(type: string): Promise<Publication[]>
+  getPublicationsByEvidenceInfection(quality: string): Promise<Publication[]>
+  getPublicationsByEvidenceSpillover(type: string): Promise<Publication[]>
   getPublicationsByYear(year: number): Promise<Publication[]>
   getPublicationsByYearRange(
     startYear: number,
@@ -395,6 +395,7 @@ export class MemStorage implements IStorage {
     const id = this.publicationCurrentId++
     const newPublication: Publication = {
       ...publication,
+      kotahiManuscriptId: publication.kotahiManuscriptId ?? crypto.randomUUID(),
       id,
       link: publication.link ?? null,
     }
@@ -428,8 +429,8 @@ export class MemStorage implements IStorage {
 
   async getFilteredPublications(
     virusCategories?: number[],
-    evidenceQualities?: EvidenceQuality[],
-    evidenceTypes?: EvidenceType[],
+    evidenceInfections?: EvidenceInfection[],
+    evidenceSpillovers?: EvidenceSpillover[],
     yearRanges?: string,
     regions?: string[],
     searchQuery?: string,
@@ -445,17 +446,19 @@ export class MemStorage implements IStorage {
     )
   }
 
-  async getPublicationsByEvidenceQuality(
+  async getPublicationsByEvidenceInfection(
     quality: string,
   ): Promise<Publication[]> {
     return Array.from(this.publications.values()).filter(
-      publication => publication.evidenceQuality === quality,
+      publication => publication.evidenceInfection === quality,
     )
   }
 
-  async getPublicationsByEvidenceType(type: string): Promise<Publication[]> {
+  async getPublicationsByEvidenceSpillover(
+    type: string,
+  ): Promise<Publication[]> {
     return Array.from(this.publications.values()).filter(
-      publication => publication.evidenceType === type,
+      publication => publication.evidenceSpillover === type,
     )
   }
 
@@ -984,8 +987,8 @@ export class MemStorage implements IStorage {
       year: 2018,
       abstract:
         'Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.',
-      evidenceQuality: 'high',
-      evidenceType: 'infection',
+      evidenceInfection: 'infectionHigh',
+      evidenceSpillover: 'spilloverNot_Investigated',
       virusCategoryId: 1, // Coronaviridae
       region: 'Asia',
       publicationDate: '2018-03-15',
@@ -998,8 +1001,8 @@ export class MemStorage implements IStorage {
       year: 2000,
       abstract:
         'Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.',
-      evidenceQuality: 'medium',
-      evidenceType: 'spillover',
+      evidenceInfection: 'infectionModerate',
+      evidenceSpillover: 'spilloverNot_Investigated',
       virusCategoryId: 3, // Paramyxoviridae
       region: 'Asia',
       publicationDate: '2000-09-26',
@@ -1012,8 +1015,8 @@ export class MemStorage implements IStorage {
       year: 2005,
       abstract:
         'Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.',
-      evidenceQuality: 'low',
-      evidenceType: 'infection',
+      evidenceInfection: 'infectionLow',
+      evidenceSpillover: 'spilloverNot_Investigated',
       virusCategoryId: 2, // Filoviridae
       region: 'Africa',
       publicationDate: '2005-12-01',
@@ -1026,8 +1029,8 @@ export class MemStorage implements IStorage {
       year: 2014,
       abstract:
         'Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.',
-      evidenceQuality: 'high',
-      evidenceType: 'spillover',
+      evidenceInfection: 'infectionHigh',
+      evidenceSpillover: 'spilloverNot_Investigated',
       virusCategoryId: 1, // Coronaviridae
       region: 'Middle East',
       publicationDate: '2014-06-05',

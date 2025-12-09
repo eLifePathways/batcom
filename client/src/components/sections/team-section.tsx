@@ -27,8 +27,10 @@ const TeamSection = ({
   // Sort members by sortOrder if available
   const sortedMembers = members
     ? [...members].sort((a, b) => {
-        const aLastName = a.name.split(' ')[1] || a.name
-        const bLastName = b.name.split(' ')[1] || b.name
+        const aNames = a.name.split(' ')
+        const bNames = b.name.split(' ')
+        const aLastName = aNames[aNames.length - 1]
+        const bLastName = bNames[bNames.length - 1]
         return aLastName.localeCompare(bLastName)
         // If sortOrder is available on both, use it (handle null values)
         // const aSortOrder =

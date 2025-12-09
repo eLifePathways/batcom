@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Publication, VirusCategory } from '@shared/schema'
+import { EvidenceInfection, Publication, VirusCategory } from '@shared/schema'
 import HeroSection from '@/components/sections/hero-section'
 import PublicationCard from '@/components/ui/publication-card'
 import { Button } from '@/components/ui/button'
@@ -125,8 +125,8 @@ const Search = () => {
                     authors={publication.authors}
                     year={publication.year}
                     abstract={publication.abstract}
-                    evidenceQuality={
-                      publication.evidenceQuality as 'high' | 'medium' | 'low'
+                    evidenceInfection={
+                      publication.evidenceInfection as EvidenceInfection
                     }
                     virusCategory={getCategoryNameById(
                       publication.virusCategoryId,

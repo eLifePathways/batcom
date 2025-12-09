@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'wouter'
+import { EvidenceInfection } from '@shared/schema'
 
 type PublicationCardProps = {
   id: number
@@ -9,7 +10,7 @@ type PublicationCardProps = {
   authors: string
   year: number
   abstract: string
-  evidenceQuality: 'high' | 'medium' | 'low'
+  evidenceInfection: EvidenceInfection
   virusCategory: string
   virusCategoryId: number
   region: string
@@ -22,21 +23,24 @@ const PublicationCard = ({
   authors,
   year,
   abstract,
-  evidenceQuality,
+  evidenceInfection,
   virusCategory,
   virusCategoryId,
   region,
   link,
 }: PublicationCardProps) => {
-  const evidenceClasses = {
-    high: 'bg-success h-1',
-    medium: 'bg-warning h-1',
-    low: 'bg-error h-1',
+  const evidenceInfectionClasses = {
+    infectionHigh: 'bg-success h-1',
+    infectionModerate: 'bg-warning h-1',
+    infectionLow: 'bg-error h-1',
+    infectionNot_Investigated: 'bg-gray h-1',
   }
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition duration-300 h-full">
-      <div className={`w-full ${evidenceClasses[evidenceQuality]}`} />
+      <div
+        className={`w-full ${evidenceInfectionClasses[evidenceInfection]}`}
+      />
       <CardContent className="p-6">
         <h3 className="font-montserrat font-semibold text-primary text-xl mb-2">
           {title}

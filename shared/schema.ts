@@ -10,20 +10,55 @@ import {
   json,
   jsonb,
   uuid,
+  pgEnum,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import { createInsertSchema } from 'drizzle-zod'
-import { string, z } from 'zod'
+import { z } from 'zod'
+import {
+  EVIDENCE_QUALITY_INFECTION,
+  EVIDENCE_QUALITY_SPILLOVER,
+  INFECTION_KEYS_TUPLE,
+  SPILLOVER_KEYS_TUPLE,
+} from './constants'
 
 export type FilterState = Record<string, string[]>
 
-export type SettingsFormData = {
-  endpoint: string
-  groupId: string
-  apiKey?: string | undefined
+export type ZeroCountsFor<T extends Record<string, any>> = {
+  -readonly [K in keyof T]: number
 }
 
-export type EvidenceQuality = 'high' | 'medium' | 'low'
-export type EvidenceType = 'infection' | 'spillover'
+export type KotahiSettingsFormData = {
+  endpoint: string
+  groupId: string | null
+  apiKey: string | null
+}
+
+export type AppSettingsFormData = {
+  website: {
+    siteName: string
+    siteDescription: string
+    contactEmail: string
+    allowRegistration: boolean
+    maintenanceMode: boolean
+    theme: string
+  }
+  api: {
+    apiRateLimit: string
+    enablePublicAPI: boolean
+    requireAPIKey: boolean
+  }
+  security: {
+    adminLoginAttempts: string
+    sessionTimeout: string
+    enableTwoFactor: boolean
+  }
+}
+
+export type SettingsFormData = KotahiSettingsFormData | AppSettingsFormData
+
+export type EvidenceInfection = keyof typeof EVIDENCE_QUALITY_INFECTION
+export type EvidenceSpillover = keyof typeof EVIDENCE_QUALITY_SPILLOVER
 
 export type KotahiConfig = {
   id: string
@@ -79,6 +114,29 @@ export type KotahiReviewUser = {
   defaultIdentity?: KotahiReviewIdentity
 }
 
+export type KotahiReviewField = {
+  field: {
+    id: string
+    name: string
+    title: string
+    component: string
+    description?: string
+    options?: unknown[]
+    validate?: unknown[]
+    validateValue?: unknown
+    hideFromAuthors: string
+    permitPublishing: string
+    isReadOnly: string
+  }
+  value: string[] | string
+  fieldName: string
+  fieldTitle: string
+  text: string
+  date: string
+  shouldPublish: boolean
+  objectId: string
+}
+
 export type KotahiPublishedReview = {
   id: string
   created: Date
@@ -116,6 +174,9 @@ export type KotahiPublishedManuscript = {
   decisions: Array<KotahiPublishedReview>
 }
 
+const evidenceInfectionEnum = pgEnum('evidence_infection', INFECTION_KEYS_TUPLE)
+const evidenceSpilloverEnum = pgEnum('evidence_spillover', SPILLOVER_KEYS_TUPLE)
+
 export const virusCategories = pgTable('virus_categories', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
@@ -138,13 +199,15 @@ export const teamMembers = pgTable('team_members', {
 
 export const publications = pgTable('publications', {
   id: serial('id').primaryKey(),
-  //   kotahiManuscriptId: uuid('kotahi_manuscript_id').notNull(),
+  kotahiManuscriptId: uuid('kotahi_manuscript_id')
+    .notNull()
+    .default(sql`gen_random_uuid()`),
   title: text('title').notNull(),
   authors: text('authors').notNull(),
   year: integer('year').notNull(),
   abstract: text('abstract').notNull(),
-  evidenceQuality: text('evidence_quality').$type<EvidenceQuality>().notNull(),
-  evidenceType: text('evidence_type').$type<EvidenceType>().notNull(),
+  evidenceInfection: evidenceInfectionEnum('evidence_infection').notNull(),
+  evidenceSpillover: evidenceSpilloverEnum('evidence_spillover').notNull(),
   virusCategoryId: integer('virus_category_id').notNull(),
   region: text('region').notNull(),
   publicationDate: date('publication_date').notNull(),
@@ -194,7 +257,10 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
   id: true,
 })
 
-export const insertPublicationSchema = createInsertSchema(publications).omit({
+export const insertPublicationSchema = createInsertSchema(publications, {
+  evidenceInfection: z.enum(INFECTION_KEYS_TUPLE),
+  evidenceSpillover: z.enum(SPILLOVER_KEYS_TUPLE),
+}).omit({
   id: true,
 })
 

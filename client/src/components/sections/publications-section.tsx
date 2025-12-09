@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  EvidenceQuality,
+  EvidenceInfection,
+  EvidenceSpillover,
   FilterState,
   Publication,
   virusCategories,
   VirusCategory,
+  ZeroCountsFor,
 } from '@shared/schema'
 import PublicationCard from '@/components/ui/publication-card'
 import FilterMenu from '@/components/ui/filter-menu'
@@ -24,6 +26,37 @@ import {
 
 import { useSearchParams } from '@/hooks'
 import { useLocation } from 'wouter'
+import {
+  EVIDENCE_QUALITY_INFECTION,
+  EVIDENCE_QUALITY_SPILLOVER,
+} from '@shared/constants'
+
+type EvidenceYear<
+  I extends Record<string, any>,
+  S extends Record<string, any>,
+> = { year: number } & ZeroCountsFor<I> & ZeroCountsFor<S>
+
+type InfectionKeys = typeof EVIDENCE_QUALITY_INFECTION
+type SpilloverKeys = typeof EVIDENCE_QUALITY_SPILLOVER
+
+const yearCounts: Record<
+  number,
+  EvidenceYear<InfectionKeys, SpilloverKeys>
+> = {}
+
+const QUALITY_COLOURS = {
+  High: '#16a34a',
+  Moderate: '#eab308',
+  Low: '#dc2626',
+  Not_Investigated: '#9ca3af',
+} as const
+
+type QualityKey = keyof typeof QUALITY_COLOURS
+
+const getQualityColour = (key: string): string => {
+  const quality = key.slice(9) as QualityKey
+  return QUALITY_COLOURS[quality]
+}
 
 export type PublicationsSectionProps = {
   categories?: VirusCategory[]
@@ -34,352 +67,360 @@ export type PublicationsSectionProps = {
   publications?: Publication[]
 }
 
-const PublicationsSection = () =>
-  // 	{
-  //   filters,
-  //   onApplyFilters,
-  //   onSetFilters,
-  // }: PublicationsSectionProps
-  {
-    const [pageSize, setPageSize] = useState(4)
-    const [filters, setFilters] = useState<FilterState>({
-      virusCategories: [],
-      evidenceQualities: [],
-      evidenceTypes: [],
-      yearRanges: [],
-      regions: [],
-    })
+const PublicationsSection = () => {
+  const [pageSize, setPageSize] = useState(4)
+  const [filters, setFilters] = useState<FilterState>({
+    virusCategories: [],
+    evidenceInfections: [],
+    evidenceSpillovers: [],
+    yearRanges: [],
+    regions: [],
+  })
 
-    const queryClient = useQueryClient()
-    const searchParams = useSearchParams()
-    const [location] = useLocation()
+  const queryClient = useQueryClient()
+  const searchParams = useSearchParams()
+  const [location] = useLocation()
 
-    const {
-      data: publications,
-      isLoading: isLoadingPublications,
-      refetch: refetchPublications,
-    } = useQuery<Publication[]>({
-      queryKey: ['/api/publications', filters],
-      queryFn: async () => {
-        const params = new URLSearchParams()
-        console.log('query params', params)
-        for (const [key, values] of Object.entries(filters)) {
-          if (values.length) params.append(key, values.join(','))
-        }
-        const res = await fetch(`/api/publications?${params.toString()}`)
-        return res.json()
-      },
-    })
-
-    const { data: categories } = useQuery<VirusCategory[]>({
-      queryKey: ['/api/virus-categories'],
-    })
-
-    const filterGroups = [
-      {
-        id: 'virusCategories',
-        title: 'Virus Category',
-        options:
-          categories?.map(c => ({ id: c.id.toString(), label: c.name })) || [],
-      },
-      {
-        id: 'evidenceQualities',
-        title: 'Evidence Quality',
-        options: [
-          { id: 'high', label: 'High' },
-          { id: 'medium', label: 'Medium' },
-          { id: 'low', label: 'Low' },
-        ],
-      },
-      {
-        id: 'evidenceTypes',
-        title: 'Evidence Type',
-        options: [
-          { id: 'infection', label: 'Evidence of Infection' },
-          { id: 'spillover', label: 'Evidence of Spillover' },
-        ],
-      },
-      {
-        id: 'yearRanges',
-        title: 'Year of Publication',
-        options: [
-          { id: '1980-1990', label: '1980-1990' },
-          { id: '1990-2000', label: '1990-2000' },
-          { id: '2000-2010', label: '2000-2010' },
-          { id: '2010-2020', label: '2010-2020' },
-          { id: '2020-present', label: '2020-present' },
-        ],
-      },
-      {
-        id: 'regions',
-        title: 'Regions',
-        options: [
-          { id: 'Africa', label: 'Africa' },
-          { id: 'Americas', label: 'Americas' },
-          { id: 'Asia', label: 'Asia' },
-          { id: 'Europe', label: 'Europe' },
-          { id: 'Oceania', label: 'Oceania' },
-          { id: 'Middle East', label: 'Middle East' },
-        ],
-      },
-    ]
-
-    useEffect(() => {
-      const params = new URLSearchParams(window.location.search)
-
-      const virusCategories = params.get('virusCategories')
-      const evidenceQualities = params.get('evidenceQualities')
-      const evidenceTypes = params.get('evidenceTypes')
-      const yearRanges = params.get('yearRanges')
-      const regions = params.get('regions')
-
-      const nextFilters = {
-        ...(virusCategories && { virusCategories: [virusCategories] }),
-        ...(evidenceQualities && { evidenceQualities: [evidenceQualities] }),
-        ...(evidenceTypes && { evidenceTypes: [evidenceTypes] }),
-        ...(yearRanges && { yearRanges: [yearRanges] }),
-        ...(regions && { regions: [regions] }),
+  const {
+    data: publications,
+    isLoading: isLoadingPublications,
+    refetch: refetchPublications,
+  } = useQuery<Publication[]>({
+    queryKey: ['/api/publications', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams()
+      console.log('query params', params)
+      for (const [key, values] of Object.entries(filters)) {
+        if (values.length) params.append(key, values.join(','))
       }
+      const res = await fetch(`/api/publications?${params.toString()}`)
+      return res.json()
+    },
+  })
 
-      setFilters(prev => ({ ...prev, ...nextFilters }))
-      applyFilters()
-    }, [window.location.search, location])
+  const { data: categories } = useQuery<VirusCategory[]>({
+    queryKey: ['/api/virus-categories'],
+  })
 
-    const handleFilterChange = (
-      filterGroup: string,
-      selectedOptions: string[],
-    ) => {
-      setFilters(prev => ({
-        ...prev,
-        [filterGroup]: selectedOptions,
-      }))
+  const filterGroups = [
+    {
+      id: 'virusCategories',
+      title: 'Virus Category',
+      options:
+        categories?.map(c => ({ id: c.id.toString(), label: c.name })) || [],
+    },
+    {
+      id: 'evidenceInfections',
+      title: 'Evidence Quality: Infection',
+      options: Object.entries(EVIDENCE_QUALITY_INFECTION).map(
+        ([id, label]) => ({ id, label }),
+      ),
+    },
+    {
+      id: 'evidenceSpillovers',
+      title: 'Evidence Quality: Spillover',
+      options: Object.entries(EVIDENCE_QUALITY_SPILLOVER).map(
+        ([id, label]) => ({ id, label }),
+      ),
+    },
+    {
+      id: 'yearRanges',
+      title: 'Year of Publication',
+      options: [
+        { id: '1980-1990', label: '1980-1990' },
+        { id: '1990-2000', label: '1990-2000' },
+        { id: '2000-2010', label: '2000-2010' },
+        { id: '2010-2020', label: '2010-2020' },
+        { id: '2020-present', label: '2020-present' },
+      ],
+    },
+    {
+      id: 'regions',
+      title: 'Regions',
+      options: [
+        { id: 'Africa', label: 'Africa' },
+        { id: 'Americas', label: 'Americas' },
+        { id: 'Asia', label: 'Asia' },
+        { id: 'Europe', label: 'Europe' },
+        { id: 'Oceania', label: 'Oceania' },
+        { id: 'Middle East', label: 'Middle East' },
+      ],
+    },
+  ]
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+
+    const virusCategories = params.get('virusCategories')
+    const evidenceInfections = params.get('evidenceInfections')
+    const evidenceSpillovers = params.get('evidenceSpillovers')
+    const yearRanges = params.get('yearRanges')
+    const regions = params.get('regions')
+
+    const nextFilters = {
+      ...(virusCategories && { virusCategories: [virusCategories] }),
+      ...(evidenceInfections && { evidenceInfections: [evidenceInfections] }),
+      ...(evidenceSpillovers && { evidenceSpillovers: [evidenceSpillovers] }),
+      ...(yearRanges && { yearRanges: [yearRanges] }),
+      ...(regions && { regions: [regions] }),
     }
 
-    const applyFilters = () => {
-      console.log('applying filters', filters)
-      queryClient.invalidateQueries({ queryKey: ['/api/publications'] })
-      refetchPublications()
-    }
+    setFilters(prev => ({ ...prev, ...nextFilters }))
+    applyFilters()
+  }, [window.location.search, location])
 
-    const getCategoryNameById = (id: number): string => {
-      const category = categories?.find(cat => cat.id === id)
-      return category?.name || 'Unknown'
-    }
+  const handleFilterChange = (
+    filterGroup: string,
+    selectedOptions: string[],
+  ) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterGroup]: selectedOptions,
+    }))
+  }
 
-    // Filter publications based on selected filters
-    const filteredPublications = publications?.filter(pub => {
-      const qualityMatch =
-        filters.evidenceQualities.length === 0 ||
-        filters.evidenceQualities.includes(pub.evidenceQuality)
+  const applyFilters = () => {
+    console.log('applying filters', filters)
+    queryClient.invalidateQueries({ queryKey: ['/api/publications'] })
+    refetchPublications()
+  }
 
-      const typeMatch =
-        filters.evidenceTypes.length === 0 ||
-        filters.evidenceTypes.includes(pub.evidenceType)
+  const getCategoryNameById = (id: number): string => {
+    const category = categories?.find(cat => cat.id === id)
+    return category?.name || 'Unknown'
+  }
 
-      const regionMatch =
-        filters.regions.length === 0 || filters.regions.includes(pub.region)
+  // Filter publications based on selected filters
+  const filteredPublications = publications?.filter(pub => {
+    const infectionMatch =
+      filters.evidenceInfections.length === 0 ||
+      filters.evidenceInfections.includes(pub.evidenceInfection)
 
-      const yearMatch =
-        filters.yearRanges.length === 0 ||
-        filters.yearRanges.some(range => {
-          const [start, end] = range.split('-')
-          const startYear = parseInt(start)
-          const endYear =
-            end === 'present' ? new Date().getFullYear() : parseInt(end)
-          return pub.year >= startYear && pub.year <= endYear
-        })
+    const spilloverMatch =
+      filters.evidenceSpillovers.length === 0 ||
+      filters.evidenceSpillovers.includes(pub.evidenceSpillover)
 
-      return qualityMatch && typeMatch && regionMatch && yearMatch
-    })
+    const regionMatch =
+      filters.regions.length === 0 || filters.regions.includes(pub.region)
 
-    const displayedPublications = filteredPublications?.slice(0, pageSize)
-
-    const loadMore = () => {
-      setPageSize(prev => prev + 4)
-    }
-
-    // Chart data preparation
-    const prepareChartData = () => {
-      if (!publications) return []
-
-      const yearCounts: Record<
-        number,
-        { year: number; infection: number; spillover: number }
-      > = {}
-
-      publications.forEach(pub => {
-        if (!yearCounts[pub.year]) {
-          yearCounts[pub.year] = { year: pub.year, infection: 0, spillover: 0 }
-        }
-
-        if (pub.evidenceType === 'infection') {
-          yearCounts[pub.year].infection += 1
-        } else if (pub.evidenceType === 'spillover') {
-          yearCounts[pub.year].spillover += 1
-        }
+    const yearMatch =
+      filters.yearRanges.length === 0 ||
+      filters.yearRanges.some(range => {
+        const [start, end] = range.split('-')
+        const startYear = parseInt(start)
+        const endYear =
+          end === 'present' ? new Date().getFullYear() : parseInt(end)
+        return pub.year >= startYear && pub.year <= endYear
       })
 
-      return Object.values(yearCounts).sort((a, b) => a.year - b.year)
-    }
+    return infectionMatch && spilloverMatch && regionMatch && yearMatch
+  })
 
-    const chartData = prepareChartData()
+  const displayedPublications: Publication[] =
+    filteredPublications?.slice(0, pageSize) || []
 
-    const renderSkeleton = () => (
-      <>
-        {[...Array(2)].map((_, index) => (
-          <div
-            key={index}
-            className="flex flex-col gap-4 border border-gray-200 rounded-lg overflow-hidden"
-          >
-            <div className="h-1 w-full bg-gray-200" />
-            <div className="space-y-2 p-6">
-              <Skeleton className="h-6 w-3/4 bg-gray-200" />
-              <Skeleton className="h-4 w-1/3 bg-gray-200" />
-              <Skeleton className="h-16 w-full bg-gray-200" />
-              <div className="flex justify-between items-center pt-2">
-                <div className="flex gap-2">
-                  <Skeleton className="h-6 w-20 rounded-full bg-gray-200" />
-                  <Skeleton className="h-6 w-16 rounded-full bg-gray-200" />
-                </div>
-                <Skeleton className="h-4 w-20 bg-gray-200" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </>
-    )
-
-    return (
-      <section
-        id="recent-reviews"
-        className="bg-gray-50 py-12 md:py-16"
-        key={location}
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-primary mb-4 md:mb-0">
-              Most Recent Reviews
-            </h2>
-
-            <FilterMenu
-              filterGroups={filterGroups}
-              selectedFilters={filters}
-              onFilterChange={handleFilterChange}
-              onApplyFilters={applyFilters}
-            />
-          </div>
-
-          {/* Data Visualization */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 className="font-montserrat font-semibold text-primary text-lg mb-4">
-              Publication Year of Papers Reviewed
-            </h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar
-                    dataKey="infection"
-                    name="Evidence of Infection"
-                    fill="#002D72"
-                  />
-                  <Bar
-                    dataKey="spillover"
-                    name="Evidence of Spillover"
-                    fill="#418FDE"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-primary mr-2"></div>
-                  <span className="text-sm text-gray-700">
-                    Evidence of Infection
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-blue-400 mr-2"></div>
-                  <span className="text-sm text-gray-700">
-                    Evidence of How Spillover Occurred
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center">
-                  <div className="w-12 h-1 bg-green-600 mr-2"></div>
-                  <span className="text-sm text-gray-700">
-                    High Quality Evidence
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-12 h-1 bg-yellow-500 mr-2"></div>
-                  <span className="text-sm text-gray-700">
-                    Medium Quality Evidence
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-12 h-1 bg-red-600 mr-2"></div>
-                  <span className="text-sm text-gray-700">
-                    Low Quality Evidence
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Publications List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {isLoadingPublications && renderSkeleton()}
-
-            {displayedPublications &&
-              displayedPublications.map(publication => (
-                <PublicationCard
-                  key={publication.id}
-                  id={publication.id}
-                  title={publication.title}
-                  authors={publication.authors}
-                  year={publication.year}
-                  abstract={publication.abstract}
-                  evidenceQuality={
-                    publication.evidenceQuality as EvidenceQuality
-                  }
-                  virusCategory={getCategoryNameById(
-                    publication.virusCategoryId,
-                  )}
-                  virusCategoryId={publication.virusCategoryId}
-                  region={publication.region}
-                  link={publication.link}
-                />
-              ))}
-
-            {filteredPublications && filteredPublications.length === 0 && (
-              <div className="col-span-full text-center py-8">
-                <p className="text-gray-500">
-                  No publications found matching your filters.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {filteredPublications &&
-            displayedPublications &&
-            displayedPublications.length < filteredPublications.length && (
-              <div className="mt-8 text-center">
-                <Button onClick={loadMore}>Load More Publications</Button>
-              </div>
-            )}
-        </div>
-      </section>
-    )
+  const loadMore = () => {
+    setPageSize(prev => prev + 4)
   }
+
+  // Chart data preparation
+  function zeroCounts<T extends Record<string, any>>(obj: T): ZeroCountsFor<T> {
+    return Object.fromEntries(
+      Object.keys(obj).map(k => [k, 0]),
+    ) as ZeroCountsFor<T>
+  }
+  const prepareChartData = () => {
+    if (!publications) return []
+
+    const yearCounts: Record<
+      number,
+      EvidenceYear<InfectionKeys, SpilloverKeys>
+    > = {}
+
+    publications.forEach(pub => {
+      if (!yearCounts[pub.year]) {
+        yearCounts[pub.year] = {
+          year: pub.year,
+          ...zeroCounts(EVIDENCE_QUALITY_INFECTION),
+          ...zeroCounts(EVIDENCE_QUALITY_SPILLOVER),
+        }
+      }
+
+      yearCounts[pub.year][pub.evidenceInfection as EvidenceInfection] += 1
+      yearCounts[pub.year][pub.evidenceSpillover as EvidenceSpillover] += 1
+    })
+
+    return Object.values(yearCounts).sort((a, b) => a.year - b.year)
+  }
+
+  const chartData = prepareChartData()
+
+  const renderSkeleton = () => (
+    <>
+      {[...Array(2)].map((_, index) => (
+        <div
+          key={index}
+          className="flex flex-col gap-4 border border-gray-200 rounded-lg overflow-hidden"
+        >
+          <div className="h-1 w-full bg-gray-200" />
+          <div className="space-y-2 p-6">
+            <Skeleton className="h-6 w-3/4 bg-gray-200" />
+            <Skeleton className="h-4 w-1/3 bg-gray-200" />
+            <Skeleton className="h-16 w-full bg-gray-200" />
+            <div className="flex justify-between items-center pt-2">
+              <div className="flex gap-2">
+                <Skeleton className="h-6 w-20 rounded-full bg-gray-200" />
+                <Skeleton className="h-6 w-16 rounded-full bg-gray-200" />
+              </div>
+              <Skeleton className="h-4 w-20 bg-gray-200" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </>
+  )
+
+  return (
+    <section
+      id="recent-reviews"
+      className="bg-gray-50 py-12 md:py-16"
+      key={location}
+    >
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-primary mb-4 md:mb-0">
+            Most Recent Reviews
+          </h2>
+
+          <FilterMenu
+            filterGroups={filterGroups}
+            selectedFilters={filters}
+            onFilterChange={handleFilterChange}
+            onApplyFilters={applyFilters}
+          />
+        </div>
+
+        {/* Data Visualization */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h3 className="font-montserrat font-semibold text-primary text-lg mb-4">
+            Publication Year of Papers Reviewed
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                barCategoryGap="30%"
+                barGap={2}
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="1 0" vertical={false} />
+                <XAxis dataKey="year" padding={{ left: 20, right: 20 }} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                {Object.entries(EVIDENCE_QUALITY_INFECTION).map(
+                  ([key, label]) => (
+                    <Bar
+                      key={key}
+                      dataKey={key}
+                      name={`Infection – ${label}`}
+                      fill={getQualityColour(key)}
+                    />
+                  ),
+                )}
+
+                {Object.entries(EVIDENCE_QUALITY_SPILLOVER).map(
+                  ([key, label]) => (
+                    <Bar
+                      key={`spillover-${key}`}
+                      dataKey={key}
+                      name={`Spillover – ${label}`}
+                      fill={getQualityColour(key)}
+                    />
+                  ),
+                )}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded-sm bg-gray-300 border mr-2"></div>
+                <span className="text-sm text-gray-700">
+                  Infection (left bars per year)
+                </span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded-sm bg-gray-500 border mr-2"></div>
+                <span className="text-sm text-gray-700">
+                  Spillover (right bars per year)
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <div className="w-12 h-1 bg-green-600 mr-2"></div>
+                <span className="text-sm text-gray-700">High Quality</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-12 h-1 bg-yellow-500 mr-2"></div>
+                <span className="text-sm text-gray-700">Moderate Quality</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-12 h-1 bg-red-600 mr-2"></div>
+                <span className="text-sm text-gray-700">Low Quality</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-12 h-1 bg-gray-400 mr-2"></div>
+                <span className="text-sm text-gray-700">Not Investigated</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Publications List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {isLoadingPublications && renderSkeleton()}
+
+          {displayedPublications &&
+            displayedPublications.map(publication => (
+              <PublicationCard
+                key={publication.id}
+                id={publication.id}
+                title={publication.title}
+                authors={publication.authors}
+                year={publication.year}
+                abstract={publication.abstract}
+                evidenceInfection={
+                  publication.evidenceInfection as EvidenceInfection
+                }
+                virusCategory={getCategoryNameById(publication.virusCategoryId)}
+                virusCategoryId={publication.virusCategoryId}
+                region={publication.region}
+                link={publication.link}
+              />
+            ))}
+
+          {filteredPublications && filteredPublications.length === 0 && (
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-500">
+                No publications found matching your filters.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {filteredPublications &&
+          displayedPublications &&
+          displayedPublications.length < filteredPublications.length && (
+            <div className="mt-8 text-center">
+              <Button onClick={loadMore}>Load More Publications</Button>
+            </div>
+          )}
+      </div>
+    </section>
+  )
+}
 
 export default PublicationsSection

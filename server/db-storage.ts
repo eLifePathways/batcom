@@ -28,8 +28,8 @@ import {
   type InsertWhatWeDoContent,
   type Settings,
   settings,
-  EvidenceQuality,
-  EvidenceType,
+  type EvidenceInfection,
+  type EvidenceSpillover,
   Review,
   reviews,
   InsertReview,
@@ -299,26 +299,28 @@ export class DatabaseStorage implements IStorage {
 
   async getFilteredPublications(
     virusCategories?: number[],
-    evidenceQualities?: EvidenceQuality[],
-    evidenceTypes?: EvidenceType[],
+    evidenceInfections?: EvidenceInfection[],
+    evidenceSpillovers?: EvidenceSpillover[],
     yearRanges?: string,
     regions?: string[],
     searchQuery?: string,
   ): Promise<Array<Publication>> {
-    let query = db.select().from(publications)
+    let query = db.select().from(publications).$dynamic()
 
     if (virusCategories)
       query = query.where(
         inArray(publications.virusCategoryId, virusCategories),
       )
 
-    if (evidenceQualities)
+    if (evidenceInfections)
       query = query.where(
-        inArray(publications.evidenceQuality, evidenceQualities),
+        inArray(publications.evidenceInfection, evidenceInfections),
       )
 
-    if (evidenceTypes)
-      query = query.where(inArray(publications.evidenceType, evidenceTypes))
+    if (evidenceSpillovers)
+      query = query.where(
+        inArray(publications.evidenceSpillover, evidenceSpillovers),
+      )
 
     if (regions) query = query.where(inArray(publications.region, regions))
 
@@ -360,20 +362,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(publications.virusCategoryId, virusCategoryId))
   }
 
-  async getPublicationsByEvidenceQuality(
+  async getPublicationsByEvidenceInfection(
     quality: string,
   ): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
-      .where(eq(publications.evidenceQuality, quality))
+      .where(eq(publications.evidenceInfection, quality))
   }
 
-  async getPublicationsByEvidenceType(type: string): Promise<Publication[]> {
+  async getPublicationsByEvidenceSpillover(
+    quality: string,
+  ): Promise<Publication[]> {
     return await db
       .select()
       .from(publications)
-      .where(eq(publications.evidenceType, type))
+      .where(eq(publications.evidenceSpillover, quality))
   }
 
   async getPublicationsByYear(year: number): Promise<Publication[]> {
@@ -951,8 +955,8 @@ export class DatabaseStorage implements IStorage {
         year: 2018,
         abstract:
           'Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.',
-        evidenceQuality: 'high',
-        evidenceType: 'infection',
+        evidenceInfection: 'infectionHigh',
+        evidenceSpillover: 'spilloverNot_Investigated',
         virusCategoryId: coronaviridae.id,
         region: 'Asia',
         publicationDate: '2018-03-15',
@@ -965,8 +969,8 @@ export class DatabaseStorage implements IStorage {
         year: 2000,
         abstract:
           'Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.',
-        evidenceQuality: 'medium',
-        evidenceType: 'spillover',
+        evidenceInfection: 'infectionModerate',
+        evidenceSpillover: 'spilloverNot_Investigated',
         virusCategoryId: paramyxoviridae.id,
         region: 'Asia',
         publicationDate: '2000-09-26',
@@ -979,8 +983,8 @@ export class DatabaseStorage implements IStorage {
         year: 2005,
         abstract:
           'Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.',
-        evidenceQuality: 'low',
-        evidenceType: 'infection',
+        evidenceInfection: 'infectionLow',
+        evidenceSpillover: 'spilloverNot_Investigated',
         virusCategoryId: filoviridae.id,
         region: 'Africa',
         publicationDate: '2005-12-01',
@@ -993,8 +997,8 @@ export class DatabaseStorage implements IStorage {
         year: 2014,
         abstract:
           'Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.',
-        evidenceQuality: 'high',
-        evidenceType: 'spillover',
+        evidenceInfection: 'infectionHigh',
+        evidenceSpillover: 'spilloverNot_Investigated',
         virusCategoryId: coronaviridae.id,
         region: 'Middle East',
         publicationDate: '2014-06-05',

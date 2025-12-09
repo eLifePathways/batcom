@@ -52,6 +52,10 @@ import { ImageUpload } from '@/components/ui/image-upload'
 import { apiRequest } from '@/lib/queryClient'
 import { useToast } from '@/hooks/use-toast'
 import { useState } from 'react'
+import {
+  EVIDENCE_QUALITY_INFECTION,
+  EVIDENCE_QUALITY_SPILLOVER,
+} from '@shared/constants'
 
 export default function AdminDashboard() {
   const { toast } = useToast()
@@ -83,8 +87,8 @@ export default function AdminDashboard() {
     authors: '',
     year: new Date().getFullYear(),
     abstract: '',
-    evidenceQuality: 'medium',
-    evidenceType: 'infection',
+    evidenceInfection: 'infectionModerate',
+    evidenceSpillover: 'spilloverModerate',
     virusCategoryId: 0,
     region: '',
     publicationDate: '',
@@ -227,8 +231,8 @@ export default function AdminDashboard() {
         authors: '',
         year: new Date().getFullYear(),
         abstract: '',
-        evidenceQuality: 'medium',
-        evidenceType: 'infection',
+        evidenceInfection: 'infectionModerate',
+        evidenceSpillover: 'spilloverModerate',
         virusCategoryId: 0,
         region: '',
         publicationDate: '',
@@ -699,45 +703,54 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="evidenceQuality">Evidence Quality</Label>
+                <Label htmlFor="evidenceInfection">
+                  Evidence Quality: Infection
+                </Label>
                 <Select
-                  name="evidenceQuality"
-                  value={publicationFormData.evidenceQuality}
+                  name="evidenceInfection"
+                  value={publicationFormData.evidenceInfection}
                   onValueChange={value =>
                     setPublicationFormData(prev => ({
                       ...prev,
-                      evidenceQuality: value,
+                      evidenceInfection: value,
                     }))
                   }
                 >
-                  <SelectTrigger id="evidenceQuality">
-                    <SelectValue placeholder="Select quality" />
+                  <SelectTrigger id="evidenceInfection">
+                    <SelectValue placeholder="Select infection quality" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
+                    {Object.entries(EVIDENCE_QUALITY_INFECTION).map(
+                      ([value, label]) => (
+                        <SelectItem value={value}>{label}</SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="evidenceType">Evidence Type</Label>
+                <Label htmlFor="evidenceSpillover">
+                  Evidence Quality: Spillover
+                </Label>
                 <Select
-                  name="evidenceType"
-                  value={publicationFormData.evidenceType}
+                  name="evidenceSpillover"
+                  value={publicationFormData.evidenceSpillover}
                   onValueChange={value =>
                     setPublicationFormData(prev => ({
                       ...prev,
-                      evidenceType: value,
+                      evidenceSpillover: value,
                     }))
                   }
                 >
-                  <SelectTrigger id="evidenceType">
-                    <SelectValue placeholder="Select type" />
+                  <SelectTrigger id="evidenceSpillover">
+                    <SelectValue placeholder="Select spillover quality" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="infection">Infection</SelectItem>
-                    <SelectItem value="spillover">Spillover</SelectItem>
+                    {Object.entries(EVIDENCE_QUALITY_SPILLOVER).map(
+                      ([value, label]) => (
+                        <SelectItem value={value}>{label}</SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>

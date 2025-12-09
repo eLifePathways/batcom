@@ -11,10 +11,13 @@ import {
   resetAnalytics,
 } from './analytics-api'
 import {
-  EvidenceQuality,
-  EvidenceType,
+  EvidenceInfection,
+  EvidenceSpillover,
+  InsertPublication,
   insertUserSchema,
   KotahiPublishedManuscript,
+  KotahiReviewField,
+  KotahiSettingsFormData,
 } from '@shared/schema'
 import {
   comparePassword,
@@ -24,6 +27,16 @@ import {
 } from './auth'
 import { requireAuth } from './middleware'
 import { MANUSCRIPTS_PUBLISHED_SINCE_DATE } from '@shared/queries'
+import {
+  getValueFromReviewField,
+  getYearFromInput,
+  isKotahiSettingsFormData,
+} from '../shared/utils'
+import {
+  REVIEW_EVIDENCE_INFECTION_FIELD,
+  REVIEW_EVIDENCE_SPILLOVER_FIELD,
+  REVIEW_GEOGRAPHIC_REGION_FIELD,
+} from '../shared/constants'
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes
@@ -254,33 +267,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Handle filter params
       const {
         virusCategories,
-        evidenceQualities,
-        evidenceTypes,
+        evidenceInfections,
+        evidenceSpillovers,
         yearRanges,
         regions,
         searchQuery,
       }: {
         virusCategories?: string
-        evidenceQualities?: string
-        evidenceTypes?: string
+        evidenceInfections?: string
+        evidenceSpillovers?: string
         yearRanges?: string
         regions?: string
         searchQuery?: string
       } = req.query
 
       const parsedVirusCategoryIds = virusCategories?.split(',').map(parseInt)
-      const parsedEvidenceQualities = evidenceQualities?.split(',') as
-        | EvidenceQuality[]
+      const parsedEvidenceInfections = evidenceInfections?.split(',') as
+        | EvidenceInfection[]
         | undefined
-      const parsedEvidenceTypes = evidenceTypes?.split(',') as
-        | EvidenceType[]
+      const parsedEvidenceSpillovers = evidenceSpillovers?.split(',') as
+        | EvidenceSpillover[]
         | undefined
       const parsedRegions = regions?.split(',')
 
       const filteredPublications = await storage.getFilteredPublications(
         parsedVirusCategoryIds,
-        parsedEvidenceQualities,
-        parsedEvidenceTypes,
+        parsedEvidenceInfections,
+        parsedEvidenceSpillovers,
         yearRanges,
         parsedRegions,
         searchQuery,
@@ -340,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireAuth,
     async (req: Request, res: Response) => {
       try {
-        const publicationData = req.body
+        const publicationData: InsertPublication = req.body
         const newPublication = await storage.createPublication(publicationData)
         res.json(newPublication)
       } catch (error) {
