@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { EvidenceInfection, Publication, VirusCategory } from '@shared/schema'
+import { Publication, VirusCategory } from '@shared/schema'
 import HeroSection from '@/components/sections/hero-section'
 import PublicationCard from '@/components/ui/publication-card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search as SearchIcon, Loader2 } from 'lucide-react'
+import { EvidenceInfection, Region } from '@shared/constants'
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -128,11 +129,9 @@ const Search = () => {
                     evidenceInfection={
                       publication.evidenceInfection as EvidenceInfection
                     }
-                    virusCategory={getCategoryNameById(
-                      publication.virusCategoryId,
-                    )}
-                    virusCategoryId={publication.virusCategoryId}
-                    region={publication.region}
+                    virusCategories={categories ?? []}
+                    virusCategoryIds={publication.virusCategoryIds}
+                    regions={publication.regions as Region[]}
                     link={publication.link || undefined}
                   />
                 ))}

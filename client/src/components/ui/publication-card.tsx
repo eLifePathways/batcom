@@ -2,7 +2,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'wouter'
-import { EvidenceInfection } from '@shared/schema'
+import { VirusCategory } from '@shared/schema'
+import {
+  EvidenceInfection,
+  GEOGRAPHIC_REGIONS,
+  Region,
+} from '@shared/constants'
 
 type PublicationCardProps = {
   id: number
@@ -11,9 +16,9 @@ type PublicationCardProps = {
   year: number
   abstract: string
   evidenceInfection: EvidenceInfection
-  virusCategory: string
-  virusCategoryId: number
-  region: string
+  virusCategories: VirusCategory[]
+  virusCategoryIds: number[]
+  regions: Region[]
   link?: string | null
 }
 
@@ -24,9 +29,9 @@ const PublicationCard = ({
   year,
   abstract,
   evidenceInfection,
-  virusCategory,
-  virusCategoryId,
-  region,
+  virusCategories,
+  virusCategoryIds,
+  regions,
   link,
 }: PublicationCardProps) => {
   const evidenceInfectionClasses = {
@@ -51,17 +56,22 @@ const PublicationCard = ({
         <p className="text-gray-700 mb-4">{abstract}</p>
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
           <div className="flex items-center flex-wrap gap-2">
-            <Link to={`/publications?virusCategories=${virusCategoryId}`}>
-              <Badge
-                variant="default"
-                className="bg-primary hover:bg-primary/90"
-              >
-                {virusCategory}
-              </Badge>
-            </Link>
-            <Link to={`/publications?regions=${region}`}>
-              <Badge variant="secondary">{region}</Badge>
-            </Link>
+            {virusCategoryIds.map(virusCategoryId => (
+              <Link to={`/publications?virusCategories=${virusCategoryId}`}>
+                <Badge
+                  variant="default"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {virusCategories.find(v => v.id === virusCategoryId)?.name ||
+                    'Unknown virus category'}
+                </Badge>
+              </Link>
+            ))}
+            {regions.map(region => (
+              <Link to={`/publications?regions=${region}`}>
+                <Badge variant="secondary">{GEOGRAPHIC_REGIONS[region]}</Badge>
+              </Link>
+            ))}
           </div>
           <Link
             to={`/publications/${id}`}

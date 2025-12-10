@@ -82,3 +82,16 @@ export const SPILLOVER_KEYS_TUPLE = Object.keys(EVIDENCE_QUALITY_SPILLOVER) as [
   string,
   ...string[],
 ]
+
+export const REGION_KEYS_TUPLE = Object.keys(GEOGRAPHIC_REGIONS) as [
+  string,
+  ...string[],
+]
+
+export type EvidenceInfection = keyof typeof EVIDENCE_QUALITY_INFECTION
+export type EvidenceSpillover = keyof typeof EVIDENCE_QUALITY_SPILLOVER
+export type Region = keyof typeof GEOGRAPHIC_REGIONS
+
+export const regions = Object.entries(GEOGRAPHIC_REGIONS).map(
+  ([key, value]) => ({ key, value }),
+)

@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  EvidenceInfection,
-  EvidenceSpillover,
   FilterState,
   Publication,
-  virusCategories,
   VirusCategory,
   ZeroCountsFor,
 } from '@shared/schema'
@@ -29,6 +26,10 @@ import { useLocation } from 'wouter'
 import {
   EVIDENCE_QUALITY_INFECTION,
   EVIDENCE_QUALITY_SPILLOVER,
+  EvidenceInfection,
+  EvidenceSpillover,
+  GEOGRAPHIC_REGIONS,
+  Region,
 } from '@shared/constants'
 
 type EvidenceYear<
@@ -137,14 +138,10 @@ const PublicationsSection = () => {
     {
       id: 'regions',
       title: 'Regions',
-      options: [
-        { id: 'Africa', label: 'Africa' },
-        { id: 'Americas', label: 'Americas' },
-        { id: 'Asia', label: 'Asia' },
-        { id: 'Europe', label: 'Europe' },
-        { id: 'Oceania', label: 'Oceania' },
-        { id: 'Middle East', label: 'Middle East' },
-      ],
+      options: Object.entries(GEOGRAPHIC_REGIONS).map(([id, label]) => ({
+        id,
+        label,
+      })),
     },
   ]
 
@@ -201,7 +198,8 @@ const PublicationsSection = () => {
       filters.evidenceSpillovers.includes(pub.evidenceSpillover)
 
     const regionMatch =
-      filters.regions.length === 0 || filters.regions.includes(pub.region)
+      filters.regions.length === 0 ||
+      pub.regions.some(region => filters.regions.includes(region))
 
     const yearMatch =
       filters.yearRanges.length === 0 ||
@@ -395,9 +393,9 @@ const PublicationsSection = () => {
                 evidenceInfection={
                   publication.evidenceInfection as EvidenceInfection
                 }
-                virusCategory={getCategoryNameById(publication.virusCategoryId)}
-                virusCategoryId={publication.virusCategoryId}
-                region={publication.region}
+                virusCategories={categories ?? []}
+                virusCategoryIds={publication.virusCategoryIds}
+                regions={publication.regions as Region[]}
                 link={publication.link}
               />
             ))}

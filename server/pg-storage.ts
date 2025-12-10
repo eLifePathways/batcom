@@ -15,14 +15,16 @@ import {
   type BackgroundPaper,
   type InsertBackgroundPaper,
   settings,
-  type EvidenceInfection,
-  type EvidenceSpillover,
   Review,
   reviews,
   InsertReview,
 } from '@shared/schema'
+import {
+  type EvidenceInfection,
+  type EvidenceSpillover,
+} from '@shared/constants'
 import { IStorage } from './storage'
-import { eq, and, gte, lte, like, sql } from 'drizzle-orm'
+import { eq, and, gte, lte, like, sql, arrayContains } from 'drizzle-orm'
 import { db } from './db'
 import { hashPassword } from './auth'
 
@@ -121,7 +123,7 @@ export class PostgresStorage implements IStorage {
     return db
       .select()
       .from(publications)
-      .where(eq(publications.virusCategoryId, virusCategoryId))
+      .where(arrayContains(publications.virusCategoryIds, [virusCategoryId]))
   }
 
   async getPublicationsByEvidenceInfection(
@@ -159,7 +161,10 @@ export class PostgresStorage implements IStorage {
   }
 
   async getPublicationsByRegion(region: string): Promise<Publication[]> {
-    return db.select().from(publications).where(eq(publications.region, region))
+    return db
+      .select()
+      .from(publications)
+      .where(arrayContains(publications.regions, [region]))
   }
 
   async searchPublications(query: string): Promise<Publication[]> {
@@ -346,8 +351,8 @@ export class PostgresStorage implements IStorage {
           'Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.',
         evidenceInfection: 'infectionHigh',
         evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryId: coronaviridae.id,
-        region: 'Asia',
+        virusCategoryIds: [coronaviridae.id],
+        regions: ['western_pacific'],
         publicationDate: '2018-03-15',
         link: 'https://example.com/bat-coronaviruses-china',
       })
@@ -360,8 +365,8 @@ export class PostgresStorage implements IStorage {
           'Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.',
         evidenceInfection: 'infectionModerate',
         evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryId: paramyxoviridae.id,
-        region: 'Asia',
+        virusCategoryIds: [paramyxoviridae.id],
+        regions: ['southeast_asia'],
         publicationDate: '2000-09-26',
         link: 'https://example.com/nipah-virus-emergence',
       })
@@ -374,8 +379,8 @@ export class PostgresStorage implements IStorage {
           'Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.',
         evidenceInfection: 'infectionLow',
         evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryId: filoviridae.id,
-        region: 'Africa',
+        virusCategoryIds: [filoviridae.id],
+        regions: ['africa'],
         publicationDate: '2005-12-01',
         link: 'https://example.com/ebola-antibodies-bats',
       })
@@ -388,8 +393,8 @@ export class PostgresStorage implements IStorage {
           'Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.',
         evidenceInfection: 'infectionHigh',
         evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryId: coronaviridae.id,
-        region: 'Middle East',
+        virusCategoryIds: [coronaviridae.id],
+        regions: ['eastern_mediterranean'],
         publicationDate: '2014-06-05',
         link: 'https://example.com/mers-cov-camels',
       })

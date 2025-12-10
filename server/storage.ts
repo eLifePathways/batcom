@@ -27,12 +27,12 @@ import {
   type WhatWeDoContent,
   type InsertWhatWeDoContent,
   type Settings,
-  EvidenceInfection,
-  EvidenceSpillover,
   Review,
   InsertReview,
   KotahiReviewUser,
 } from '@shared/schema'
+
+import { EvidenceInfection, EvidenceSpillover } from '@shared/constants'
 
 export interface IStorage {
   // User operations
@@ -441,8 +441,8 @@ export class MemStorage implements IStorage {
   async getPublicationsByVirusCategory(
     virusCategoryId: number,
   ): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.virusCategoryId === virusCategoryId,
+    return Array.from(this.publications.values()).filter(publication =>
+      publication.virusCategoryIds.includes(virusCategoryId),
     )
   }
 
@@ -479,8 +479,8 @@ export class MemStorage implements IStorage {
   }
 
   async getPublicationsByRegion(region: string): Promise<Publication[]> {
-    return Array.from(this.publications.values()).filter(
-      publication => publication.region === region,
+    return Array.from(this.publications.values()).filter(publication =>
+      publication.regions.includes(region),
     )
   }
 
@@ -989,8 +989,8 @@ export class MemStorage implements IStorage {
         'Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.',
       evidenceInfection: 'infectionHigh',
       evidenceSpillover: 'spilloverNot_Investigated',
-      virusCategoryId: 1, // Coronaviridae
-      region: 'Asia',
+      virusCategoryIds: [1], // Coronaviridae
+      regions: ['western_pacific'],
       publicationDate: '2018-03-15',
       link: 'https://example.com/bat-coronaviruses-china',
     })
@@ -1003,8 +1003,8 @@ export class MemStorage implements IStorage {
         'Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.',
       evidenceInfection: 'infectionModerate',
       evidenceSpillover: 'spilloverNot_Investigated',
-      virusCategoryId: 3, // Paramyxoviridae
-      region: 'Asia',
+      virusCategoryIds: [3], // Paramyxoviridae
+      regions: ['southeast_asia'],
       publicationDate: '2000-09-26',
       link: 'https://example.com/nipah-virus-emergence',
     })
@@ -1017,8 +1017,8 @@ export class MemStorage implements IStorage {
         'Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.',
       evidenceInfection: 'infectionLow',
       evidenceSpillover: 'spilloverNot_Investigated',
-      virusCategoryId: 2, // Filoviridae
-      region: 'Africa',
+      virusCategoryIds: [2], // Filoviridae
+      regions: ['africa'],
       publicationDate: '2005-12-01',
       link: 'https://example.com/ebola-antibodies-bats',
     })
@@ -1031,8 +1031,8 @@ export class MemStorage implements IStorage {
         'Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.',
       evidenceInfection: 'infectionHigh',
       evidenceSpillover: 'spilloverNot_Investigated',
-      virusCategoryId: 1, // Coronaviridae
-      region: 'Middle East',
+      virusCategoryIds: [1], // Coronaviridae
+      regions: ['eastern_mediterranean'],
       publicationDate: '2014-06-05',
       link: 'https://example.com/mers-cov-camels',
     })

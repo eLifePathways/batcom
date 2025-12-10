@@ -11,8 +11,6 @@ import {
   resetAnalytics,
 } from './analytics-api'
 import {
-  EvidenceInfection,
-  EvidenceSpillover,
   InsertPublication,
   insertUserSchema,
   KotahiPublishedManuscript,
@@ -33,6 +31,9 @@ import {
   isKotahiSettingsFormData,
 } from '../shared/utils'
 import {
+  EvidenceInfection,
+  EvidenceSpillover,
+  Region,
   REVIEW_EVIDENCE_INFECTION_FIELD,
   REVIEW_EVIDENCE_SPILLOVER_FIELD,
   REVIEW_GEOGRAPHIC_REGION_FIELD,
@@ -281,14 +282,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         searchQuery?: string
       } = req.query
 
-      const parsedVirusCategoryIds = virusCategories?.split(',').map(parseInt)
+      const parsedVirusCategoryIds = virusCategories
+        ?.split(',')
+        .map(x => parseInt(x, 10))
       const parsedEvidenceInfections = evidenceInfections?.split(',') as
         | EvidenceInfection[]
         | undefined
       const parsedEvidenceSpillovers = evidenceSpillovers?.split(',') as
         | EvidenceSpillover[]
         | undefined
-      const parsedRegions = regions?.split(',')
+      const parsedRegions = regions?.split(',') as Region[]
 
       const filteredPublications = await storage.getFilteredPublications(
         parsedVirusCategoryIds,

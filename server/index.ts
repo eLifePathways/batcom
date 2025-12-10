@@ -11,6 +11,7 @@ import {
   addDefaultSettings,
   addKotahiManuscriptIdColumn,
   addSortOrderToTeamMembers,
+  pluraliseVirusCategoriesAndRegions,
   renameEvidenceColumns,
   updateIssueCommentsSchema,
 } from './migrations'
@@ -68,6 +69,7 @@ app.use((req, res, next) => {
         await addDefaultSettings()
         await addKotahiManuscriptIdColumn()
         await renameEvidenceColumns()
+        await pluraliseVirusCategoriesAndRegions()
       } catch (migrationError) {
         console.error('Error during database migration:', migrationError)
         // Continue with server startup even if migrations fail

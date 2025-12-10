@@ -51,19 +51,18 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import {
-  EvidenceInfection,
-  Publication,
-  Settings,
-  VirusCategory,
-} from '@shared/schema'
+import { Publication, Settings, VirusCategory } from '@shared/schema'
 import {
   EVIDENCE_QUALITY_INFECTION,
   EVIDENCE_QUALITY_SPILLOVER,
+  EvidenceInfection,
   INFECTION_KEYS_TUPLE,
+  Region,
+  regions,
   SPILLOVER_KEYS_TUPLE,
 } from '@shared/constants'
 import { isKotahiSettingsFormData } from '@shared/utils'
+import { MultiSelect } from '../../components/ui/multi-select'
 
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -72,8 +71,12 @@ const formSchema = z.object({
   abstract: z.string().min(10, 'Abstract must be at least 10 characters'),
   evidenceInfection: z.enum(INFECTION_KEYS_TUPLE),
   evidenceSpillover: z.enum(SPILLOVER_KEYS_TUPLE),
-  virusCategoryId: z.coerce.number().min(1, 'Please select a virus category'),
-  region: z.string().min(2, 'Region must be at least 2 characters'),
+  virusCategoryIds: z
+    .array(z.coerce.number().min(1))
+    .min(1, 'Please select at least one virus category'),
+  regions: z
+    .array(z.string().min(2))
+    .min(1, 'Please select at least one region'),
   publicationDate: z.string(),
   link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 })
@@ -118,8 +121,8 @@ export default function PublicationsAdmin() {
       abstract: '',
       evidenceInfection: 'infectionModerate',
       evidenceSpillover: 'spilloverModerate',
-      virusCategoryId: 0,
-      region: '',
+      virusCategoryIds: [],
+      regions: [],
       publicationDate: new Date().toISOString().split('T')[0],
       link: '',
     },
@@ -134,8 +137,8 @@ export default function PublicationsAdmin() {
       abstract: '',
       evidenceInfection: 'infectionModerate',
       evidenceSpillover: 'spilloverModerate',
-      virusCategoryId: 0,
-      region: '',
+      virusCategoryIds: [],
+      regions: [],
       publicationDate: new Date().toISOString().split('T')[0],
       link: '',
     },
@@ -273,8 +276,8 @@ export default function PublicationsAdmin() {
       abstract: publication.abstract,
       evidenceInfection: publication.evidenceInfection,
       evidenceSpillover: publication.evidenceSpillover,
-      virusCategoryId: publication.virusCategoryId,
-      region: publication.region,
+      virusCategoryIds: publication.virusCategoryIds,
+      regions: publication.regions,
       publicationDate: publication.publicationDate,
       link: publication.link || '',
     })
@@ -356,7 +359,7 @@ export default function PublicationsAdmin() {
                   <TableHead>Title</TableHead>
                   <TableHead>Authors</TableHead>
                   <TableHead>Year</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Categories</TableHead>
                   <TableHead>Evidence Quality</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -371,7 +374,9 @@ export default function PublicationsAdmin() {
                       <TableCell>{publication.authors}</TableCell>
                       <TableCell>{publication.year}</TableCell>
                       <TableCell>
-                        {getCategoryName(publication.virusCategoryId)}
+                        {publication.virusCategoryIds
+                          .map(v => getCategoryName(v))
+                          .join(', ')}
                       </TableCell>
                       <TableCell>
                         <span
@@ -529,32 +534,25 @@ export default function PublicationsAdmin() {
 
                 <FormField
                   control={addForm.control}
-                  name="virusCategoryId"
+                  name="virusCategoryIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Virus Category</FormLabel>
                       <FormControl>
-                        <Select
-                          value={field.value.toString()}
-                          onValueChange={value =>
-                            field.onChange(parseInt(value, 10))
+                        <MultiSelect
+                          title="Virus Categories"
+                          items={categories ?? []}
+                          selected={field.value}
+                          onChange={vals =>
+                            field.onChange(
+                              vals.map(v =>
+                                typeof v === 'string' ? parseInt(v, 10) : v,
+                              ),
+                            )
                           }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories &&
-                              categories.map((category: VirusCategory) => (
-                                <SelectItem
-                                  key={category.id}
-                                  value={category.id.toString()}
-                                >
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                          valueField="id"
+                          labelField="name"
+                          placeholder="Select virus categories"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -619,12 +617,19 @@ export default function PublicationsAdmin() {
 
                 <FormField
                   control={addForm.control}
-                  name="region"
+                  name="regions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Region</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <MultiSelect
+                          title="Geographic Regions"
+                          items={regions}
+                          selected={field.value}
+                          onChange={vals => field.onChange(vals as Region[])}
+                          valueField="key"
+                          labelField="value"
+                          placeholder="Select geographic regions"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -756,32 +761,25 @@ export default function PublicationsAdmin() {
 
                 <FormField
                   control={editForm.control}
-                  name="virusCategoryId"
+                  name="virusCategoryIds"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Virus Category</FormLabel>
                       <FormControl>
-                        <Select
-                          value={field.value.toString()}
-                          onValueChange={value =>
-                            field.onChange(parseInt(value, 10))
+                        <MultiSelect
+                          title="Virus Categories"
+                          items={categories ?? []}
+                          selected={field.value}
+                          onChange={vals =>
+                            field.onChange(
+                              vals.map(v =>
+                                typeof v === 'string' ? parseInt(v, 10) : v,
+                              ),
+                            )
                           }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories &&
-                              categories.map((category: VirusCategory) => (
-                                <SelectItem
-                                  key={category.id}
-                                  value={category.id.toString()}
-                                >
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                          valueField="id"
+                          labelField="name"
+                          placeholder="Select virus categories"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -846,12 +844,19 @@ export default function PublicationsAdmin() {
 
                 <FormField
                   control={editForm.control}
-                  name="region"
+                  name="regions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Region</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <MultiSelect
+                          title="Geographic Regions"
+                          items={regions}
+                          selected={field.value}
+                          onChange={vals => field.onChange(vals as Region[])}
+                          valueField="key"
+                          labelField="value"
+                          placeholder="Select geographic regions"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

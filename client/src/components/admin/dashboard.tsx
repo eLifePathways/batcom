@@ -55,7 +55,17 @@ import { useState } from 'react'
 import {
   EVIDENCE_QUALITY_INFECTION,
   EVIDENCE_QUALITY_SPILLOVER,
+  regions,
+  type Region,
 } from '@shared/constants'
+import { parseFormValue } from '@shared/utils'
+import { MultiSelect } from '@/components/ui/multi-select'
+import {
+  BackgroundPaper,
+  Publication,
+  TeamMember,
+  VirusCategory,
+} from '@shared/schema'
 
 export default function AdminDashboard() {
   const { toast } = useToast()
@@ -89,8 +99,8 @@ export default function AdminDashboard() {
     abstract: '',
     evidenceInfection: 'infectionModerate',
     evidenceSpillover: 'spilloverModerate',
-    virusCategoryId: 0,
-    region: '',
+    virusCategoryIds: [] as number[],
+    regions: [] as Region[],
     publicationDate: '',
     link: '',
   })
@@ -118,8 +128,7 @@ export default function AdminDashboard() {
     const { name, value } = e.target
     setPublicationFormData(prev => ({
       ...prev,
-      [name]:
-        name === 'year' || name === 'virusCategoryId' ? parseInt(value) : value,
+      [name]: parseFormValue(name, value),
     }))
   }
 
@@ -129,26 +138,24 @@ export default function AdminDashboard() {
     const { name, value } = e.target
     setBackgroundPaperFormData(prev => ({
       ...prev,
-      [name]: name === 'virusCategoryId' ? parseInt(value) : value,
+      [name]: parseFormValue(name, value),
     }))
   }
 
   // Fetch data for dashboard statistics
-  const { data: teamMembers = [] } = useQuery<any[]>({
+  const { data: teamMembers = [] } = useQuery<TeamMember[]>({
     queryKey: ['/api/team-members'],
   })
 
-  console.log('dash teams', teamMembers)
-
-  const { data: publications = [] } = useQuery<any[]>({
+  const { data: publications = [] } = useQuery<Publication[]>({
     queryKey: ['/api/publications'],
   })
 
-  const { data: backgroundPapers = [] } = useQuery<any[]>({
+  const { data: backgroundPapers = [] } = useQuery<BackgroundPaper[]>({
     queryKey: ['/api/background-papers'],
   })
 
-  const { data: virusCategories = [] } = useQuery<any[]>({
+  const { data: virusCategories = [] } = useQuery<VirusCategory[]>({
     queryKey: ['/api/virus-categories'],
   })
 
@@ -233,8 +240,8 @@ export default function AdminDashboard() {
         abstract: '',
         evidenceInfection: 'infectionModerate',
         evidenceSpillover: 'spilloverModerate',
-        virusCategoryId: 0,
-        region: '',
+        virusCategoryIds: [],
+        regions: [],
         publicationDate: '',
         link: '',
       })
@@ -755,43 +762,38 @@ export default function AdminDashboard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="virusCategoryId">Virus Category</Label>
-                <Select
-                  name="virusCategoryId"
-                  value={publicationFormData.virusCategoryId.toString()}
-                  onValueChange={value =>
+                <MultiSelect
+                  title="Virus Categories"
+                  items={virusCategories}
+                  selected={publicationFormData.virusCategoryIds}
+                  onChange={vals =>
                     setPublicationFormData(prev => ({
                       ...prev,
-                      virusCategoryId: parseInt(value),
+                      virusCategoryIds: vals.map(v => Number(v)),
                     }))
                   }
-                >
-                  <SelectTrigger id="virusCategoryId">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {virusCategories.map((category: any) => (
-                      <SelectItem
-                        key={category.id}
-                        value={category.id.toString()}
-                      >
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  valueField="id"
+                  labelField="name"
+                  placeholder="Select virus categories"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
-                <Input
-                  id="region"
-                  name="region"
-                  value={publicationFormData.region}
-                  onChange={handlePublicationFormChange}
-                  placeholder="Geographic region"
+                <MultiSelect
+                  title="Geographic Regions"
+                  items={regions}
+                  selected={publicationFormData.regions}
+                  onChange={vals =>
+                    setPublicationFormData(prev => ({
+                      ...prev,
+                      regions: vals.map(v => v as Region),
+                    }))
+                  }
+                  valueField="key"
+                  labelField="value"
+                  placeholder="Select geographic regions"
                 />
               </div>
               <div className="space-y-2">

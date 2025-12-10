@@ -34,3 +34,21 @@ export const getValueFromReviewField = (
 
   return reviewField.value
 }
+
+export const parseFormValue = (name: string, value: string) => {
+  // number fields
+  if (name === 'year') return parseInt(value, 10)
+
+  // array of integers
+  if (name === 'virusCategoryIds') {
+    return [parseInt(value, 10)]
+  }
+
+  // array of strings
+  if (name === 'regions') {
+    return [value]
+  }
+
+  // default → regular string
+  return value
+}

@@ -16,9 +16,8 @@ import { sql } from 'drizzle-orm'
 import { createInsertSchema } from 'drizzle-zod'
 import { z } from 'zod'
 import {
-  EVIDENCE_QUALITY_INFECTION,
-  EVIDENCE_QUALITY_SPILLOVER,
   INFECTION_KEYS_TUPLE,
+  REGION_KEYS_TUPLE,
   SPILLOVER_KEYS_TUPLE,
 } from './constants'
 
@@ -56,9 +55,6 @@ export type AppSettingsFormData = {
 }
 
 export type SettingsFormData = KotahiSettingsFormData | AppSettingsFormData
-
-export type EvidenceInfection = keyof typeof EVIDENCE_QUALITY_INFECTION
-export type EvidenceSpillover = keyof typeof EVIDENCE_QUALITY_SPILLOVER
 
 export type KotahiConfig = {
   id: string
@@ -176,6 +172,7 @@ export type KotahiPublishedManuscript = {
 
 const evidenceInfectionEnum = pgEnum('evidence_infection', INFECTION_KEYS_TUPLE)
 const evidenceSpilloverEnum = pgEnum('evidence_spillover', SPILLOVER_KEYS_TUPLE)
+const geographicRegionEnum = pgEnum('geographic_region', REGION_KEYS_TUPLE)
 
 export const virusCategories = pgTable('virus_categories', {
   id: serial('id').primaryKey(),
@@ -208,8 +205,8 @@ export const publications = pgTable('publications', {
   abstract: text('abstract').notNull(),
   evidenceInfection: evidenceInfectionEnum('evidence_infection').notNull(),
   evidenceSpillover: evidenceSpilloverEnum('evidence_spillover').notNull(),
-  virusCategoryId: integer('virus_category_id').notNull(),
-  region: text('region').notNull(),
+  virusCategoryIds: integer('virus_category_ids').array().notNull(),
+  regions: geographicRegionEnum('regions').array().notNull(),
   publicationDate: date('publication_date').notNull(),
   link: text('link'),
 })
