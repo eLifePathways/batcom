@@ -1,6 +1,19 @@
 export const REVIEW_GEOGRAPHIC_REGION_FIELD = 'reviewGeographicRegion'
 export const REVIEW_EVIDENCE_INFECTION_FIELD = 'reviewEvidenceInfection'
 export const REVIEW_EVIDENCE_SPILLOVER_FIELD = 'reviewEvidenceSpillover'
+export const REVIEW_VIRUS_CATEGORY_FIELD = 'reviewViral_Family'
+export const REVIEW_COUNTRY_FIELD = 'reviewCountry'
+export const REVIEW_HOST_GENUS_FIELD = 'reviewBat_Source_Host_Genus'
+export const REVIEW_RECIPIENT_HOST_FIELD = 'reviewRecipientHost'
+export const REVIEW_STUDY_DESIGN_FIELD = 'reviewStudyDesign'
+export const REVIEW_INVESTIGATION_DETAILS_FIELD = 'reviewInvestigationDetails'
+export const REVIEW_POPULATION_SETTING_METHOD_FIELD =
+  'reviewPopulationSettingMethods'
+export const REVIEW_MAIN_FINDINGS_FIELD = 'reviewMainFindings'
+export const REVIEW_STUDY_STRENGTHS_FIELD = 'reviewStudyStrengths'
+export const REVIEW_LIMITATIONS_FIELD = 'reviewLimitations'
+export const REVIEW_VALUE_ADDED_FIELD = 'reviewValueAdded'
+export const REVIEW_FINAL_TAKE_FIELD = 'reviewFinalTake'
 
 export const VIRAL_FAMILIES = {
   coronaviridae: 'Coronaviridae',
@@ -95,3 +108,12 @@ export type Region = keyof typeof GEOGRAPHIC_REGIONS
 export const regions = Object.entries(GEOGRAPHIC_REGIONS).map(
   ([key, value]) => ({ key, value }),
 )
+
+export const QUALITY_COLOURS = {
+  High: '#16a34a',
+  Moderate: '#eab308',
+  Low: '#dc2626',
+  Not_Investigated: '#9ca3af',
+} as const
+
+export type QualityKey = keyof typeof QUALITY_COLOURS

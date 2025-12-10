@@ -1,14 +1,46 @@
 import { KotahiReviewField, KotahiSettingsFormData } from './schema'
 
-export const getYearFromInput = (dateString: string): number => {
-  const timestamp = Date.parse(dateString)
+import { parse, isValid } from 'date-fns'
 
-  if (Number.isNaN(timestamp)) {
-    // Invalid date → fallback to current year
-    return new Date().getFullYear()
+const POSSIBLE_FORMATS = [
+  'yyyy-MM-dd',
+  'yyyy/MM/dd',
+  'dd/MM/yyyy',
+  'MMMM yyyy', // January 2011
+  'MMM yyyy', // Jan 2011
+  'yyyy', // 2011
+]
+
+export const getYearFromInput = (input: string): number => {
+  for (const fmt of POSSIBLE_FORMATS) {
+    const parsed = parse(input, fmt, new Date())
+
+    if (isValid(parsed)) {
+      return parsed.getFullYear()
+    }
   }
 
-  return new Date(timestamp).getFullYear()
+  const timestamp = Date.parse(input)
+  if (!Number.isNaN(timestamp)) return new Date(timestamp).getFullYear()
+
+  return new Date().getFullYear()
+}
+
+export const getValidDate = (input: string): string => {
+  for (const fmt of POSSIBLE_FORMATS) {
+    const parsed = parse(input, fmt, new Date())
+
+    if (isValid(parsed)) {
+      return parsed.toISOString().slice(0, 10)
+    }
+  }
+
+  const ts = Date.parse(input)
+  if (!Number.isNaN(ts)) {
+    return new Date(ts).toISOString().slice(0, 10)
+  }
+
+  return new Date().toISOString().slice(0, 10)
 }
 
 export function isKotahiSettingsFormData(
@@ -25,12 +57,8 @@ export function isKotahiSettingsFormData(
 
 export const getValueFromReviewField = (
   reviewField: KotahiReviewField | undefined,
-): string => {
+): string | string[] => {
   if (!reviewField) return ''
-
-  if (Array.isArray(reviewField.value)) {
-    return reviewField.value[0]
-  }
 
   return reviewField.value
 }

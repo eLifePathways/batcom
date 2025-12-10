@@ -215,7 +215,7 @@ export const reviews = pgTable('reviews', {
   id: serial('id').primaryKey(),
   publicationId: integer('publication_id').notNull(),
   users: jsonb('users').$type<KotahiReviewUser[]>().notNull(),
-  jsonData: jsonb('json_data').$type<any>().notNull(),
+  jsonData: jsonb('json_data').$type<KotahiReviewField[]>().notNull(),
   isDecision: boolean('is_decision').notNull(),
 })
 

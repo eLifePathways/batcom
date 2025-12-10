@@ -8,6 +8,7 @@ import {
   GEOGRAPHIC_REGIONS,
   Region,
 } from '@shared/constants'
+import { SafeHtml } from './safe-html'
 
 type PublicationCardProps = {
   id: number
@@ -53,7 +54,9 @@ const PublicationCard = ({
         <p className="text-gray-600 text-sm mb-3">
           {year} • {authors}
         </p>
-        <p className="text-gray-700 mb-4">{abstract}</p>
+        <p className="text-gray-700 mb-4 line-clamp-3">
+          <SafeHtml html={abstract} />
+        </p>
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
           <div className="flex items-center flex-wrap gap-2">
             {virusCategoryIds.map(virusCategoryId => (

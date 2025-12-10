@@ -1,7 +1,6 @@
-import type { Express, Request, Response, NextFunction } from 'express'
+import type { Express, Request, Response } from 'express'
 import { createServer, type Server } from 'http'
 import { storage } from './storage'
-import { z } from 'zod'
 import { upload, handleUploadErrors, getUploadedFileUrl } from './upload'
 import {
   getVisitorStats,
@@ -15,7 +14,6 @@ import {
   insertUserSchema,
   KotahiPublishedManuscript,
   KotahiReviewField,
-  KotahiSettingsFormData,
 } from '@shared/schema'
 import {
   comparePassword,
@@ -26,10 +24,11 @@ import {
 import { requireAuth } from './middleware'
 import { MANUSCRIPTS_PUBLISHED_SINCE_DATE } from '@shared/queries'
 import {
+  getValidDate,
   getValueFromReviewField,
   getYearFromInput,
   isKotahiSettingsFormData,
-} from '../shared/utils'
+} from '@shared/utils'
 import {
   EvidenceInfection,
   EvidenceSpillover,
@@ -37,12 +36,10 @@ import {
   REVIEW_EVIDENCE_INFECTION_FIELD,
   REVIEW_EVIDENCE_SPILLOVER_FIELD,
   REVIEW_GEOGRAPHIC_REGION_FIELD,
-} from '../shared/constants'
+  REVIEW_VIRUS_CATEGORY_FIELD,
+} from '@shared/constants'
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // API routes
-  const apiRouter = app.route('/api')
-
   // Virus Categories endpoints
   app.get('/api/virus-categories', async (req: Request, res: Response) => {
     try {
@@ -1293,7 +1290,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/kotahi/sync', async (req: Request, res, Response) => {
     const settings = await storage.getSettings('kotahi')
 
-    if (!settings?.formData.endpoint) {
+    if (!settings || !isKotahiSettingsFormData(settings.formData)) {
+      return res.status(400).json({ message: 'Invalid Kotahi settings' })
+    }
+
+    if (!settings.formData.endpoint) {
       return res.status(400).json({ message: 'Invalid Kotahi endpoint' })
     }
 
@@ -1304,55 +1305,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'group-id': groupId,
+          ...(groupId ? { 'group-id': groupId } : {}),
         },
         body: JSON.stringify(MANUSCRIPTS_PUBLISHED_SINCE_DATE),
       })
 
-      const rawManuscripts: Array<KotahiPublishedManuscript> =
-        await results.json()
+      const { data } = await results.json()
 
-      //   console.log('Got results:', JSON.stringify(data, null, 2))
+      const { manuscriptsPublishedSinceDate: rawManuscripts } = data as {
+        manuscriptsPublishedSinceDate: Array<KotahiPublishedManuscript>
+      }
 
       const existingPublications = await storage.getAllPublications()
       const virusCategories = await storage.getAllVirusCategories()
 
       const existingPublicationsMap = new Map(
-        existingPublications.map(pub => [pub.id, pub]),
+        existingPublications.map(pub => [pub.kotahiManuscriptId, pub]),
       )
       const virusCategoriesMap = new Map(
         virusCategories.map(virus => [virus.name.toLocaleLowerCase(), virus]),
       )
 
-      await Promise.all(
+      const unknownVirusCategoryId =
+        virusCategoriesMap.get('other/unknown')?.id || -1
+
+      const publications = await Promise.all(
         // insert only for now, update later
         rawManuscripts.map(async manuscript => {
-          //   if (!existingPublicationsMap.has(manuscript.id)) {
-          //     const {
-          //       $abstract = '',
-          //       $sourceUri = '',
-          //       $title = '',
-          //       datePublished = '',
-          //       firstAuthor = '',
-          //     } = JSON.parse(manuscript.submission)
-          //     // const newPublication = await storage.createPublication({
-          //     // 	title: $title,
-          //     // 	kotahiManuscriptId: manuscript.id,
-          //     // 	authors: firstAuthor,
-          //     // 	// year:
-          //     // 	abstract: $abstract,
-          //     // 	// evidenceQuality:
-          //     // 	// evidenceType:
-          //     // 	virusCategoryId: virusCategoriesMap.get('other/unknown')?.id || -1,
-          //     // 	// region:
-          //     // 	publicationDate: datePublished,
-          //     // 	link: $sourceUri
-          //     // })
-          //   }
+          if (!existingPublicationsMap.has(manuscript.id)) {
+            const {
+              $abstract = '',
+              $sourceUri = '',
+              $title = '',
+              datePublished = '',
+              firstAuthor = '',
+            } = JSON.parse(manuscript.submission)
+
+            const review = manuscript.reviews.find(r => !r.isDecision)
+            const decision = manuscript.decisions.find(r => r.isDecision)
+
+            let reviewContent: Array<KotahiReviewField> = []
+
+            if (review?.jsonData) {
+              reviewContent = JSON.parse(review.jsonData) ?? []
+            }
+
+            const reviewGeographicRegionField = reviewContent.find(
+              f => f.fieldName === REVIEW_GEOGRAPHIC_REGION_FIELD,
+            )
+            const regions = getValueFromReviewField(
+              reviewGeographicRegionField,
+            ) as string[]
+
+            const reviewEvidenceInfectionField = reviewContent.find(
+              f => f.fieldName === REVIEW_EVIDENCE_INFECTION_FIELD,
+            )
+            const evidenceInfection = getValueFromReviewField(
+              reviewEvidenceInfectionField,
+            ) as string
+
+            const reviewEvidenceSpilloverField = reviewContent.find(
+              f => f.fieldName === REVIEW_EVIDENCE_SPILLOVER_FIELD,
+            )
+            const evidenceSpillover = getValueFromReviewField(
+              reviewEvidenceSpilloverField,
+            ) as string
+
+            const reviewVirusCategoryField = reviewContent.find(
+              f => f.fieldName === REVIEW_VIRUS_CATEGORY_FIELD,
+            )
+
+            const virusCategoryIds = (
+              getValueFromReviewField(reviewVirusCategoryField) as string[]
+            ).map(v => virusCategoriesMap.get(v)?.id || unknownVirusCategoryId)
+
+            const publicationPayload: InsertPublication = {
+              title: $title,
+              kotahiManuscriptId: manuscript.id,
+              authors: firstAuthor,
+              year: getYearFromInput(datePublished),
+              abstract: $abstract,
+              evidenceInfection,
+              evidenceSpillover,
+              virusCategoryIds,
+              regions,
+              publicationDate: getValidDate(datePublished),
+              link: $sourceUri,
+            }
+
+            const newPublication = await storage.createPublication(
+              publicationPayload,
+            )
+
+            await storage.createReview({
+              publicationId: newPublication.id,
+              users: review?.users || [],
+              jsonData: reviewContent,
+              isDecision: !!review?.isDecision,
+            })
+
+            return newPublication
+          } else {
+            const existingPublication = existingPublicationsMap.get(
+              manuscript.id,
+            )!
+            console.log('Manuscript already exists:', existingPublication.id)
+
+            return existingPublication
+          }
         }),
       )
 
-      res.json(rawManuscripts)
+      res.json(publications)
     } catch (error) {
       console.error('Error fetching publications:', error)
       res.status(500).json({ message: 'Failed to fetch publications' })

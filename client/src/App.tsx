@@ -28,6 +28,7 @@ import Login from '@/pages/login'
 
 import AdminLayout from '@/components/layout/admin-layout'
 import { BugReportButton } from '@/components/issue-report'
+import ScrollToTop from '@/components/ui/scroll-to-top'
 
 function Router() {
   const [location] = useLocation()
@@ -108,6 +109,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ScrollToTop />
       <Router />
       <BugReportButton />
       <Toaster />

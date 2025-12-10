@@ -31,6 +31,7 @@ import {
   GEOGRAPHIC_REGIONS,
   Region,
 } from '@shared/constants'
+import { getQualityColour } from '@/lib/utils'
 
 type EvidenceYear<
   I extends Record<string, any>,
@@ -44,20 +45,6 @@ const yearCounts: Record<
   number,
   EvidenceYear<InfectionKeys, SpilloverKeys>
 > = {}
-
-const QUALITY_COLOURS = {
-  High: '#16a34a',
-  Moderate: '#eab308',
-  Low: '#dc2626',
-  Not_Investigated: '#9ca3af',
-} as const
-
-type QualityKey = keyof typeof QUALITY_COLOURS
-
-const getQualityColour = (key: string): string => {
-  const quality = key.slice(9) as QualityKey
-  return QUALITY_COLOURS[quality]
-}
 
 export type PublicationsSectionProps = {
   categories?: VirusCategory[]

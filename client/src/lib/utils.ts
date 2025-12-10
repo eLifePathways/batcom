@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { QUALITY_COLOURS, QualityKey } from '@shared/constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,4 +14,9 @@ export const getToken = () => {
 }
 export const clearToken = () => {
   localStorage.removeItem('batcom_admin_token')
+}
+
+export const getQualityColour = (key: string): string => {
+  const quality = key.slice(9) as QualityKey
+  return QUALITY_COLOURS[quality]
 }
