@@ -9,6 +9,8 @@ const caCert = process.env.POSTGRES_CA_CERT
 export default defineConfig({
   out: './migrations',
   schema: './shared/schema.ts',
+  schemaFilter: ['public'],
+  strict: true,
   dialect: 'postgresql',
   dbCredentials: {
     url: process.env.POSTGRES_URL,
