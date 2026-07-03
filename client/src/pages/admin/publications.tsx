@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
 import { useToast } from '@/hooks/use-toast'
@@ -51,7 +51,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Publication, Settings, VirusCategory } from '@shared/schema'
+import {
+  HeroSectionSettings,
+  Publication,
+  Settings,
+  VirusCategory,
+} from '@shared/schema'
 import {
   EVIDENCE_QUALITY_INFECTION,
   EVIDENCE_QUALITY_SPILLOVER,
@@ -62,7 +67,8 @@ import {
   SPILLOVER_KEYS_TUPLE,
 } from '@shared/constants'
 import { isKotahiSettingsFormData } from '@shared/utils'
-import { MultiSelect } from '../../components/ui/multi-select'
+import { MultiSelect } from '@/components/ui/multi-select'
+import HeroSection from '@/components/sections/hero-section'
 
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -89,6 +95,13 @@ export default function PublicationsAdmin() {
     useState<Publication | null>(null)
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
 
+  const [isEditingHeroSection, setEditingHeroSection] = useState(false)
+  const [heroSectionFormData, setHeroSectionFormData] = useState({
+    name: 'team',
+    title: '',
+    description: '',
+  })
+
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
@@ -106,6 +119,11 @@ export default function PublicationsAdmin() {
 
   const { data: settings, isLoading: isSettingsQueryLoading } =
     useQuery<Settings>({ queryKey: ['/api/settings/kotahi'] })
+
+  const { data: heroSectionData, isLoading: heroSectionLoading } =
+    useQuery<HeroSectionSettings>({
+      queryKey: ['/api/hero-section/publications'],
+    })
 
   const endpoint =
     settings && isKotahiSettingsFormData(settings.formData)
@@ -257,6 +275,38 @@ export default function PublicationsAdmin() {
     },
   })
 
+  const updateHeroSection = useMutation({
+    mutationFn: async (updatedSection: Partial<HeroSectionSettings>) => {
+      return apiRequest(`/api/hero-section/${heroSectionData!.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updatedSection),
+      })
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Page header updated successfully!',
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['/api/hero-section/publications'],
+      })
+      setEditingHeroSection(false)
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update page description.',
+        variant: 'destructive',
+      })
+    },
+  })
+
+  useEffect(() => {
+    if (heroSectionData) {
+      setHeroSectionFormData(heroSectionData)
+    }
+  }, [heroSectionData])
+
   const onAddSubmit = (data: z.infer<typeof formSchema>) => {
     createPublication.mutate(data)
   }
@@ -265,6 +315,32 @@ export default function PublicationsAdmin() {
     if (selectedPublication) {
       updatePublication.mutate({ id: selectedPublication.id, data })
     }
+  }
+
+  const handleEditHeroDescription = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!heroSectionFormData.title || !heroSectionFormData.description) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      })
+
+      return
+    }
+
+    updateHeroSection.mutate(heroSectionFormData)
+  }
+
+  const handleHeroSectionChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target
+    setHeroSectionFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }))
   }
 
   const loadPublicationData = (publication: Publication) => {
@@ -296,7 +372,24 @@ export default function PublicationsAdmin() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container space-y-6">
+      <div className="container pb-4">
+        {heroSectionLoading ? (
+          <div className="pt-12 pb-6">
+            <Skeleton className="h-9 md:h-10 w-64 mb-4" />
+            <Skeleton className="h-6 w-full max-w-3xl mb-4" />
+          </div>
+        ) : (
+          <HeroSection
+            description={heroSectionFormData.description}
+            title={heroSectionFormData.title}
+          />
+        )}
+        <Button onClick={() => setEditingHeroSection(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit Page Header
+        </Button>
+      </div>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Publications</h1>
 
@@ -384,11 +477,12 @@ export default function PublicationsAdmin() {
                             publication.evidenceInfection === 'infectionHigh'
                               ? 'bg-green-100 text-green-800'
                               : publication.evidenceInfection ===
-                                'infectionModerate'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : publication.evidenceInfection === 'infectionLow'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-gray-100 text-gray-800'
+                                  'infectionModerate'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : publication.evidenceInfection ===
+                                    'infectionLow'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-gray-100 text-gray-800'
                           }`}
                         >
                           {
@@ -697,6 +791,49 @@ export default function PublicationsAdmin() {
       </Dialog>
 
       {/* Edit Publication Dialog */}
+      <Dialog
+        open={isEditingHeroSection}
+        onOpenChange={open => {
+          setEditingHeroSection(open)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Page Header</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditHeroDescription}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  name="title"
+                  value={heroSectionFormData.title}
+                  onChange={handleHeroSectionChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Input
+                  id="description"
+                  name="description"
+                  value={heroSectionFormData.description}
+                  onChange={handleHeroSectionChange}
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={updateHeroSection.isPending}>
+                {updateHeroSection.isPending
+                  ? 'Updating...'
+                  : 'Update Page Header'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

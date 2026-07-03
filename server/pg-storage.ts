@@ -18,6 +18,9 @@ import {
   Review,
   reviews,
   InsertReview,
+  heroSectionSettings,
+  type HeroSectionSettings,
+  type InsertHeroSettings,
 } from '@shared/schema'
 import {
   type EvidenceInfection,
@@ -200,6 +203,65 @@ export class PostgresStorage implements IStorage {
       .select()
       .from(reviews)
       .where(eq(reviews.publicationId, publicationId))
+  }
+
+  // Hero settings operations
+  async getHeroSettings(id: number): Promise<HeroSectionSettings | undefined> {
+    const [heroSettings] = await db
+      .select()
+      .from(heroSectionSettings)
+      .where(eq(heroSectionSettings.id, id))
+
+    return heroSettings || undefined
+  }
+
+  async getHeroSettingsByName(
+    name: string,
+  ): Promise<HeroSectionSettings | undefined> {
+    const [heroSettings] = await db
+      .select()
+      .from(heroSectionSettings)
+      .where(eq(heroSectionSettings.name, name))
+
+    return heroSettings || undefined
+  }
+
+  async updateHeroSettings(
+    id: number,
+    data: Partial<HeroSectionSettings>,
+  ): Promise<HeroSectionSettings | undefined> {
+    const existingHeroSettings = await this.getHeroSettings(id)
+
+    if (!existingHeroSettings) {
+      return undefined
+    }
+
+    const [updatedHeroSettings] = await db
+      .update(heroSectionSettings)
+      .set(data)
+      .where(eq(heroSectionSettings.id, id))
+      .returning()
+
+    return updatedHeroSettings
+  }
+
+  async createHeroSettings(
+    insertHeroSettings: InsertHeroSettings,
+  ): Promise<HeroSectionSettings> {
+    const existingHeroSettings = await this.getHeroSettingsByName(
+      insertHeroSettings.name,
+    )
+
+    if (existingHeroSettings) {
+      return existingHeroSettings
+    }
+
+    const [heroSettings] = await db
+      .insert(heroSectionSettings)
+      .values(insertHeroSettings)
+      .returning()
+
+    return heroSettings
   }
 
   // Background paper operations

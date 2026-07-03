@@ -31,6 +31,9 @@ import {
   Review,
   reviews,
   InsertReview,
+  heroSectionSettings,
+  type HeroSectionSettings,
+  type InsertHeroSettings,
 } from '@shared/schema'
 import {
   type EvidenceInfection,
@@ -109,6 +112,65 @@ export class DatabaseStorage implements IStorage {
   async deleteUser(id: number): Promise<boolean> {
     const result = await db.delete(users).where(eq(users.id, id))
     return result.count > 0
+  }
+
+  // Hero settings operations
+  async getHeroSettings(id: number): Promise<HeroSectionSettings | undefined> {
+    const [heroSettings] = await db
+      .select()
+      .from(heroSectionSettings)
+      .where(eq(heroSectionSettings.id, id))
+
+    return heroSettings || undefined
+  }
+
+  async getHeroSettingsByName(
+    name: string,
+  ): Promise<HeroSectionSettings | undefined> {
+    const [heroSettings] = await db
+      .select()
+      .from(heroSectionSettings)
+      .where(eq(heroSectionSettings.name, name))
+
+    return heroSettings || undefined
+  }
+
+  async updateHeroSettings(
+    id: number,
+    data: Partial<HeroSectionSettings>,
+  ): Promise<HeroSectionSettings | undefined> {
+    const existingHeroSettings = await this.getHeroSettings(id)
+
+    if (!existingHeroSettings) {
+      return undefined
+    }
+
+    const [updatedHeroSettings] = await db
+      .update(heroSectionSettings)
+      .set(data)
+      .where(eq(heroSectionSettings.id, id))
+      .returning()
+
+    return updatedHeroSettings
+  }
+
+  async createHeroSettings(
+    insertHeroSettings: InsertHeroSettings,
+  ): Promise<HeroSectionSettings> {
+    const existingHeroSettings = await this.getHeroSettingsByName(
+      insertHeroSettings.name,
+    )
+
+    if (existingHeroSettings) {
+      return existingHeroSettings
+    }
+
+    const [heroSettings] = await db
+      .insert(heroSectionSettings)
+      .values(insertHeroSettings)
+      .returning()
+
+    return heroSettings
   }
 
   // Virus category operations
@@ -323,9 +385,9 @@ export class DatabaseStorage implements IStorage {
     if (!!virusCategories?.length) {
       query = query.where(sql`
         ${publications.virusCategoryIds} && ARRAY[${sql.join(
-        virusCategories.map(x => sql`${x}`),
-        sql`,`,
-      )}]::int4[]
+          virusCategories.map(x => sql`${x}`),
+          sql`,`,
+        )}]::int4[]
   `)
     }
 
@@ -342,9 +404,9 @@ export class DatabaseStorage implements IStorage {
     if (!!regions?.length) {
       query = query.where(sql`
     ${publications.regions} && ARRAY[${sql.join(
-        regions.map(r => sql`${r}`),
-        sql`,`,
-      )}]::geographic_region[]
+      regions.map(r => sql`${r}`),
+      sql`,`,
+    )}]::geographic_region[]
   `)
     }
 
@@ -454,8 +516,8 @@ export class DatabaseStorage implements IStorage {
     return result[0]
   }
 
-  async createReview(review: InsertReview): Promise<Review> {
-    const result = await db.insert(reviews).values(review).returning()
+  async createReview(insertReview: InsertReview): Promise<Review> {
+    const result = await db.insert(reviews).values(insertReview).returning()
     return result[0]
   }
 

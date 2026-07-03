@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useLocation } from 'wouter'
 import { apiRequest } from '@/lib/queryClient'
@@ -33,7 +33,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, Edit, Trash2, ExternalLink, FileText } from 'lucide-react'
+import {
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  FileText,
+  Pencil,
+} from 'lucide-react'
+import { HeroSectionSettings } from '@shared/schema'
+import HeroSection from '../../components/sections/hero-section'
 
 type VirusCategory = {
   id: number
@@ -76,6 +85,13 @@ export default function BackgroundPapersAdmin() {
     null,
   )
 
+  const [isEditingHeroSection, setEditingHeroSection] = useState(false)
+  const [heroSectionFormData, setHeroSectionFormData] = useState({
+    name: 'team',
+    title: '',
+    description: '',
+  })
+
   // Get background papers query
   const { data: backgroundPapers, isLoading } = useQuery<BackgroundPaper[]>({
     queryKey: ['/api/background-papers'],
@@ -85,6 +101,17 @@ export default function BackgroundPapersAdmin() {
   const { data: virusCategories } = useQuery<VirusCategory[]>({
     queryKey: ['/api/virus-categories'],
   })
+
+  const { data: heroSectionData, isLoading: heroSectionLoading } =
+    useQuery<HeroSectionSettings>({
+      queryKey: ['/api/hero-section/backgroundPapers'],
+    })
+
+  useEffect(() => {
+    if (heroSectionData) {
+      setHeroSectionFormData(heroSectionData)
+    }
+  }, [heroSectionData])
 
   // Reset form data
   const resetFormData = () => {
@@ -113,6 +140,16 @@ export default function BackgroundPapersAdmin() {
     setFormData(prev => ({
       ...prev,
       [name]: name === 'virusCategoryId' ? parseInt(value) : value,
+    }))
+  }
+
+  const handleHeroSectionChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target
+    setHeroSectionFormData(prev => ({
+      ...prev,
+      [name]: value,
     }))
   }
 
@@ -207,6 +244,32 @@ export default function BackgroundPapersAdmin() {
     },
   })
 
+  const updateHeroSection = useMutation({
+    mutationFn: async (updatedSection: Partial<HeroSectionSettings>) => {
+      return apiRequest(`/api/hero-section/${heroSectionData!.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updatedSection),
+      })
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Page header updated successfully!',
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['/api/hero-section/backgroundPapers'],
+      })
+      setEditingHeroSection(false)
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update page description.',
+        variant: 'destructive',
+      })
+    },
+  })
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -251,6 +314,22 @@ export default function BackgroundPapersAdmin() {
     }
   }
 
+  const handleEditHeroDescription = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!heroSectionFormData.title || !heroSectionFormData.description) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      })
+
+      return
+    }
+
+    updateHeroSection.mutate(heroSectionFormData)
+  }
+
   // Get virus category name by ID
   const getVirusCategoryName = (id: number) => {
     const category = virusCategories?.find(c => c.id === id)
@@ -258,7 +337,24 @@ export default function BackgroundPapersAdmin() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container space-y-6">
+      <div className="container pb-4">
+        {heroSectionLoading ? (
+          <div className="pt-12 pb-6">
+            <Skeleton className="h-9 md:h-10 w-64 mb-4" />
+            <Skeleton className="h-6 w-full max-w-3xl mb-4" />
+          </div>
+        ) : (
+          <HeroSection
+            description={heroSectionFormData.description}
+            title={heroSectionFormData.title}
+          />
+        )}
+        <Button onClick={() => setEditingHeroSection(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit Page Header
+        </Button>
+      </div>
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -269,6 +365,49 @@ export default function BackgroundPapersAdmin() {
           </div>
 
           {/* Add Background Paper Dialog */}
+          <Dialog
+            open={isEditingHeroSection}
+            onOpenChange={open => {
+              setEditingHeroSection(open)
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Page Header</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleEditHeroDescription}>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Title *</Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      value={heroSectionFormData.title}
+                      onChange={handleHeroSectionChange}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description *</Label>
+                    <Input
+                      id="description"
+                      name="description"
+                      value={heroSectionFormData.description}
+                      onChange={handleHeroSectionChange}
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" disabled={updateHeroSection.isPending}>
+                    {updateHeroSection.isPending
+                      ? 'Updating...'
+                      : 'Update Page Header'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">

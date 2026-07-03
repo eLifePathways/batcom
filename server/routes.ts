@@ -139,10 +139,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   )
 
+  // Hero Section endpoints
+  app.get('/api/hero-section/:name', async (req: Request, res: Response) => {
+    try {
+      const name = req.params.name
+      const heroSection = await storage.getHeroSettingsByName(name)
+
+      if (!heroSection) {
+        return res.status(404).json({ message: 'Hero section not found' })
+      }
+
+      return res.json(heroSection)
+    } catch (error) {
+      console.error('Error fetching hero section:', error)
+      res.status(500).json({ message: 'Failed to fetch hero section' })
+    }
+  })
+
+  app.put(
+    '/api/hero-section/:id',
+    requireAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const id = parseInt(req.params.id)
+        if (isNaN(id)) {
+          return res.status(400).json({ message: 'Invalid hero section ID' })
+        }
+
+        const sectionData = req.body
+        const updatedSection = await storage.updateHeroSettings(id, sectionData)
+        if (!updatedSection) {
+          return res.status(404).json({ message: 'Hero section not found' })
+        }
+
+        res.json(updatedSection)
+      } catch (error) {
+        console.error('Error updating hero section:', error)
+        res.status(500).json({ message: 'Failed to update hero section' })
+      }
+    },
+  )
+
   // Team Members endpoints
   app.get('/api/team-members', async (req: Request, res: Response) => {
     try {
-      const members = await storage.getAllTeamMembers()
+      const members = (await storage.getAllTeamMembers()).map(m => {
+        const { email, ...rest } = m
+
+        return rest
+      })
       res.json(members)
     } catch (error) {
       console.error('Error fetching team members:', error)
@@ -1346,38 +1391,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             let reviewContent: Array<KotahiReviewField> = []
 
-            if (review?.jsonData) {
+            // right now we only care about reviews. If we do not have a public review, skip
+            if (!review) {
+              return null
+            }
+
+            if (review.jsonData) {
               reviewContent = JSON.parse(review.jsonData) ?? []
+            }
+
+            if (!reviewContent.length) {
+              return null
             }
 
             const reviewGeographicRegionField = reviewContent.find(
               f => f.fieldName === REVIEW_GEOGRAPHIC_REGION_FIELD,
             )
-            const regions = getValueFromReviewField(
-              reviewGeographicRegionField,
-            ) as string[]
+            const regions = getValueFromReviewField(reviewGeographicRegionField)
 
             const reviewEvidenceInfectionField = reviewContent.find(
               f => f.fieldName === REVIEW_EVIDENCE_INFECTION_FIELD,
             )
-            const evidenceInfection = getValueFromReviewField(
+            const [evidenceInfection] = getValueFromReviewField(
               reviewEvidenceInfectionField,
-            ) as string
+            )
+
+            if (!evidenceInfection) {
+              return null
+            }
 
             const reviewEvidenceSpilloverField = reviewContent.find(
               f => f.fieldName === REVIEW_EVIDENCE_SPILLOVER_FIELD,
             )
-            const evidenceSpillover = getValueFromReviewField(
+            const [evidenceSpillover] = getValueFromReviewField(
               reviewEvidenceSpilloverField,
-            ) as string
+            )
+
+            if (!evidenceSpillover) {
+              return null
+            }
 
             const reviewVirusCategoryField = reviewContent.find(
               f => f.fieldName === REVIEW_VIRUS_CATEGORY_FIELD,
             )
 
-            const virusCategoryIds = (
-              getValueFromReviewField(reviewVirusCategoryField) as string[]
-            ).map(v => virusCategoriesMap.get(v)?.id || unknownVirusCategoryId)
+            const virusCategoryIds = getValueFromReviewField(
+              reviewVirusCategoryField,
+            )?.map(v => virusCategoriesMap.get(v)?.id || unknownVirusCategoryId)
 
             const publicationPayload: InsertPublication = {
               title: $title,
@@ -1393,9 +1453,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               link: $sourceUri,
             }
 
-            const newPublication = await storage.createPublication(
-              publicationPayload,
-            )
+            const newPublication =
+              await storage.createPublication(publicationPayload)
 
             await storage.createReview({
               publicationId: newPublication.id,
@@ -1416,7 +1475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }),
       )
 
-      res.json(publications)
+      res.json(publications.filter(Boolean))
     } catch (error) {
       console.error('Error fetching publications:', error)
       res.status(500).json({ message: 'Failed to fetch publications' })

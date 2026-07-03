@@ -11,6 +11,7 @@ import {
   addDefaultSettings,
   addKotahiManuscriptIdColumn,
   addSortOrderToTeamMembers,
+  createHeroSettingsTableAndAddDefaults,
   pluraliseVirusCategoriesAndRegions,
   renameEvidenceColumns,
   updateIssueCommentsSchema,
@@ -70,6 +71,7 @@ app.use((req, res, next) => {
         await addKotahiManuscriptIdColumn()
         await renameEvidenceColumns()
         await pluraliseVirusCategoriesAndRegions()
+        await createHeroSettingsTableAndAddDefaults()
       } catch (migrationError) {
         console.error('Error during database migration:', migrationError)
         // Continue with server startup even if migrations fail
@@ -111,7 +113,6 @@ app.use((req, res, next) => {
     {
       port,
       host: '0.0.0.0',
-      reusePort: true,
     },
     () => {
       log(`serving on port ${port}`)

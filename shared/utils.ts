@@ -54,13 +54,17 @@ export function isKotahiSettingsFormData(
     'apiKey' in data
   )
 }
-
 export const getValueFromReviewField = (
   reviewField: KotahiReviewField | undefined,
-): string | string[] => {
-  if (!reviewField) return ''
+): string[] => {
+  if (!reviewField) return []
 
-  return reviewField.value
+  const { value } = reviewField
+
+  if (Array.isArray(value)) return value
+  if (value) return [value]
+
+  return []
 }
 
 export const parseFormValue = (name: string, value: string) => {

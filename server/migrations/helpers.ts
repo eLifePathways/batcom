@@ -27,6 +27,23 @@ export async function checkColumnExists(
   }
 }
 
+export async function checkTableExists(tableName: string): Promise<boolean> {
+  try {
+    const result = await client`
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_name = ${tableName}
+      )
+    `
+
+    return result[0]?.exists ?? false
+  } catch (error) {
+    console.error(`Error checking if table ${tableName} exists:`, error)
+    throw error
+  }
+}
+
 export async function checkEnumExists(enumName: string): Promise<boolean> {
   try {
     const result = await client`

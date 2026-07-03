@@ -7,3 +7,4 @@ vite.config.ts.*
 .env
 .local/
 client/public/uploads
+postgres-data/

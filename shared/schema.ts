@@ -56,6 +56,12 @@ export type AppSettingsFormData = {
 
 export type SettingsFormData = KotahiSettingsFormData | AppSettingsFormData
 
+export type HeroSectionFormData = {
+  description: string
+  name: string
+  title: string
+}
+
 export type KotahiConfig = {
   id: string
   active: boolean
@@ -243,6 +249,13 @@ export const settings = pgTable('settings', {
     .default({} as SettingsFormData),
 })
 
+export const heroSectionSettings = pgTable('hero_section_settings', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+})
+
 // Insert schemas
 export const insertVirusCategorySchema = createInsertSchema(
   virusCategories,
@@ -262,9 +275,7 @@ export const insertPublicationSchema = createInsertSchema(publications, {
 })
 
 export const insertReviewSchema = createInsertSchema(reviews)
-  .omit({
-    id: true,
-  })
+  .omit({ id: true })
   .extend({
     users: z.array(
       z.object({
@@ -273,6 +284,7 @@ export const insertReviewSchema = createInsertSchema(reviews)
         defaultIdentity: z.any().optional(),
       }),
     ),
+    jsonData: z.custom<KotahiReviewField[]>(v => Array.isArray(v)),
   })
 
 export const insertBackgroundPaperSchema = createInsertSchema(
@@ -285,6 +297,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
 })
+
+export const insertHeroSectionSettingsSchema = createInsertSchema(
+  heroSectionSettings,
+).omit({ id: true })
 
 // Types
 export type InsertVirusCategory = z.infer<typeof insertVirusCategorySchema>
@@ -311,6 +327,9 @@ export type AuthResponse = {
 }
 
 export type Settings = typeof settings.$inferSelect
+
+export type InsertHeroSettings = z.infer<typeof insertHeroSectionSettingsSchema>
+export type HeroSectionSettings = typeof heroSectionSettings.$inferSelect
 
 // Analytics tables
 export const pageViews = pgTable(

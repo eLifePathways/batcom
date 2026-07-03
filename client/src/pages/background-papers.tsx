@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { FileText, ExternalLink } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useLocation } from 'wouter'
+import { HeroSectionSettings } from '@shared/schema'
 
 interface BackgroundPaper {
   id: number
@@ -156,6 +157,11 @@ export default function BackgroundPapers() {
     staleTime: 1000 * 60 * 5,
   })
 
+  const { data: heroSectionData, isLoading: heroSectionLoading } =
+    useQuery<HeroSectionSettings>({
+      queryKey: ['/api/hero-section/backgroundPapers'],
+    })
+
   const isLoading = papersLoading || categoriesLoading
 
   // Filter papers by virus category and sort by ID
@@ -177,20 +183,22 @@ export default function BackgroundPapers() {
 
   const papersByCategory = useMemo(() => {
     if (!papers) return {}
-    return papers.reduce((acc, paper) => {
-      const catName = getCategoryForPaper(paper)?.name ?? 'Other/Unknown'
-      if (!acc[catName]) acc[catName] = []
-      acc[catName].push(paper)
-      return acc
-    }, {} as Record<string, BackgroundPaper[]>)
+    return papers.reduce(
+      (acc, paper) => {
+        const catName = getCategoryForPaper(paper)?.name ?? 'Other/Unknown'
+        if (!acc[catName]) acc[catName] = []
+        acc[catName].push(paper)
+        return acc
+      },
+      {} as Record<string, BackgroundPaper[]>,
+    )
   }, [papers])
+
+  const { description = '', title = '' } = heroSectionData ?? {}
 
   return (
     <main className="container mx-auto px-4">
-      <HeroSection
-        title="Background Papers"
-        description="Our background papers provide comprehensive overviews of bat virus research, synthesizing key findings and highlighting important knowledge gaps. These papers are designed to be accessible to researchers, public health officials, and policymakers."
-      />
+      <HeroSection title={title} description={description} />
       {/* <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div> */}
 
       {isLoading && (

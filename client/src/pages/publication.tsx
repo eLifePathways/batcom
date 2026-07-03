@@ -58,15 +58,9 @@ const PublicationPage = () => {
       review.jsonData.find(f => f.fieldName === fieldName),
     )
 
-    if (Array.isArray(rawValue)) {
-      if (!enums) return rawValue.join(', ')
+    if (!enums) return rawValue.join(', ')
 
-      return rawValue.map(r => enums[r] as string).join(', ')
-    }
-
-    if (!enums) return rawValue
-
-    return enums[rawValue]
+    return rawValue.map(r => enums[r] as string).join(', ')
   }
 
   if (isLoading) {

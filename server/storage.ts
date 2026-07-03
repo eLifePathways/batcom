@@ -30,6 +30,8 @@ import {
   Review,
   InsertReview,
   KotahiReviewUser,
+  type HeroSectionSettings,
+  type InsertHeroSettings,
 } from '@shared/schema'
 
 import { EvidenceInfection, EvidenceSpillover } from '@shared/constants'
@@ -99,6 +101,17 @@ export interface IStorage {
   getReview(id: number): Promise<Review | undefined>
   createReview(review: InsertReview): Promise<Review>
   getReviewsForPublication(publicationId: number): Promise<Review[]>
+
+  // Hero settings operations
+  getHeroSettings(id: number): Promise<HeroSectionSettings | undefined>
+  getHeroSettingsByName(name: string): Promise<HeroSectionSettings | undefined>
+  updateHeroSettings(
+    id: number,
+    data: Partial<HeroSectionSettings>,
+  ): Promise<HeroSectionSettings | undefined>
+  createHeroSettings(
+    insertHeroSettings: InsertHeroSettings,
+  ): Promise<HeroSectionSettings>
 
   // Background paper operations
   getAllBackgroundPapers(): Promise<BackgroundPaper[]>
@@ -184,6 +197,7 @@ export class MemStorage implements IStorage {
   private whatWeDoSections: Map<number, WhatWeDoSection>
   private whatWeDoContents: Map<number, WhatWeDoContent>
   private settings: Map<number, Settings>
+  private heroSettings: Map<number, HeroSectionSettings>
 
   private userCurrentId: number
   private virusCategoryCurrentId: number
@@ -195,6 +209,7 @@ export class MemStorage implements IStorage {
   private issueCommentCurrentId: number
   private whatWeDoSectionCurrentId: number
   private whatWeDoContentCurrentId: number
+  private heroSettingsCurrentId: number
 
   constructor() {
     this.users = new Map()
@@ -208,6 +223,7 @@ export class MemStorage implements IStorage {
     this.whatWeDoSections = new Map()
     this.whatWeDoContents = new Map()
     this.settings = new Map()
+    this.heroSettings = new Map()
 
     this.userCurrentId = 1
     this.virusCategoryCurrentId = 1
@@ -219,6 +235,7 @@ export class MemStorage implements IStorage {
     this.issueCommentCurrentId = 1
     this.whatWeDoSectionCurrentId = 1
     this.whatWeDoContentCurrentId = 1
+    this.heroSettingsCurrentId = 1
 
     // Initialize with sample data
     this.initializeData()
@@ -514,6 +531,57 @@ export class MemStorage implements IStorage {
 
   async getReviewsForPublication(publicationId: number): Promise<Review[]> {
     return []
+  }
+
+  // Hero settings operations
+  async getHeroSettings(id: number): Promise<HeroSectionSettings | undefined> {
+    return this.heroSettings.get(id)
+  }
+
+  async getHeroSettingsByName(
+    name: string,
+  ): Promise<HeroSectionSettings | undefined> {
+    return Array.from(this.heroSettings.values()).find(
+      heroSettings => heroSettings.name === name,
+    )
+  }
+
+  async updateHeroSettings(
+    id: number,
+    data: Partial<HeroSectionSettings>,
+  ): Promise<HeroSectionSettings | undefined> {
+    const existingHeroSettings = this.heroSettings.get(id)
+
+    if (!existingHeroSettings) {
+      return undefined
+    }
+
+    const updatedHeroSettings: HeroSectionSettings = {
+      ...existingHeroSettings,
+      ...data,
+    }
+    this.heroSettings.set(id, updatedHeroSettings)
+    return updatedHeroSettings
+  }
+
+  async createHeroSettings(
+    insertHeroSettings: InsertHeroSettings,
+  ): Promise<HeroSectionSettings> {
+    const existingHeroSettings = await this.getHeroSettingsByName(
+      insertHeroSettings.name,
+    )
+
+    if (existingHeroSettings) {
+      return existingHeroSettings
+    }
+
+    const id = this.heroSettingsCurrentId++
+    const heroSettings: HeroSectionSettings = {
+      ...insertHeroSettings,
+      id,
+    }
+    this.heroSettings.set(id, heroSettings)
+    return heroSettings
   }
 
   // Background paper operations

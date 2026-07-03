@@ -32,10 +32,16 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  Pencil,
 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TeamMember } from '@shared/schema'
+import {
+  HeroSectionSettings,
+  InsertHeroSettings,
+  TeamMember,
+} from '@shared/schema'
 import { ImageUpload } from '@/components/ui/image-upload'
+import HeroSection from '@/components/sections/hero-section'
 
 export default function TeamMembersAdmin() {
   const { toast } = useToast()
@@ -54,11 +60,19 @@ export default function TeamMembersAdmin() {
     imageUrl: '',
   })
 
+  const [heroSectionFormData, setHeroSectionFormData] = useState({
+    name: 'team',
+    title: '',
+    description: '',
+  })
+
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isReorderMode, setIsReorderMode] = useState(false)
+
+  const [isEditingHeroSection, setEditingHeroSection] = useState(false)
 
   // Reset form data
   const resetFormData = () => {
@@ -99,12 +113,25 @@ export default function TeamMembersAdmin() {
     }))
   }
 
+  const handleHeroSectionChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target
+    setHeroSectionFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
   // Fetch team members
   const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<
     TeamMember[]
   >({
     queryKey: ['/api/team-members'],
   })
+
+  const { data: heroSectionData, isLoading: heroSectionLoading } =
+    useQuery<HeroSectionSettings>({ queryKey: ['/api/hero-section/team'] })
 
   // Create team member mutation
   const createTeamMember = useMutation({
@@ -210,6 +237,31 @@ export default function TeamMembersAdmin() {
     },
   })
 
+  // Update team member mutation
+  const updateHeroSection = useMutation({
+    mutationFn: async (updatedSection: Partial<HeroSectionSettings>) => {
+      return apiRequest(`/api/hero-section/${heroSectionData!.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updatedSection),
+      })
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Page header updated successfully!',
+      })
+      queryClient.invalidateQueries({ queryKey: ['/api/hero-section/team'] })
+      setEditingHeroSection(false)
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update page description.',
+        variant: 'destructive',
+      })
+    },
+  })
+
   // State for managing the ordered list during reordering
   const [orderedMembers, setOrderedMembers] = useState<TeamMember[]>([])
 
@@ -236,6 +288,12 @@ export default function TeamMembersAdmin() {
       setOrderedMembers(sortedMembers)
     }
   }, [teamMembers])
+
+  useEffect(() => {
+    if (heroSectionData) {
+      setHeroSectionFormData(heroSectionData)
+    }
+  }, [heroSectionData])
 
   // Move a team member up in the order
   const moveUp = (index: number) => {
@@ -288,6 +346,22 @@ export default function TeamMembersAdmin() {
     createTeamMember.mutate(formData)
   }
 
+  const handleEditHeroDescription = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!heroSectionFormData.title || !heroSectionFormData.description) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      })
+
+      return
+    }
+
+    updateHeroSection.mutate(heroSectionFormData)
+  }
+
   // Handle form submission for updating a team member
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -314,6 +388,23 @@ export default function TeamMembersAdmin() {
 
   return (
     <div className="container mx-auto py-6">
+      <div className="container pb-4">
+        {heroSectionLoading ? (
+          <div className="pt-12 pb-6">
+            <Skeleton className="h-9 md:h-10 w-64 mb-4" />
+            <Skeleton className="h-6 w-full max-w-3xl mb-4" />
+          </div>
+        ) : (
+          <HeroSection
+            description={heroSectionFormData.description}
+            title={heroSectionFormData.title}
+          />
+        )}
+        <Button onClick={() => setEditingHeroSection(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit Page Header
+        </Button>
+      </div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Team Members</h1>
         <div className="flex gap-2">
@@ -369,6 +460,51 @@ export default function TeamMembersAdmin() {
           )}
         </div>
       </div>
+
+      {/* Edit Hero Section Dialog */}
+      <Dialog
+        open={isEditingHeroSection}
+        onOpenChange={open => {
+          setEditingHeroSection(open)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Page Header</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditHeroDescription}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  name="title"
+                  value={heroSectionFormData.title}
+                  onChange={handleHeroSectionChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Input
+                  id="description"
+                  name="description"
+                  value={heroSectionFormData.description}
+                  onChange={handleHeroSectionChange}
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={updateHeroSection.isPending}>
+                {updateHeroSection.isPending
+                  ? 'Updating...'
+                  : 'Update Page Header'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Add Team Member Dialog */}
       <Dialog
