@@ -10,12 +10,8 @@ export const createHeroSettingsTableAndAddDefaults = async () => {
 
   const tableExists = await checkTableExists('hero_section_settings')
 
-  if (tableExists) {
-    console.log('Table already exists, skipping...')
-    return
-  }
-
-  await client`
+  if (!tableExists) {
+    await client`
 		CREATE TABLE IF NOT EXISTS hero_section_settings (
 			id SERIAL PRIMARY KEY,
 			name TEXT NOT NULL UNIQUE,
@@ -23,10 +19,17 @@ export const createHeroSettingsTableAndAddDefaults = async () => {
 			description TEXT NOT NULL
 		);
 	`
+    console.log(
+      'Created hero_section_settings table, populating with default values...',
+    )
+  }
 
-  console.log(
-    'Created hero_section_settings table, populating with default values...',
-  )
+  const heroSettings = await storage.getAllHeroSettings()
+
+  if (!!heroSettings.length) {
+    console.log('hero_section_settings values already exist.')
+    return
+  }
 
   const existingDefs: InsertHeroSettings[] = [
     {

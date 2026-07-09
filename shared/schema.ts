@@ -176,9 +176,9 @@ export type KotahiPublishedManuscript = {
   decisions: Array<KotahiPublishedReview>
 }
 
-const evidenceInfectionEnum = pgEnum('evidence_infection', INFECTION_KEYS_TUPLE)
-const evidenceSpilloverEnum = pgEnum('evidence_spillover', SPILLOVER_KEYS_TUPLE)
-const geographicRegionEnum = pgEnum('geographic_region', REGION_KEYS_TUPLE)
+export const evidenceInfectionEnum = pgEnum('evidence_infection', INFECTION_KEYS_TUPLE)
+export const evidenceSpilloverEnum = pgEnum('evidence_spillover', SPILLOVER_KEYS_TUPLE)
+export const geographicRegionEnum = pgEnum('geographic_region', REGION_KEYS_TUPLE)
 
 export const virusCategories = pgTable('virus_categories', {
   id: serial('id').primaryKey(),

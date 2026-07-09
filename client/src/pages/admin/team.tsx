@@ -224,9 +224,7 @@ export default function TeamMembersAdmin() {
         title: 'Success',
         description: 'Team member order updated successfully!',
       })
-
-      // Force a hard refresh to guarantee the latest data
-      window.location.reload()
+      queryClient.invalidateQueries({ queryKey: ['/api/team-members'] })
     },
     onError: (error: any) => {
       toast({
@@ -443,10 +441,10 @@ export default function TeamMembersAdmin() {
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setIsReorderMode(true)}>
+              {/* <Button variant="outline" onClick={() => setIsReorderMode(true)}>
                 <ArrowUpDown className="mr-2 h-4 w-4" />
                 Reorder Members
-              </Button>
+              </Button> */}
               <Button
                 onClick={() => {
                   resetFormData()

@@ -115,6 +115,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Hero settings operations
+  async getAllHeroSettings(): Promise<HeroSectionSettings[]> {
+    return db.select().from(heroSectionSettings)
+  }
+
   async getHeroSettings(id: number): Promise<HeroSectionSettings | undefined> {
     const [heroSettings] = await db
       .select()

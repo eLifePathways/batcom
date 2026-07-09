@@ -103,6 +103,7 @@ export interface IStorage {
   getReviewsForPublication(publicationId: number): Promise<Review[]>
 
   // Hero settings operations
+  getAllHeroSettings(): Promise<HeroSectionSettings[]>
   getHeroSettings(id: number): Promise<HeroSectionSettings | undefined>
   getHeroSettingsByName(name: string): Promise<HeroSectionSettings | undefined>
   updateHeroSettings(
@@ -534,6 +535,10 @@ export class MemStorage implements IStorage {
   }
 
   // Hero settings operations
+  async getAllHeroSettings(): Promise<HeroSectionSettings[]> {
+    return Array.from(this.heroSettings.values())
+  }
+
   async getHeroSettings(id: number): Promise<HeroSectionSettings | undefined> {
     return this.heroSettings.get(id)
   }
