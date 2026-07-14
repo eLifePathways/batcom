@@ -31,7 +31,7 @@ const Header = () => {
             className="h-12"
           /> */}
           <img
-            src="/assets/bloomberg-logo.svg"
+            src="/assets/logos/bloomberg-logo.svg"
             alt="Johns Hopkins Bloomberg School of Public Health"
             className="h-24"
           />
