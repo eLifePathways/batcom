@@ -22,7 +22,10 @@ type FilterGroup = {
 type FilterMenuProps = {
   filterGroups: FilterGroup[]
   selectedFilters: Record<string, (string | number)[]>
-  onFilterChange: (filterGroup: string, selectedOptions: string[]) => void
+  onFilterChange: (
+    filterGroup: string,
+    selectedOptions: (string | number)[],
+  ) => void
   onApplyFilters: () => void
 }
 
@@ -36,7 +39,7 @@ const FilterMenu = ({
 
   const handleCheckboxChange = (
     groupId: string,
-    optionId: string,
+    optionId: string | number,
     checked: boolean,
   ) => {
     const currentSelected = selectedFilters[groupId] || []

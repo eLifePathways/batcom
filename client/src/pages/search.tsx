@@ -62,14 +62,14 @@ const Search = () => {
         title="Search Our Reviews"
         description="Find specific research papers and reviews on bat virus spillover events by searching our comprehensive database."
       />
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
+      <div className="border-b border-border mb-10"></div>
 
       <div>
         <div className="max-w-3xl mx-auto mb-12">
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-grow">
               <SearchIcon
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={18}
               />
               <Input
@@ -99,17 +99,17 @@ const Search = () => {
             </h2>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded">
                 An error occurred while searching. Please try again.
               </div>
             )}
 
             {!isLoading && publications && publications.length === 0 && (
-              <div className="bg-gray-50 border border-gray-200 px-4 py-8 rounded text-center">
-                <p className="text-gray-500 mb-4">
+              <div className="bg-muted border border-border px-4 py-8 rounded text-center">
+                <p className="text-muted-foreground mb-4">
                   No results found for your search query.
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   Try using different keywords or browse our publications by
                   category.
                 </p>
@@ -141,11 +141,11 @@ const Search = () => {
         )}
 
         {!submittedQuery && (
-          <div className="text-center bg-gray-50 rounded-lg py-12 px-4">
-            <h3 className="text-xl font-medium text-gray-700 mb-4">
+          <div className="text-center bg-muted rounded-lg py-12 px-4">
+            <h3 className="text-xl font-medium text-foreground mb-4">
               Start your search
             </h3>
-            <p className="text-gray-500 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Enter keywords related to bat virus research, specific virus
               families, or geographic regions to find relevant publications in
               our database.

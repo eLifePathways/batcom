@@ -21,7 +21,7 @@ import AdminVirusCategories from '@/pages/admin/virus-categories'
 import AdminUsers from '@/pages/admin/users'
 import AdminSettings from '@/pages/admin/settings'
 import AdminAnalytics from '@/pages/admin/analytics'
-import AdminIssues from '@/pages/admin/issues-new'
+import AdminIssues from '@/pages/admin/issues'
 import AdminWhatWeDo from '@/pages/admin/what-we-do'
 import AdminGraphQL from '@/pages/admin/graphql'
 import Login from '@/pages/login'
@@ -81,9 +81,9 @@ function Router() {
 
   // Main site layout
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-muted">
       <Header />
-      <main className="flex-grow bg-white">
+      <main className="flex-grow bg-card">
         {isLoginRoute ? (
           <Login />
         ) : (

@@ -294,7 +294,7 @@ export default function VirusCategoriesAdmin() {
         </DialogContent>
       </Dialog>
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-card rounded-lg shadow">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -329,8 +329,8 @@ export default function VirusCategoriesAdmin() {
                           />
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center h-12 w-12 bg-gray-100 rounded">
-                          <Image className="h-6 w-6 text-gray-400" />
+                        <div className="flex items-center justify-center h-12 w-12 bg-muted rounded">
+                          <Image className="h-6 w-6 text-muted-foreground" />
                         </div>
                       )}
                     </TableCell>
@@ -435,7 +435,7 @@ export default function VirusCategoriesAdmin() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="text-red-500 hover:text-red-600"
+                              className="text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -452,7 +452,7 @@ export default function VirusCategoriesAdmin() {
                                 </span>
                                 ?
                               </p>
-                              <p className="text-sm text-gray-500 mt-2">
+                              <p className="text-sm text-muted-foreground mt-2">
                                 This will also delete any associated
                                 publications and background papers.
                               </p>
@@ -484,7 +484,7 @@ export default function VirusCategoriesAdmin() {
                 <TableRow>
                   <TableCell
                     colSpan={4}
-                    className="text-center py-8 text-gray-500"
+                    className="text-center py-8 text-muted-foreground"
                   >
                     No virus categories found. Click "Add Category" to create
                     one.

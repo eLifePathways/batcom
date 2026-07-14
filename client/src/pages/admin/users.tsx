@@ -242,11 +242,11 @@ export default function UsersAdmin() {
   
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">User Management</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-muted-foreground mt-1">
               Manage user accounts for admin access.
             </p>
           </div>
@@ -332,7 +332,7 @@ export default function UsersAdmin() {
               
               {!isLoading && users?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                     No users found. Add your first user to get started.
                   </TableCell>
                 </TableRow>
@@ -341,8 +341,8 @@ export default function UsersAdmin() {
               {!isLoading && [...(users || [])].sort((a, b) => a.id - b.id).map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
-                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <User className="h-5 w-5 text-gray-500" />
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="h-5 w-5 text-muted-foreground" />
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{user.username}</TableCell>
@@ -417,7 +417,7 @@ export default function UsersAdmin() {
                         }}
                       >
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="icon" className="text-red-500 hover:text-red-600">
+                          <Button variant="outline" size="icon" className="text-destructive hover:text-destructive">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
@@ -427,8 +427,8 @@ export default function UsersAdmin() {
                           </DialogHeader>
                           <div className="py-4">
                             <p>Are you sure you want to delete user <span className="font-semibold">{user.username}</span>?</p>
-                            <p className="text-sm text-gray-500 mt-2">This will permanently remove this user's account and access.</p>
-                            <p className="text-sm text-gray-500 mt-1">This action cannot be undone.</p>
+                            <p className="text-sm text-muted-foreground mt-2">This will permanently remove this user's account and access.</p>
+                            <p className="text-sm text-muted-foreground mt-1">This action cannot be undone.</p>
                           </div>
                           <DialogFooter>
                             <Button 

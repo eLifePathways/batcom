@@ -47,7 +47,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+// Data-viz palette from the central theme (client/src/index.css). Resolved as
+// SVG fill/stroke values in the browser, where the CSS variables apply.
+const COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+];
 
 export default function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState("7days");
@@ -137,7 +145,7 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <h1 className="text-3xl font-bold mb-6">Analytics Dashboard</h1>
         
         <div className="mb-6 flex items-center justify-between">
@@ -256,7 +264,7 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
       
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <Tabs defaultValue="overview" className="mb-0">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -286,9 +294,9 @@ export default function AnalyticsDashboard() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="visitors" stroke="#0088FE" strokeWidth={2} />
-                        <Line type="monotone" dataKey="pageViews" stroke="#00C49F" strokeWidth={2} />
-                        <Line type="monotone" dataKey="sessions" stroke="#FFBB28" strokeWidth={2} />
+                        <Line type="monotone" dataKey="visitors" stroke="hsl(var(--chart-1))" strokeWidth={2} />
+                        <Line type="monotone" dataKey="pageViews" stroke="hsl(var(--chart-2))" strokeWidth={2} />
+                        <Line type="monotone" dataKey="sessions" stroke="hsl(var(--chart-3))" strokeWidth={2} />
                       </LineChart>
                     </ResponsiveContainer>
                   )}
@@ -313,7 +321,7 @@ export default function AnalyticsDashboard() {
                           cy="50%"
                           labelLine={false}
                           outerRadius={80}
-                          fill="#8884d8"
+                          fill="hsl(var(--chart-5))"
                           dataKey="value"
                           label={({ name, percent }: { name: string, percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         >
@@ -347,7 +355,7 @@ export default function AnalyticsDashboard() {
                           cy="50%"
                           labelLine={false}
                           outerRadius={80}
-                          fill="#8884d8"
+                          fill="hsl(var(--chart-5))"
                           dataKey="value"
                           label={({ name, percent }: { name: string, percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         >
@@ -386,7 +394,7 @@ export default function AnalyticsDashboard() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="visitors" fill="#0088FE" />
+                        <Bar dataKey="visitors" fill="hsl(var(--chart-1))" />
                       </BarChart>
                     </ResponsiveContainer>
                   )}

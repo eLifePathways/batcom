@@ -48,13 +48,13 @@ const PublicationCard = ({
         className={`w-full ${evidenceInfectionClasses[evidenceInfection]}`}
       />
       <CardContent className="p-6">
-        <h3 className="font-montserrat font-semibold text-primary text-xl mb-2">
+        <h3 className="font-heading font-semibold text-primary text-xl mb-2">
           {title}
         </h3>
-        <p className="text-gray-600 text-sm mb-3">
+        <p className="text-muted-foreground text-sm mb-3">
           {year} • {authors}
         </p>
-        <p className="text-gray-700 mb-4 line-clamp-3">
+        <p className="text-foreground mb-4 line-clamp-3">
           <SafeHtml html={abstract} />
         </p>
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
@@ -78,7 +78,7 @@ const PublicationCard = ({
           </div>
           <Link
             to={`/publications/${id}`}
-            className="text-blue-500 hover:text-blue-700 transition inline-flex items-center gap-1"
+            className="text-link hover:text-primary transition inline-flex items-center gap-1"
           >
             Read More <ArrowRight size={14} />
           </Link>

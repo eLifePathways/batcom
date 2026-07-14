@@ -67,35 +67,35 @@ const PublicationPage = () => {
     return (
       <section className="container mx-auto px-4 py-12">
         {/* Title */}
-        <Skeleton className="h-8 w-2/3 mb-4 bg-gray-200" />
+        <Skeleton className="h-8 w-2/3 mb-4 bg-muted" />
 
         {/* Abstract */}
         <div className="space-y-2 mb-6">
-          <Skeleton className="h-4 w-full bg-gray-200" />
-          <Skeleton className="h-4 w-5/6 bg-gray-200" />
-          <Skeleton className="h-4 w-4/6 bg-gray-200" />
+          <Skeleton className="h-4 w-full bg-muted" />
+          <Skeleton className="h-4 w-5/6 bg-muted" />
+          <Skeleton className="h-4 w-4/6 bg-muted" />
         </div>
 
         {/* Button */}
-        <Skeleton className="h-10 w-48 mb-10 bg-gray-200" />
+        <Skeleton className="h-10 w-48 mb-10 bg-muted" />
 
         {/* Reviews header */}
-        <Skeleton className="h-6 w-40 mb-4 bg-gray-200" />
+        <Skeleton className="h-6 w-40 mb-4 bg-muted" />
 
         {/* Review list */}
         <ul className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <li
               key={i}
-              className="p-4 border rounded-lg bg-white space-y-3 shadow-sm"
+              className="p-4 border rounded-lg bg-card space-y-3 shadow-sm"
             >
               {/* Reviewer */}
-              <Skeleton className="h-4 w-1/3 bg-gray-200" />
+              <Skeleton className="h-4 w-1/3 bg-muted" />
               {/* Review JSON placeholder */}
               <div className="space-y-2">
-                <Skeleton className="h-3 w-full bg-gray-100" />
-                <Skeleton className="h-3 w-5/6 bg-gray-100" />
-                <Skeleton className="h-3 w-2/3 bg-gray-100" />
+                <Skeleton className="h-3 w-full bg-muted" />
+                <Skeleton className="h-3 w-5/6 bg-muted" />
+                <Skeleton className="h-3 w-2/3 bg-muted" />
               </div>
             </li>
           ))}
@@ -127,7 +127,7 @@ const PublicationPage = () => {
   return (
     <section className="container mx-auto px-4 py-12 gap-40">
       <h1 className="text-3xl font-bold text-primary mb-4">{title}</h1>
-      <p className="text-gray-600 text-md mb-4">
+      <p className="text-muted-foreground text-md mb-4">
         {year} • {authors}
       </p>
       <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2 mb-4">
@@ -192,12 +192,12 @@ const PublicationPage = () => {
       )}
 
       {abstract && (
-        <p className="text-gray-600 mb-6">
+        <p className="text-muted-foreground mb-6">
           <SafeHtml html={abstract} />
         </p>
       )}
 
-      {!reviews.length && <p className="text-gray-500">No reviews yet.</p>}
+      {!reviews.length && <p className="text-muted-foreground">No reviews yet.</p>}
 
       {review && (
         <div className="gap-4">

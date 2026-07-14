@@ -11,7 +11,7 @@ export const BugReportButton = () => {
       <Button
         variant="outline"
         size="sm"
-        className="fixed bottom-4 right-4 z-50 rounded-full shadow-md bg-white hover:bg-gray-100 p-3 h-auto w-auto"
+        className="fixed bottom-4 right-4 z-50 rounded-full shadow-md bg-background hover:bg-accent p-3 h-auto w-auto"
         onClick={() => setDialogOpen(true)}
         title="Report an issue"
       >

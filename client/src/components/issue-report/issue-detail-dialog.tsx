@@ -188,11 +188,11 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
   const getPriorityBadge = (priority: Issue['priority']) => {
     switch (priority) {
       case 'high':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">High Priority</Badge>;
+        return <Badge className="bg-destructive text-destructive-foreground border-transparent">High Priority</Badge>;
       case 'medium':
-        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Medium Priority</Badge>;
+        return <Badge className="bg-warning text-warning-foreground border-transparent">Medium Priority</Badge>;
       case 'low':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Low Priority</Badge>;
+        return <Badge className="bg-success text-success-foreground border-transparent">Low Priority</Badge>;
       default:
         return <Badge variant="outline">Unknown Priority</Badge>;
     }
@@ -201,13 +201,13 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
   const getStatusBadge = (status: Issue['status']) => {
     switch (status) {
       case 'open':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Open</Badge>;
+        return <Badge className="bg-info text-info-foreground border-transparent">Open</Badge>;
       case 'in_progress':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">In Progress</Badge>;
+        return <Badge className="bg-warning text-warning-foreground border-transparent">In Progress</Badge>;
       case 'resolved':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Resolved</Badge>;
+        return <Badge className="bg-success text-success-foreground border-transparent">Resolved</Badge>;
       case 'closed':
-        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Closed</Badge>;
+        return <Badge variant="outline" className="bg-muted text-muted-foreground">Closed</Badge>;
       default:
         return <Badge variant="outline">Unknown Status</Badge>;
     }
@@ -255,28 +255,28 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     onClick={() => updateIssueMutation.mutate({ status: 'open' })}
                     className="flex items-center"
                   >
-                    <AlertCircle className="h-4 w-4 mr-2 text-blue-600" />
+                    <AlertCircle className="h-4 w-4 mr-2 text-info" />
                     <span>Open</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => updateIssueMutation.mutate({ status: 'in_progress' })}
                     className="flex items-center"
                   >
-                    <Clock className="h-4 w-4 mr-2 text-yellow-600" />
+                    <Clock className="h-4 w-4 mr-2 text-warning" />
                     <span>In Progress</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => updateIssueMutation.mutate({ status: 'resolved' })}
                     className="flex items-center"
                   >
-                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-success" />
                     <span>Resolved</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => updateIssueMutation.mutate({ status: 'closed' })}
                     className="flex items-center"
                   >
-                    <XCircle className="h-4 w-4 mr-2 text-gray-600" />
+                    <XCircle className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span>Closed</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -294,21 +294,21 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     onClick={() => updateIssueMutation.mutate({ priority: 'high' })}
                     className="flex items-center"
                   >
-                    <Flag className="h-4 w-4 mr-2 text-red-600" />
+                    <Flag className="h-4 w-4 mr-2 text-destructive" />
                     <span>High Priority</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => updateIssueMutation.mutate({ priority: 'medium' })}
                     className="flex items-center"
                   >
-                    <Flag className="h-4 w-4 mr-2 text-orange-600" />
+                    <Flag className="h-4 w-4 mr-2 text-warning" />
                     <span>Medium Priority</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => updateIssueMutation.mutate({ priority: 'low' })}
                     className="flex items-center"
                   >
-                    <Flag className="h-4 w-4 mr-2 text-green-600" />
+                    <Flag className="h-4 w-4 mr-2 text-success" />
                     <span>Low Priority</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -471,7 +471,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-3 pt-1">
-                    <pre className="bg-gray-100 p-3 rounded-md overflow-x-auto text-xs max-h-[400px] whitespace-pre-wrap">
+                    <pre className="bg-muted p-3 rounded-md overflow-x-auto text-xs max-h-[400px] whitespace-pre-wrap">
                       {issue.consoleLog.split("\\n").join("\n")}
                     </pre>
                   </CardContent>
@@ -511,17 +511,17 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     key={comment.id}
                     open={expandedComments[comment.id]}
                     onOpenChange={() => toggleComment(comment.id)}
-                    className={comment.isInternal ? "border rounded border-blue-200" : "border rounded"}
+                    className={comment.isInternal ? "border rounded border-info" : "border rounded"}
                   >
                     <CollapsibleTrigger asChild>
                       <div 
                         role="button" 
-                        className="flex justify-between items-center p-2 hover:bg-gray-50 cursor-pointer rounded-t"
+                        className="flex justify-between items-center p-2 hover:bg-muted cursor-pointer rounded-t"
                       >
                         <div className="flex items-center space-x-2">
                           <p className="text-xs font-medium">{comment.author || "Admin"}</p>
                           {comment.isInternal && (
-                            <Badge variant="outline" className="text-[10px] py-0 px-1 h-4 bg-blue-50 text-blue-700 border-blue-200">
+                            <Badge className="text-[10px] py-0 px-1 h-4 bg-info text-info-foreground border-transparent">
                               Internal
                             </Badge>
                           )}
@@ -546,7 +546,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                   </Collapsible>
                 ))
               ) : (
-                <div className="bg-gray-50 rounded p-2 text-center">
+                <div className="bg-muted rounded p-2 text-center">
                   <AlertCircle className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
                   <p className="text-xs text-muted-foreground">No comments yet</p>
                 </div>
@@ -584,7 +584,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                               type="checkbox"
                               checked={field.value}
                               onChange={field.onChange}
-                              className="h-3 w-3 text-primary rounded border-gray-300 focus:ring-primary"
+                              className="h-3 w-3 text-primary rounded border-input focus:ring-primary"
                             />
                           </FormControl>
                           <label className="text-xs font-medium leading-none cursor-pointer">

@@ -2,8 +2,153 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   THEME — single source of truth for all colors.
+   ------------------------------------------------------------------------
+   Every color in the app resolves to one of these CSS variables via
+   Tailwind's semantic tokens (see tailwind.config.ts), e.g.
+       className="bg-primary text-primary-foreground"
+   Do NOT hardcode palette colors (bg-blue-600, text-gray-500) in components.
+   Change a brand/UI color here once and it updates everywhere.
+
+   Values are space-separated HSL channels (no hsl() wrapper) so Tailwind can
+   compose them with opacity modifiers, e.g. bg-primary/50.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Brand — JHU Heritage Blue (PMS 288 C, #002D72) */
+    --primary: 216.3 100% 22.4%;
+    --primary-foreground: 210 40% 98%;
+
+    /* Links & icons — JHU Medium Blue (PMS 285 C, #0077D8).
+       4.53:1 on white → passes WCAG AA for normal text.
+       Hover deepens to Heritage Blue (--primary). */
+    --link: 206.9 100% 42.4%;
+
+    /* Neutrals (slate family, pairs with the navy brand) */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    /* Status / feedback — JHU brand palette.
+       Orange & Lavender are mid-tone fills, so they take DARK foregrounds
+       (white text fails AA on them); Dark Red & Forest Green take white. */
+    --destructive: 351.1 73.8% 37.5%; /* Dark Red, PMS 187 C, #A6192E */
+    --destructive-foreground: 210 40% 98%;
+    --success: 144 41.4% 26.1%; /* Forest Green, PMS 7734 C, #275E3D */
+    --success-foreground: 0 0% 100%;
+    --warning: 34.5 100% 55.3%; /* Orange, PMS 1375 C, #FF9E1B */
+    --warning-foreground: 28 74% 12%;
+    --info: 267.3 17.3% 62.5%; /* Lavender, PMS 666 C, #9E8FB0 */
+    --info-foreground: 267 40% 12%;
+
+    /* Lines & focus */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 216.3 100% 22.4%;
+
+    /* Data-viz palette (charts) */
+    --chart-1: 216.3 100% 22.4%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 49%;
+    --chart-5: 27 87% 55%;
+
+    /* Sidebar (admin) */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 216.3 100% 22.4%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 216.3 100% 22.4%;
+
+    --radius: 0.5rem;
+
+    /* Type families — the ONLY place font names live (besides the
+       Google Fonts <link> in index.html). Swap a name here to restyle
+       the whole app; update the index.html link to match. */
+    --font-sans:
+      'Work Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+      sans-serif;
+    --font-heading: 'Roboto Slab', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .dark {
+    /* Surfaces */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Brand — JHU Spirit Blue (PMS 284 C, #68ACE5), lifted for contrast
+       on dark surfaces */
+    --primary: 207.4 70.6% 65.3%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    /* Links & icons — Medium Blue (#0077D8) only hits 4.0:1 on dark
+       surfaces, so lift to Spirit Blue (7.5:1) for AA compliance. */
+    --link: 207.4 70.6% 65.3%;
+
+    /* Neutrals */
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    /* Status / feedback — brand hues lifted for dark surfaces */
+    --destructive: 351 70% 50%; /* Dark Red, lifted */
+    --destructive-foreground: 0 0% 100%;
+    --success: 144 55% 42%; /* Forest Green, lifted */
+    --success-foreground: 144 70% 8%;
+    --warning: 34.5 95% 55%; /* Orange */
+    --warning-foreground: 28 74% 12%;
+    --info: 267 30% 68%; /* Lavender, lifted */
+    --info-foreground: 267 40% 12%;
+
+    /* Lines & focus */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 207.4 70.6% 65.3%;
+
+    /* Data-viz palette */
+    --chart-1: 207.4 70.6% 65.3%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    /* Sidebar (admin) */
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 207.4 70.6% 65.3%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 207.4 70.6% 65.3%;
+  }
+}
+
 /* Optimized screenshot mode styling */
-.screenshot-in-progress [role="dialog"],
+.screenshot-in-progress [role='dialog'],
 .screenshot-in-progress dialog {
   display: none !important;
   visibility: hidden !important;

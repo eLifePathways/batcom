@@ -72,7 +72,7 @@ const PaperCard = ({
         </div>
       </CardHeader>
       <CardContent className="pb-3 pt-3 flex-grow">
-        <p className="text-sm text-gray-600 dark:text-gray-300">
+        <p className="text-sm text-muted-foreground">
           {paper.description ||
             'This background paper provides essential context for understanding bat-borne viruses and their potential for human spillover.'}
         </p>
@@ -198,8 +198,12 @@ export default function BackgroundPapers() {
 
   return (
     <main className="container mx-auto px-4">
-      <HeroSection title={title} description={description} />
-      {/* <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div> */}
+      <HeroSection
+        description={description}
+        loading={heroSectionLoading}
+        title={title}
+      />
+      {/* <div className="border-b border-border mb-10"></div> */}
 
       {isLoading && (
         <div className="space-y-6">
@@ -222,14 +226,14 @@ export default function BackgroundPapers() {
         <div className="space-y-8 pb-8">
           {Object.entries(papersByCategory).map(([category, papers]) => (
             <section key={category}>
-              <h2 className="text-xl font-semibold text-primary mb-4 border-b border-gray-300 pb-2">
+              <h2 className="text-xl font-semibold text-primary mb-4 border-b border-border pb-2">
                 {category}
               </h2>
               <ul className="list-decimal list-inside space-y-3 pl-2">
                 {papers.map((paper: BackgroundPaper, index: number) => (
                   <li
                     key={paper.id}
-                    className="text-sm leading-relaxed text-gray-700 dark:text-gray-300"
+                    className="text-sm leading-relaxed text-foreground"
                   >
                     {/* <span className="font-medium">{paper.authors}</span>.{' '} */}
                     <span className="italic">{paper.title}</span>.{' '}
@@ -239,7 +243,7 @@ export default function BackgroundPapers() {
                         href={paper.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline ml-1"
+                        className="text-primary hover:underline ml-1"
                       >
                         [Full Paper]
                       </a>
@@ -249,12 +253,12 @@ export default function BackgroundPapers() {
                       //     href={paper.abstractLink}
                       //     target="_blank"
                       //     rel="noopener noreferrer"
-                      //     className="text-blue-600 hover:underline ml-1"
+                      //     className="text-primary hover:underline ml-1"
                       //   >
                       //     [Abstract]
                       //   </a>
                       // )
-                      <span className="text-gray-400 ml-1">
+                      <span className="text-muted-foreground ml-1">
                         [Link unavailable]
                       </span>
                     )}
@@ -267,7 +271,7 @@ export default function BackgroundPapers() {
       ) : (
         !isLoading && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No background papers found.</p>
+            <p className="text-muted-foreground">No background papers found.</p>
           </div>
         )
       )}

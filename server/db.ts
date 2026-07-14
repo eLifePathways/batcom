@@ -8,14 +8,8 @@ const caCert = process.env.POSTGRES_CA_CERT
 
 // Create PostgreSQL client
 export const client = postgres(connectionString, {
-  ...(caCert
-    ? {
-        ssl: {
-          rejectUnauthorized: true,
-          ca: Buffer.from(caCert, 'base64').toString('utf-8'),
-        },
-      }
-    : {}),
+  // ssl: caCert ? { rejectUnauthorized: false } : false,
+  ssl: false,
 })
 
 // Create Drizzle ORM instance

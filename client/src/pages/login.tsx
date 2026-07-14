@@ -83,7 +83,7 @@ const Login = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Admin Login</h1>

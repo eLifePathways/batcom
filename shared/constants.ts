@@ -109,11 +109,14 @@ export const regions = Object.entries(GEOGRAPHIC_REGIONS).map(
   ([key, value]) => ({ key, value }),
 )
 
+// Resolve from the central theme (client/src/index.css) so chart bars and
+// their legend swatches always share one source of truth. These are consumed
+// as SVG `fill` values in the browser, where the CSS variables resolve.
 export const QUALITY_COLOURS = {
-  High: '#16a34a',
-  Moderate: '#eab308',
-  Low: '#dc2626',
-  Not_Investigated: '#9ca3af',
+  High: 'hsl(var(--success))',
+  Moderate: 'hsl(var(--warning))',
+  Low: 'hsl(var(--destructive))',
+  Not_Investigated: 'hsl(var(--muted-foreground))',
 } as const
 
 export type QualityKey = keyof typeof QUALITY_COLOURS

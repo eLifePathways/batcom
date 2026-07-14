@@ -218,10 +218,10 @@ export function ScreenshotCapture({ onCapture }: ScreenshotCaptureProps) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center gap-2 p-4 border rounded-md bg-gray-50">
-          <Camera className="h-6 w-6 text-gray-400" />
+        <div className="flex flex-col items-center justify-center gap-2 p-4 border rounded-md bg-muted">
+          <Camera className="h-6 w-6 text-muted-foreground" />
           <div className="text-center">
-            <p className="text-xs text-gray-600 mb-1">
+            <p className="text-xs text-muted-foreground mb-1">
               Include a screenshot with your report
             </p>
             <Button 

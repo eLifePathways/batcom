@@ -110,8 +110,8 @@ const AdminSidebar = () => {
   ]
 
   return (
-    <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-200">
+    <div className="w-64 h-screen bg-card border-r border-border flex flex-col">
+      <div className="p-6 border-b border-border">
         <h1 className="text-xl font-bold text-primary">Bat-Com Admin</h1>
         <p className="text-sm text-muted-foreground">
           Content Management System
@@ -131,7 +131,7 @@ const AdminSidebar = () => {
                 'flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors',
                 item.active
                   ? 'bg-primary/10 text-primary'
-                  : 'text-gray-600 hover:text-primary hover:bg-primary/5',
+                  : 'text-muted-foreground hover:text-primary hover:bg-primary/5',
               )}
             >
               {item.icon}
@@ -141,10 +141,10 @@ const AdminSidebar = () => {
         </div>
       </nav>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-border">
         <Link
           href="/"
-          className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-primary hover:bg-primary/5"
+          className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-muted-foreground hover:text-primary hover:bg-primary/5"
         >
           <ArrowLeft className="h-5 w-5 mr-3" />
           Return to Site
@@ -173,7 +173,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   }, [location, navigate, token])
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-muted">
       <AdminSidebar />
       <main className="flex-1 overflow-auto p-6">{children}</main>
     </div>

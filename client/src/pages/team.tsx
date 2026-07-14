@@ -10,8 +10,12 @@ const Team = () => {
   const { description = '', title = '' } = heroSectionData ?? {}
   return (
     <main className="container mx-auto px-4">
-      <HeroSection title={title} description={description} />
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
+      <HeroSection
+        description={description}
+        loading={heroSectionLoading}
+        title={title}
+      />
+      <div className="border-b border-border mb-10"></div>
       <TeamSection showAllMembers />
     </main>
   )

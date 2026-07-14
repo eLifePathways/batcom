@@ -155,11 +155,11 @@ const PublicationsSection = () => {
 
   const handleFilterChange = (
     filterGroup: string,
-    selectedOptions: string[],
+    selectedOptions: (string | number)[],
   ) => {
     setFilters(prev => ({
       ...prev,
-      [filterGroup]: selectedOptions,
+      [filterGroup]: selectedOptions.map(String),
     }))
   }
 
@@ -245,19 +245,19 @@ const PublicationsSection = () => {
       {[...Array(2)].map((_, index) => (
         <div
           key={index}
-          className="flex flex-col gap-4 border border-gray-200 rounded-lg overflow-hidden"
+          className="flex flex-col gap-4 border border-border rounded-lg overflow-hidden"
         >
-          <div className="h-1 w-full bg-gray-200" />
+          <div className="h-1 w-full bg-muted" />
           <div className="space-y-2 p-6">
-            <Skeleton className="h-6 w-3/4 bg-gray-200" />
-            <Skeleton className="h-4 w-1/3 bg-gray-200" />
-            <Skeleton className="h-16 w-full bg-gray-200" />
+            <Skeleton className="h-6 w-3/4 bg-muted" />
+            <Skeleton className="h-4 w-1/3 bg-muted" />
+            <Skeleton className="h-16 w-full bg-muted" />
             <div className="flex justify-between items-center pt-2">
               <div className="flex gap-2">
-                <Skeleton className="h-6 w-20 rounded-full bg-gray-200" />
-                <Skeleton className="h-6 w-16 rounded-full bg-gray-200" />
+                <Skeleton className="h-6 w-20 rounded-full bg-muted" />
+                <Skeleton className="h-6 w-16 rounded-full bg-muted" />
               </div>
-              <Skeleton className="h-4 w-20 bg-gray-200" />
+              <Skeleton className="h-4 w-20 bg-muted" />
             </div>
           </div>
         </div>
@@ -268,12 +268,12 @@ const PublicationsSection = () => {
   return (
     <section
       id="recent-reviews"
-      className="bg-gray-50 py-12 md:py-16"
+      className="bg-muted py-12 md:py-16"
       key={location}
     >
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-primary mb-4 md:mb-0">
+          <h2 className="text-2xl md:text-3xl font-heading font-bold text-primary mb-4 md:mb-0">
             Most Recent Reviews
           </h2>
 
@@ -286,8 +286,8 @@ const PublicationsSection = () => {
         </div>
 
         {/* Data Visualization */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h3 className="font-montserrat font-semibold text-primary text-lg mb-4">
+        <div className="bg-card rounded-lg shadow-md p-6 mb-8">
+          <h3 className="font-heading font-semibold text-primary text-lg mb-4">
             Publication Year of Papers Reviewed
           </h3>
           <div className="h-64">
@@ -330,14 +330,14 @@ const PublicationsSection = () => {
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <div className="flex items-center">
-                <div className="w-4 h-4 rounded-sm bg-gray-300 border mr-2"></div>
-                <span className="text-sm text-gray-700">
+                <div className="w-4 h-4 rounded-sm bg-muted-foreground/40 border mr-2"></div>
+                <span className="text-sm text-foreground">
                   Infection (left bars per year)
                 </span>
               </div>
               <div className="flex items-center">
-                <div className="w-4 h-4 rounded-sm bg-gray-500 border mr-2"></div>
-                <span className="text-sm text-gray-700">
+                <div className="w-4 h-4 rounded-sm bg-muted-foreground border mr-2"></div>
+                <span className="text-sm text-foreground">
                   Spillover (right bars per year)
                 </span>
               </div>
@@ -345,20 +345,24 @@ const PublicationsSection = () => {
 
             <div className="flex flex-col gap-2">
               <div className="flex items-center">
-                <div className="w-12 h-1 bg-green-600 mr-2"></div>
-                <span className="text-sm text-gray-700">High Quality</span>
+                <div className="w-12 h-1 bg-success mr-2"></div>
+                <span className="text-sm text-foreground">High Quality</span>
               </div>
               <div className="flex items-center">
-                <div className="w-12 h-1 bg-yellow-500 mr-2"></div>
-                <span className="text-sm text-gray-700">Moderate Quality</span>
+                <div className="w-12 h-1 bg-warning mr-2"></div>
+                <span className="text-sm text-foreground">
+                  Moderate Quality
+                </span>
               </div>
               <div className="flex items-center">
-                <div className="w-12 h-1 bg-red-600 mr-2"></div>
-                <span className="text-sm text-gray-700">Low Quality</span>
+                <div className="w-12 h-1 bg-destructive mr-2"></div>
+                <span className="text-sm text-foreground">Low Quality</span>
               </div>
               <div className="flex items-center">
-                <div className="w-12 h-1 bg-gray-400 mr-2"></div>
-                <span className="text-sm text-gray-700">Not Investigated</span>
+                <div className="w-12 h-1 bg-muted-foreground mr-2"></div>
+                <span className="text-sm text-foreground">
+                  Not Investigated
+                </span>
               </div>
             </div>
           </div>
@@ -389,7 +393,7 @@ const PublicationsSection = () => {
 
           {filteredPublications && filteredPublications.length === 0 && (
             <div className="col-span-full text-center py-8">
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 No publications found matching your filters.
               </p>
             </div>

@@ -193,7 +193,7 @@ export default function AdminSettings() {
       <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-muted-foreground mt-1">
             Configure website and admin settings.
           </p>
         </div>

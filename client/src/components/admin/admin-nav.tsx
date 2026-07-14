@@ -87,7 +87,7 @@ export default function AdminNav() {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 mb-6">
+    <div className="bg-card border-b border-border mb-6">
       <div className="container mx-auto px-4">
         <nav className="flex items-center space-x-4 overflow-x-auto py-4">
           {navItems.map((item) => (
@@ -98,7 +98,7 @@ export default function AdminNav() {
                 "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
                 item.active
                   ? "bg-primary/10 text-primary"
-                  : "text-gray-600 hover:text-primary hover:bg-primary/5 dark:text-gray-300 dark:hover:text-primary"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/5"
               )}
             >
               {item.icon}

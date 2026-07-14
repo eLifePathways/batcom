@@ -50,12 +50,12 @@ const BackgroundPapersSection = ({ virusCategoryId, showAllPapers = false }: Bac
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
       {[...Array(4)].map((_, groupIndex) => (
         <div key={groupIndex} className="space-y-2">
-          <Skeleton className="h-6 w-40 bg-gray-200" />
+          <Skeleton className="h-6 w-40 bg-muted" />
           <ul className="space-y-3">
             {[...Array(3)].map((_, itemIndex) => (
               <li key={itemIndex} className="flex items-start">
-                <Skeleton className="h-5 w-5 mt-1 mr-2 bg-gray-200" />
-                <Skeleton className="h-5 flex-grow bg-gray-200" />
+                <Skeleton className="h-5 w-5 mt-1 mr-2 bg-muted" />
+                <Skeleton className="h-5 flex-grow bg-muted" />
               </li>
             ))}
           </ul>
@@ -65,7 +65,7 @@ const BackgroundPapersSection = ({ virusCategoryId, showAllPapers = false }: Bac
   );
 
   return (
-    <section id="background-papers" className="bg-white py-12 md:py-16">
+    <section id="background-papers" className="bg-card py-12 md:py-16">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Column with Bat Images */}
@@ -84,7 +84,7 @@ const BackgroundPapersSection = ({ virusCategoryId, showAllPapers = false }: Bac
           
           {/* Right Column with Content */}
           <div className="md:w-3/4">
-            <h2 className="text-2xl md:text-3xl font-montserrat font-bold text-primary mb-8">
+            <h2 className="text-2xl md:text-3xl font-heading font-bold text-primary mb-8">
               Background Papers
             </h2>
             
@@ -94,21 +94,21 @@ const BackgroundPapersSection = ({ virusCategoryId, showAllPapers = false }: Bac
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                 {displayCategories.map(categoryId => (
                   <div key={categoryId}>
-                    <h3 className="font-montserrat font-semibold text-primary text-xl mb-4 flex items-center">
-                      <span className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white mr-2">
+                    <h3 className="font-heading font-semibold text-primary text-xl mb-4 flex items-center">
+                      <span className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground mr-2">
                         <Bug size={14} />
                       </span>
                       {getCategoryNameById(categoryId)}
                     </h3>
-                    <ul className="space-y-3 text-gray-700">
+                    <ul className="space-y-3 text-foreground">
                       {groupedPapers[categoryId]?.slice(0, 3).map(paper => (
                         <li key={paper.id} className="flex items-start">
-                          <FileText className="text-blue-500 mt-1 mr-2" size={16} />
+                          <FileText className="text-primary mt-1 mr-2" size={16} />
                           <a 
                             href={paper.link || '#'} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="hover:text-blue-500 transition"
+                            className="hover:text-primary transition"
                           >
                             {paper.title}
                           </a>

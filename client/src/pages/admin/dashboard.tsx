@@ -57,7 +57,7 @@ export default function AdminDashboard() {
       description: 'Researchers and staff members',
       icon: <Users className="h-6 w-6" />,
       href: '/admin/team',
-      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+      color: 'bg-info/10 text-info',
     },
     {
       title: 'Virus Categories',
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
       icon: <Bug className="h-6 w-6" />,
       href: '/admin/virus-categories',
       color:
-        'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+        'bg-primary/10 text-primary',
     },
     {
       title: 'Publications',
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
       icon: <BookOpen className="h-6 w-6" />,
       href: '/admin/publications',
       color:
-        'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+        'bg-success/10 text-success',
     },
     {
       title: 'Background Papers',
@@ -84,16 +84,16 @@ export default function AdminDashboard() {
       icon: <FileText className="h-6 w-6" />,
       href: '/admin/background-papers',
       color:
-        'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
+        'bg-warning/10 text-warning',
     },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-muted-foreground mt-1">
             Manage and monitor your content in one place.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Publications Chart */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <Card className="border-0 shadow-none">
           <CardHeader className="px-0 pt-0">
             <CardTitle>Publication Year of Papers Reviewed</CardTitle>
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <Card className="border-0 shadow-none">
           <CardHeader className="px-0 pt-0">
             <CardTitle>Quick Actions</CardTitle>
@@ -161,13 +161,13 @@ export default function AdminDashboard() {
           <CardContent className="px-0 pb-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Link href="/admin/team/new">
-                <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                  <div className="p-2 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 mr-3">
+                <a className="flex items-center p-3 rounded-lg border border-border hover:bg-muted transition-colors">
+                  <div className="p-2 rounded-full bg-info/10 text-info mr-3">
                     <Users className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="font-medium">Add Team Member</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Create a new researcher profile
                     </p>
                   </div>
@@ -175,13 +175,13 @@ export default function AdminDashboard() {
               </Link>
 
               <Link href="/admin/publications/new">
-                <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                  <div className="p-2 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 mr-3">
+                <a className="flex items-center p-3 rounded-lg border border-border hover:bg-muted transition-colors">
+                  <div className="p-2 rounded-full bg-success/10 text-success mr-3">
                     <BookOpen className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="font-medium">Add Publication</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Create a new research publication
                     </p>
                   </div>
@@ -189,13 +189,13 @@ export default function AdminDashboard() {
               </Link>
 
               <Link href="/admin/background-papers/new">
-                <a className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                  <div className="p-2 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 mr-3">
+                <a className="flex items-center p-3 rounded-lg border border-border hover:bg-muted transition-colors">
+                  <div className="p-2 rounded-full bg-warning/10 text-warning mr-3">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="font-medium">Add Background Paper</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Create a new educational resource
                     </p>
                   </div>

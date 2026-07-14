@@ -54,7 +54,7 @@ const ContentRenderer = ({ content }: { content: WhatWeDoContent }) => {
               {content.title}
             </h3>
           )}
-          <p className="text-gray-700 dark:text-gray-300">{content.content}</p>
+          <p className="text-foreground">{content.content}</p>
         </div>
       )
     case 'image':
@@ -72,7 +72,7 @@ const ContentRenderer = ({ content }: { content: WhatWeDoContent }) => {
               className="rounded-lg w-full"
             />
             {metadata?.caption && (
-              <p className="text-sm text-gray-500 mt-2 italic">
+              <p className="text-sm text-muted-foreground mt-2 italic">
                 {metadata.caption}
               </p>
             )}
@@ -94,7 +94,7 @@ const ContentRenderer = ({ content }: { content: WhatWeDoContent }) => {
                 {content.title}
               </h3>
             )}
-            <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+            <ul className="list-disc pl-5 space-y-2 text-foreground">
               {metadata.items.map((item: string, index: number) => (
                 <li key={index}>{item}</li>
               ))}
@@ -104,9 +104,7 @@ const ContentRenderer = ({ content }: { content: WhatWeDoContent }) => {
       }
       return null
     default:
-      return (
-        <p className="text-gray-700 dark:text-gray-300">{content.content}</p>
-      )
+      return <p className="text-foreground">{content.content}</p>
   }
 }
 
@@ -132,7 +130,7 @@ const SectionContent = ({ sectionId }: { sectionId: number }) => {
   }
 
   if (error) {
-    return <p className="text-red-500">Error loading content</p>
+    return <p className="text-destructive">Error loading content</p>
   }
 
   return (
@@ -169,9 +167,13 @@ export default function WhatWeDo() {
   const { description = '', title = '' } = heroSectionData ?? {}
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <HeroSection title={title} description={description} />
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-10"></div>
+    <main className="container mx-auto px-4 pb-8">
+      <HeroSection
+        title={title}
+        loading={heroSectionLoading}
+        description={description}
+      />
+      <div className="border-b border-border mb-10"></div>
 
       {isLoading ? (
         <div className="space-y-4">
@@ -181,7 +183,7 @@ export default function WhatWeDo() {
       ) : error ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-red-500">Error</CardTitle>
+            <CardTitle className="text-destructive">Error</CardTitle>
             <CardDescription>
               There was a problem loading the content. Please try again later.
             </CardDescription>
@@ -217,7 +219,7 @@ export default function WhatWeDo() {
                   </CardHeader>
                   <CardContent>
                     {section.description && (
-                      <p className="text-gray-700 dark:text-gray-300 mb-6">
+                      <p className="text-foreground mb-6">
                         {section.description}
                       </p>
                     )}

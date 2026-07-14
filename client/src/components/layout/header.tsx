@@ -21,75 +21,79 @@ const Header = () => {
   const closeSheet = () => setIsOpen(false)
 
   return (
-    <header className="bg-white shadow-md">
+    <header className="bg-background shadow-md">
       {/* Top institutional bar */}
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between border-b border-gray-200">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between border-b border-border">
         <Link href="/" className="flex items-center">
-          <img
+          {/* <img
             src="/assets/logos-vertical-1024x683.jpg"
             alt="Johns Hopkins University"
             className="h-12"
+          /> */}
+          <img
+            src="/assets/bloomberg-logo.svg"
+            alt="Johns Hopkins Bloomberg School of Public Health"
+            className="h-24"
           />
         </Link>
 
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <img src="/assets/bats.png" alt="Bat-Com Logo" className="h-12" />
+        </div> */}
+        <div className="hidden md:block font-heading font-bold text-lg">
+          Bat Virus Spillover Evidence Consortium
         </div>
       </div>
 
       {/* Main navigation */}
       <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="hidden md:block font-montserrat font-bold text-lg text-primary">
-            Bat Virus Spillover Evidence Consortium (Bat-Com)
-          </div>
+        {/* <div className="flex items-center justify-between"> */}
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Menu className="h-6 w-6 text-primary" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <nav className="flex flex-col space-y-4 mt-8">
+              {navItems.map(item => (
+                <Link
+                  key={item.path + item.name}
+                  href={item.path}
+                  onClick={closeSheet}
+                  className={`text-lg font-medium transition py-2 ${
+                    location === item.path
+                      ? 'text-primary font-semibold'
+                      : 'text-foreground hover:text-primary'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+          </SheetContent>
+        </Sheet>
 
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6 text-primary" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <nav className="flex flex-col space-y-4 mt-8">
-                {navItems.map(item => (
-                  <Link
-                    key={item.path + item.name}
-                    href={item.path}
-                    onClick={closeSheet}
-                    className={`text-lg font-medium transition py-2 ${
-                      location === item.path
-                        ? 'text-blue-600 font-semibold'
-                        : 'text-primary hover:text-blue-500'
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
-
-          <nav className="hidden md:flex md:items-center md:space-x-2">
-            {navItems.map(item => (
-              <Link
-                key={item.path + item.name}
-                href={item.path}
-                className={`font-medium px-3 py-2 text-sm transition duration-200 border-b-2 mx-1 ${
-                  location === item.path
-                    ? 'text-blue-700 border-blue-600'
-                    : 'text-primary hover:text-blue-600 border-transparent hover:border-blue-300'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-        </div>
+        <nav className="hidden md:flex md:items-center md:justify-between">
+          {navItems.map(item => (
+            <Link
+              key={item.path + item.name}
+              href={item.path}
+              className={`font-medium px-3 py-2 text-sm transition duration-200 border-b-2 mx-1 ${
+                location === item.path
+                  ? 'text-primary border-primary'
+                  : 'text-foreground hover:text-primary border-transparent hover:border-primary/40'
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+        {/* </div> */}
       </div>
 
-      <div className="bg-blue-800 h-2 w-full"></div>
+      <div className="bg-primary h-2 w-full"></div>
     </header>
   )
 }

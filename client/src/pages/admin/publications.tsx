@@ -374,17 +374,11 @@ export default function PublicationsAdmin() {
   return (
     <div className="container space-y-6">
       <div className="container pb-4">
-        {heroSectionLoading ? (
-          <div className="pt-12 pb-6">
-            <Skeleton className="h-9 md:h-10 w-64 mb-4" />
-            <Skeleton className="h-6 w-full max-w-3xl mb-4" />
-          </div>
-        ) : (
-          <HeroSection
-            description={heroSectionFormData.description}
-            title={heroSectionFormData.title}
-          />
-        )}
+        <HeroSection
+          description={heroSectionFormData.description}
+          loading={heroSectionLoading}
+          title={heroSectionFormData.title}
+        />
         <Button onClick={() => setEditingHeroSection(true)}>
           <Pencil className="mr-2 h-4 w-4" />
           Edit Page Header
@@ -433,7 +427,7 @@ export default function PublicationsAdmin() {
         <div>
           <>
             {!isSettingsQueryLoading && !endpoint && (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded mb-4">
+              <div className="bg-warning/10 border border-warning/30 text-warning p-4 rounded mb-4">
                 <div className="flex items-center">
                   <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
                   <p>
@@ -475,14 +469,14 @@ export default function PublicationsAdmin() {
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             publication.evidenceInfection === 'infectionHigh'
-                              ? 'bg-green-100 text-green-800'
+                              ? 'bg-success/10 text-success'
                               : publication.evidenceInfection ===
                                   'infectionModerate'
-                                ? 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-warning/10 text-warning'
                                 : publication.evidenceInfection ===
                                     'infectionLow'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-gray-100 text-gray-800'
+                                  ? 'bg-destructive/10 text-destructive'
+                                  : 'bg-muted text-foreground'
                           }`}
                         >
                           {
@@ -515,7 +509,7 @@ export default function PublicationsAdmin() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="text-red-600 border-red-200 hover:bg-red-50"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/10"
                                 onClick={() => {
                                   setSelectedPublication(publication)
                                   setIsDeleteDialogOpen(true)

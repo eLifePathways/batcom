@@ -339,27 +339,21 @@ export default function BackgroundPapersAdmin() {
   return (
     <div className="container space-y-6">
       <div className="container pb-4">
-        {heroSectionLoading ? (
-          <div className="pt-12 pb-6">
-            <Skeleton className="h-9 md:h-10 w-64 mb-4" />
-            <Skeleton className="h-6 w-full max-w-3xl mb-4" />
-          </div>
-        ) : (
-          <HeroSection
-            description={heroSectionFormData.description}
-            title={heroSectionFormData.title}
-          />
-        )}
+        <HeroSection
+          description={heroSectionFormData.description}
+          loading={heroSectionLoading}
+          title={heroSectionFormData.title}
+        />
         <Button onClick={() => setEditingHeroSection(true)}>
           <Pencil className="mr-2 h-4 w-4" />
           Edit Page Header
         </Button>
       </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-card p-6 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Background Papers</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-muted-foreground mt-1">
               Manage educational resources and background materials.
             </p>
           </div>
@@ -545,7 +539,7 @@ export default function BackgroundPapersAdmin() {
                 <TableRow>
                   <TableCell
                     colSpan={4}
-                    className="text-center py-8 text-gray-500"
+                    className="text-center py-8 text-muted-foreground"
                   >
                     No background papers found. Add your first paper to get
                     started.
@@ -560,7 +554,7 @@ export default function BackgroundPapersAdmin() {
                     <TableRow key={paper.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-gray-400" />
+                          <FileText className="h-4 w-4 text-muted-foreground" />
                           <span className="max-w-[300px] truncate">
                             {paper.title}
                           </span>
@@ -575,13 +569,13 @@ export default function BackgroundPapersAdmin() {
                             href={paper.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 truncate max-w-[250px]"
+                            className="flex items-center gap-1 text-primary hover:text-primary/80 truncate max-w-[250px]"
                           >
                             <ExternalLink className="h-3 w-3" />
                             <span className="truncate">{paper.link}</span>
                           </a>
                         ) : (
-                          <span className="text-gray-400 text-sm">
+                          <span className="text-muted-foreground text-sm">
                             No link provided
                           </span>
                         )}
@@ -703,7 +697,7 @@ export default function BackgroundPapersAdmin() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-red-500 hover:text-red-600"
+                                className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -722,7 +716,7 @@ export default function BackgroundPapersAdmin() {
                                   </span>
                                   ?
                                 </p>
-                                <p className="text-sm text-gray-500 mt-2">
+                                <p className="text-sm text-muted-foreground mt-2">
                                   This action cannot be undone.
                                 </p>
                               </div>

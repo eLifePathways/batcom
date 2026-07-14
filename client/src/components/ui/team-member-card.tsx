@@ -13,7 +13,7 @@ const SocialLink = ({ href, icon, label }: SocialLinkProps) => (
     aria-label={label}
     target="_blank"
     rel="noopener noreferrer"
-    className="text-blue-500 hover:text-blue-700 transition"
+    className="text-link hover:text-primary transition"
   >
     {icon}
   </a>
@@ -40,7 +40,7 @@ const TeamMemberCard = ({
   socialMedia,
 }: TeamMemberCardProps) => {
   return (
-    <Card className="overflow-hidden border border-gray-200 hover:shadow-lg transition duration-300 h-full">
+    <Card className="overflow-hidden border border-border hover:shadow-lg transition duration-300 h-full">
       <div className="aspect-w-1 aspect-h-1 overflow-hidden h-64">
         <img
           src={imageUrl}
@@ -49,11 +49,11 @@ const TeamMemberCard = ({
         />
       </div>
       <CardContent className="p-6">
-        <h3 className="font-montserrat font-semibold text-primary text-xl mb-1">
+        <h3 className="font-heading font-semibold text-primary text-xl mb-1">
           {name}
         </h3>
-        <p className="text-gray-600 text-sm mb-3">{institution}</p>
-        <p className="text-gray-700 mb-4">{description}</p>
+        <p className="text-muted-foreground text-sm mb-3">{institution}</p>
+        <p className="text-foreground mb-4">{description}</p>
         <div className="flex gap-3">
           {website && (
             <SocialLink

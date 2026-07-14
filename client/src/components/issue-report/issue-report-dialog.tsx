@@ -257,11 +257,11 @@ export function IssueReportDialog({ open, onOpenChange }: IssueReportDialogProps
               </div>
               
               {consoleLog && (
-                <div className="relative border rounded-md overflow-hidden bg-gray-50">
-                  <div className="max-h-[100px] overflow-auto text-xs p-2 font-mono bg-gray-100">
+                <div className="relative border rounded-md overflow-hidden bg-muted">
+                  <div className="max-h-[100px] overflow-auto text-xs p-2 font-mono bg-muted">
                     <pre className="whitespace-pre-wrap break-all">{consoleLog}</pre>
                   </div>
-                  <div className="flex justify-end p-1 bg-gray-50 border-t">
+                  <div className="flex justify-end p-1 bg-muted border-t">
                     <Button
                       variant="ghost"
                       size="sm"

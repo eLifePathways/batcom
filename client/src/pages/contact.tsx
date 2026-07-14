@@ -101,7 +101,7 @@ export default function Contact() {
                 <Mail className="h-5 w-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-medium">Email</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     batcom@jhu.edu
                   </p>
                 </div>
@@ -111,7 +111,7 @@ export default function Contact() {
                 <Phone className="h-5 w-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-medium">Phone</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     +1 (410) 955-3000
                   </p>
                 </div>
@@ -121,7 +121,7 @@ export default function Contact() {
                 <MapPin className="h-5 w-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-medium">Address</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Johns Hopkins Bloomberg School of Public Health
                     <br />
                     615 N. Wolfe Street
@@ -135,7 +135,7 @@ export default function Contact() {
                 <Clock className="h-5 w-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <h3 className="font-medium">Office Hours</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Monday - Friday: 9:00 AM - 5:00 PM EST
                   </p>
                 </div>
@@ -150,7 +150,7 @@ export default function Contact() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 For media inquiries, please contact our communications team at:
               </p>
               <p className="text-sm font-medium mt-2">jhsph.media@jhu.edu</p>
@@ -279,7 +279,7 @@ export default function Contact() {
 
       {/* Map */}
       {/* <div className="mt-12">
-        <div className="rounded-lg overflow-hidden border border-gray-200 shadow-sm h-96">
+        <div className="rounded-lg overflow-hidden border border-border shadow-sm h-96">
           <iframe 
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3088.2317839937994!2d-76.59237842396273!3d39.29902647123361!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c80474cf1eba49%3A0x2d752bd4eb3cd087!2sJohns%20Hopkins%20Bloomberg%20School%20of%20Public%20Health!5e0!3m2!1sen!2sus!4v1709716234881!5m2!1sen!2sus" 
             width="100%" 

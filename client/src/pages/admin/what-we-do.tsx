@@ -914,17 +914,11 @@ export default function WhatWeDoAdmin() {
     <>
       <div className="container space-y-6">
         <div className="container pb-4">
-          {heroSectionLoading ? (
-            <div className="pt-12 pb-6">
-              <Skeleton className="h-9 md:h-10 w-64 mb-4" />
-              <Skeleton className="h-6 w-full max-w-3xl mb-4" />
-            </div>
-          ) : (
-            <HeroSection
-              description={heroSectionFormData.description}
-              title={heroSectionFormData.title}
-            />
-          )}
+          <HeroSection
+            description={heroSectionFormData.description}
+            loading={heroSectionLoading}
+            title={heroSectionFormData.title}
+          />
           <Button onClick={() => setEditingHeroSection(true)}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit Page Header
@@ -1148,7 +1142,7 @@ export default function WhatWeDoAdmin() {
                                       alt="Image preview"
                                       className="h-8 w-8 object-cover rounded-sm mr-2"
                                     />
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-muted-foreground">
                                       {content.content}
                                     </span>
                                   </div>

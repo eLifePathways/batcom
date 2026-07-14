@@ -387,17 +387,11 @@ export default function TeamMembersAdmin() {
   return (
     <div className="container mx-auto py-6">
       <div className="container pb-4">
-        {heroSectionLoading ? (
-          <div className="pt-12 pb-6">
-            <Skeleton className="h-9 md:h-10 w-64 mb-4" />
-            <Skeleton className="h-6 w-full max-w-3xl mb-4" />
-          </div>
-        ) : (
-          <HeroSection
-            description={heroSectionFormData.description}
-            title={heroSectionFormData.title}
-          />
-        )}
+        <HeroSection
+          description={heroSectionFormData.description}
+          loading={heroSectionLoading}
+          title={heroSectionFormData.title}
+        />
         <Button onClick={() => setEditingHeroSection(true)}>
           <Pencil className="mr-2 h-4 w-4" />
           Edit Page Header
@@ -617,7 +611,7 @@ export default function TeamMembersAdmin() {
         </DialogContent>
       </Dialog>
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-card rounded-lg shadow">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -654,8 +648,8 @@ export default function TeamMembersAdmin() {
                           />
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center h-12 w-12 bg-gray-100 rounded-full">
-                          <User className="h-6 w-6 text-gray-400" />
+                        <div className="flex items-center justify-center h-12 w-12 bg-muted rounded-full">
+                          <User className="h-6 w-6 text-muted-foreground" />
                         </div>
                       )}
                     </TableCell>
@@ -710,8 +704,8 @@ export default function TeamMembersAdmin() {
                             />
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center h-12 w-12 bg-gray-100 rounded-full">
-                            <User className="h-6 w-6 text-gray-400" />
+                          <div className="flex items-center justify-center h-12 w-12 bg-muted rounded-full">
+                            <User className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
                       </TableCell>
@@ -878,7 +872,7 @@ export default function TeamMembersAdmin() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-red-500 hover:text-red-600"
+                                className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -895,7 +889,7 @@ export default function TeamMembersAdmin() {
                                   </span>
                                   ?
                                 </p>
-                                <p className="text-sm text-gray-500 mt-2">
+                                <p className="text-sm text-muted-foreground mt-2">
                                   This action cannot be undone.
                                 </p>
                               </div>
@@ -927,7 +921,7 @@ export default function TeamMembersAdmin() {
                 <TableRow>
                   <TableCell
                     colSpan={5}
-                    className="text-center py-8 text-gray-500"
+                    className="text-center py-8 text-muted-foreground"
                   >
                     No team members found. Click "Add Team Member" to create
                     one.

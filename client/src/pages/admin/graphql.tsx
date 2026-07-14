@@ -22,7 +22,8 @@ import { useToast } from '@/hooks/use-toast'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { KotahiGroup, Settings } from '@shared/schema'
+import { KotahiGroup, KotahiSettingsFormData, Settings } from '@shared/schema'
+import { isKotahiSettingsFormData } from '@shared/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as z from 'zod'
 import { useForm } from 'react-hook-form'
@@ -288,8 +289,14 @@ export default function GraphQLAdmin() {
 
   const updateKotahiSettings = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: FormValues }) => {
+      // The form uses optional/undefined fields; storage uses `| null`.
+      const formData: KotahiSettingsFormData = {
+        endpoint: data.endpoint,
+        apiKey: data.apiKey ?? null,
+        groupId: data.groupId,
+      }
       const payload: Partial<Settings> = {
-        formData: data,
+        formData,
       }
 
       return apiRequest(`/api/settings/${id}`, {
@@ -337,10 +344,18 @@ export default function GraphQLAdmin() {
     }
 
     if (!isSettingsQueryLoading && settings) {
-      form.reset(settings.formData)
+      const { formData } = settings
+      if (isKotahiSettingsFormData(formData)) {
+        // Storage uses `| null`; the form fields expect strings.
+        form.reset({
+          endpoint: formData.endpoint,
+          apiKey: formData.apiKey ?? '',
+          groupId: formData.groupId ?? '',
+        })
 
-      if (settings.formData.endpoint) {
-        loadGroups(settings.formData.endpoint)
+        if (formData.endpoint) {
+          loadGroups(formData.endpoint)
+        }
       }
     }
   }, [form, settings])
@@ -555,7 +570,7 @@ export default function GraphQLAdmin() {
             </CardHeader>
             <CardContent>
               {!form.getValues().endpoint && (
-                <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded mb-4">
+                <div className="bg-warning/10 border border-warning/30 text-warning p-4 rounded mb-4">
                   <div className="flex items-center">
                     <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
                     <p>
@@ -712,13 +727,13 @@ export default function GraphQLAdmin() {
               </CardHeader>
               <CardContent>
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded mb-4 whitespace-pre-wrap font-mono text-sm">
+                  <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded mb-4 whitespace-pre-wrap font-mono text-sm">
                     {error}
                   </div>
                 )}
 
                 {response && (
-                  <pre className="bg-gray-50 p-4 rounded border overflow-auto max-h-96 text-sm">
+                  <pre className="bg-muted p-4 rounded border overflow-auto max-h-96 text-sm">
                     {JSON.stringify(response, null, 2)}
                   </pre>
                 )}
