@@ -20,7 +20,7 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
 - **Backend**: Express.js with TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
 - **API**: RESTful API with GraphQL proxy capabilities
-- **Deployment**: Docker-ready with Replit deployments support
+- **Deployment**: Docker-ready
 
 ## Getting Started
 
@@ -156,13 +156,6 @@ The API provides endpoints for managing all aspects of the research platform:
 ## Deployment
 
 The application can be deployed on any Node.js hosting platform that supports PostgreSQL.
-
-### Replit Deployment
-
-1. Fork the repository on Replit
-2. Set up environment variables
-3. Run the database initialization
-4. Deploy using Replit's deployment feature
 
 ### Docker Deployment
 

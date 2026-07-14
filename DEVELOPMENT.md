@@ -42,15 +42,6 @@ This guide provides detailed information for developers working on the Bat-Com R
    npm run dev
    ```
 
-### Replit Development
-
-If you're developing in Replit:
-
-1. Fork the repository on Replit
-2. The Replit environment will automatically install dependencies
-3. Set up environment secrets in the Replit Secrets panel
-4. Use the "Start application" workflow to run the server
-
 ## Architecture Overview
 
 ### Full-Stack Architecture

@@ -8,12 +8,11 @@ This guide provides instructions for deploying the Bat-Com Research Platform to 
 2. [Environment Setup](#environment-setup)
 3. [Database Setup](#database-setup)
 4. [Application Deployment](#application-deployment)
-5. [Replit Deployment](#replit-deployment)
-6. [Custom Server Deployment](#custom-server-deployment)
-7. [Docker Deployment](#docker-deployment)
-8. [CI/CD Setup](#cicd-setup)
-9. [Post-Deployment Verification](#post-deployment-verification)
-10. [Troubleshooting](#troubleshooting)
+5. [Custom Server Deployment](#custom-server-deployment)
+6. [Docker Deployment](#docker-deployment)
+7. [CI/CD Setup](#cicd-setup)
+8. [Post-Deployment Verification](#post-deployment-verification)
+9. [Troubleshooting](#troubleshooting)
 
 ## Prerequisites
 
@@ -48,7 +47,6 @@ ADMIN_PASSWORD="temporary-admin-password"
 
 For production environments, use environment-specific configuration systems:
 
-- **Replit**: Set secrets in the Replit Secrets panel
 - **Custom Server**: Use environment variables or a secure .env file
 - **Docker**: Pass environment variables through Docker Compose or Kubernetes
 
@@ -104,32 +102,6 @@ This will:
    ```bash
    npm start
    ```
-
-## Replit Deployment
-
-### Deploying to Replit
-
-1. Fork the repository on Replit
-2. Set up environment secrets in the Replit Secrets panel:
-   - `POSTGRES_URL`
-   - `JWT_SECRET`
-3. Run the database initialization:
-   ```bash
-   npm run db:push
-   ```
-4. Start the application:
-   ```bash
-   npm run dev
-   ```
-5. Use the Replit "Run" button to start the application
-6. Click the "Deploy" button to make the application publicly accessible
-
-### Custom Domain Setup on Replit
-
-1. Go to your Replit project
-2. Click on the "Deploy" tab
-3. Click "Add a custom domain"
-4. Follow the instructions to set up DNS records
 
 ## Custom Server Deployment
 
