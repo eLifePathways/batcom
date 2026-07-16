@@ -11,6 +11,7 @@ import Publications from '@/pages/publications'
 import BackgroundPapers from '@/pages/background-papers'
 import Search from '@/pages/search'
 import WhatWeDo from '@/pages/what-we-do'
+import AboutUs from '@/pages/about-us'
 import Contact from '@/pages/contact'
 import NotFound from '@/pages/not-found'
 import AdminPage from '@/pages/admin/index'
@@ -94,6 +95,7 @@ function Router() {
             <Route path="/publications/:id" component={Publication} />
             <Route path="/background-papers" component={BackgroundPapers} />
             <Route path="/what-we-do" component={WhatWeDo} />
+            <Route path="/about-us" component={AboutUs} />
             <Route path="/search" component={Search} />
             <Route path="/contact" component={Contact} />
             <Route path="/admin/*" component={AdminPage} />
