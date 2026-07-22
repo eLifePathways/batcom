@@ -1,47 +1,47 @@
 export const MANUSCRIPTS_PUBLISHED_SINCE_DATE = {
   query: `query {
 	manuscriptsPublishedSinceDate {
-	id
-	shortId
-	totalCount
-	reviews {
 		id
-		jsonData
-		users {
+		shortId
+		totalCount
+		reviews {
 			id
-			username
-			defaultIdentity {
+			jsonData
+			users {
 				id
-				identifier
+				username
+				defaultIdentity {
+					id
+					identifier
+				}
 			}
 		}
-	}
-	decisions {
-		id
-		jsonData
-		users {
+		decisions {
 			id
-			username
-			defaultIdentity {
+			jsonData
+			users {
 				id
-				identifier
+				username
+				defaultIdentity {
+					id
+					identifier
+			}
+			}
 		}
+		editors {
+			id
+			name
+			role
 		}
-	}
-	editors {
-		id
-		name
-		role
-	}
-	status
-	meta {
-		source 
-	}
-	submission
-	supplementaryFiles
-	submissionWithFields
-	publishedDate
-	css
+		status
+		meta {
+			source 
+		}
+		submission
+		supplementaryFiles
+		submissionWithFields
+		publishedDate
+		css
 	}
 }
 `,

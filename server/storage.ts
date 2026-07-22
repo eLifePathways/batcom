@@ -100,6 +100,7 @@ export interface IStorage {
   getAllReviews(): Promise<Review[]>
   getReview(id: number): Promise<Review | undefined>
   createReview(review: InsertReview): Promise<Review>
+  updateReview(id: number, data: Partial<Review>): Promise<Review | undefined>
   getReviewsForPublication(publicationId: number): Promise<Review[]>
 
   // Hero settings operations
@@ -528,6 +529,25 @@ export class MemStorage implements IStorage {
     }
     this.reviews.set(id, newReview)
     return newReview
+  }
+
+  async updateReview(
+    id: number,
+    data: Partial<Review>,
+  ): Promise<Review | undefined> {
+    const review = this.reviews.get(id)
+    if (!review) {
+      return undefined
+    }
+
+    const updatedReview: Review = {
+      ...review,
+      ...data,
+      id,
+    }
+
+    this.reviews.set(id, updatedReview)
+    return updatedReview
   }
 
   async getReviewsForPublication(publicationId: number): Promise<Review[]> {

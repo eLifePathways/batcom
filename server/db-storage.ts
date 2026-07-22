@@ -525,6 +525,24 @@ export class DatabaseStorage implements IStorage {
     return result[0]
   }
 
+  async updateReview(
+    id: number,
+    data: Partial<Review>,
+  ): Promise<Review | undefined> {
+    const existingReview = await this.getReview(id)
+    if (!existingReview) {
+      return undefined
+    }
+
+    const [updatedReview] = await db
+      .update(reviews)
+      .set(data)
+      .where(eq(reviews.id, id))
+      .returning()
+
+    return updatedReview
+  }
+
   async getReviewsForPublication(publicationId: number): Promise<Review[]> {
     return db
       .select()

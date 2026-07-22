@@ -11,6 +11,7 @@ import {
 } from './analytics-api'
 import {
   InsertPublication,
+  InsertReview,
   insertUserSchema,
   KotahiPublishedManuscript,
   KotahiReviewField,
@@ -1335,6 +1336,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/kotahi/sync', async (req: Request, res, Response) => {
     const settings = await storage.getSettings('kotahi')
 
+    console.log('syncing with kothi using', settings)
+
     if (!settings || !isKotahiSettingsFormData(settings.formData)) {
       return res.status(400).json({ message: 'Invalid Kotahi settings' })
     }
@@ -1375,100 +1378,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
         virusCategoriesMap.get('other/unknown')?.id || -1
 
       const publications = await Promise.all(
-        // insert only for now, update later
         rawManuscripts.map(async manuscript => {
+          const {
+            $abstract = '',
+            $sourceUri = '',
+            $title = '',
+            datePublished = '',
+            firstAuthor = '',
+          } = JSON.parse(manuscript.submission)
+
+          const review = manuscript.reviews.find(r => !r.isDecision)
+          const decision = manuscript.decisions.find(r => r.isDecision)
+
+          let reviewContent: Array<KotahiReviewField> = []
+
+          // right now we only care about reviews. If we do not have a public review, skip
+          if (!review) {
+            return null
+          }
+
+          if (review.jsonData) {
+            reviewContent = JSON.parse(review.jsonData) ?? []
+          }
+
+          if (!reviewContent.length) {
+            return null
+          }
+
+          const reviewGeographicRegionField = reviewContent.find(
+            f => f.fieldName === REVIEW_GEOGRAPHIC_REGION_FIELD,
+          )
+          const regions = getValueFromReviewField(reviewGeographicRegionField)
+
+          const reviewEvidenceInfectionField = reviewContent.find(
+            f => f.fieldName === REVIEW_EVIDENCE_INFECTION_FIELD,
+          )
+          const [evidenceInfection] = getValueFromReviewField(
+            reviewEvidenceInfectionField,
+          )
+
+          if (!evidenceInfection) {
+            return null
+          }
+
+          const reviewEvidenceSpilloverField = reviewContent.find(
+            f => f.fieldName === REVIEW_EVIDENCE_SPILLOVER_FIELD,
+          )
+          const [evidenceSpillover] = getValueFromReviewField(
+            reviewEvidenceSpilloverField,
+          )
+
+          if (!evidenceSpillover) {
+            return null
+          }
+
+          const reviewVirusCategoryField = reviewContent.find(
+            f => f.fieldName === REVIEW_VIRUS_CATEGORY_FIELD,
+          )
+
+          const virusCategoryIds = getValueFromReviewField(
+            reviewVirusCategoryField,
+          )?.map(v => virusCategoriesMap.get(v)?.id || unknownVirusCategoryId)
+
+          const publicationPayload: InsertPublication = {
+            title: $title,
+            kotahiManuscriptId: manuscript.id,
+            authors: firstAuthor,
+            year: getYearFromInput(datePublished),
+            abstract: $abstract,
+            evidenceInfection,
+            evidenceSpillover,
+            virusCategoryIds,
+            regions,
+            publicationDate: getValidDate(datePublished),
+            link: $sourceUri,
+          }
+
+          const reviewPayload: Omit<InsertReview, 'publicationId'> = {
+            users: review?.users || [],
+            jsonData: reviewContent,
+            isDecision: !!review?.isDecision,
+          }
+
           if (!existingPublicationsMap.has(manuscript.id)) {
-            const {
-              $abstract = '',
-              $sourceUri = '',
-              $title = '',
-              datePublished = '',
-              firstAuthor = '',
-            } = JSON.parse(manuscript.submission)
-
-            const review = manuscript.reviews.find(r => !r.isDecision)
-            const decision = manuscript.decisions.find(r => r.isDecision)
-
-            let reviewContent: Array<KotahiReviewField> = []
-
-            // right now we only care about reviews. If we do not have a public review, skip
-            if (!review) {
-              return null
-            }
-
-            if (review.jsonData) {
-              reviewContent = JSON.parse(review.jsonData) ?? []
-            }
-
-            if (!reviewContent.length) {
-              return null
-            }
-
-            const reviewGeographicRegionField = reviewContent.find(
-              f => f.fieldName === REVIEW_GEOGRAPHIC_REGION_FIELD,
-            )
-            const regions = getValueFromReviewField(reviewGeographicRegionField)
-
-            const reviewEvidenceInfectionField = reviewContent.find(
-              f => f.fieldName === REVIEW_EVIDENCE_INFECTION_FIELD,
-            )
-            const [evidenceInfection] = getValueFromReviewField(
-              reviewEvidenceInfectionField,
-            )
-
-            if (!evidenceInfection) {
-              return null
-            }
-
-            const reviewEvidenceSpilloverField = reviewContent.find(
-              f => f.fieldName === REVIEW_EVIDENCE_SPILLOVER_FIELD,
-            )
-            const [evidenceSpillover] = getValueFromReviewField(
-              reviewEvidenceSpilloverField,
-            )
-
-            if (!evidenceSpillover) {
-              return null
-            }
-
-            const reviewVirusCategoryField = reviewContent.find(
-              f => f.fieldName === REVIEW_VIRUS_CATEGORY_FIELD,
-            )
-
-            const virusCategoryIds = getValueFromReviewField(
-              reviewVirusCategoryField,
-            )?.map(v => virusCategoriesMap.get(v)?.id || unknownVirusCategoryId)
-
-            const publicationPayload: InsertPublication = {
-              title: $title,
-              kotahiManuscriptId: manuscript.id,
-              authors: firstAuthor,
-              year: getYearFromInput(datePublished),
-              abstract: $abstract,
-              evidenceInfection,
-              evidenceSpillover,
-              virusCategoryIds,
-              regions,
-              publicationDate: getValidDate(datePublished),
-              link: $sourceUri,
-            }
-
             const newPublication =
               await storage.createPublication(publicationPayload)
 
             await storage.createReview({
+              ...reviewPayload,
               publicationId: newPublication.id,
-              users: review?.users || [],
-              jsonData: reviewContent,
-              isDecision: !!review?.isDecision,
             })
 
             return newPublication
           } else {
-            const existingPublication = existingPublicationsMap.get(
+            let existingPublication = existingPublicationsMap.get(
               manuscript.id,
             )!
             console.log('Manuscript already exists:', existingPublication.id)
+
+            existingPublication = (await storage.updatePublication(
+              existingPublication.id,
+              publicationPayload,
+            ))!
+
+            const [existingReview] = await storage.getReviewsForPublication(
+              existingPublication.id,
+            )
+
+            if (!existingReview) {
+              await storage.createReview({
+                ...reviewPayload,
+                publicationId: existingPublication.id,
+              })
+            } else {
+              await storage.updateReview(existingReview.id, {
+                ...reviewPayload,
+                publicationId: existingPublication.id,
+              })
+            }
 
             return existingPublication
           }
