@@ -102,7 +102,12 @@ export default function Contact() {
                 <div>
                   <h3 className="font-medium">Email</h3>
                   <p className="text-sm text-muted-foreground">
-                    batcom@jhu.edu
+                    <a
+                      className="text-link hover:text-primary"
+                      href="mailto:batvirus@jh.edu"
+                    >
+                      batvirus@jh.edu
+                    </a>
                   </p>
                 </div>
               </div>
@@ -159,7 +164,7 @@ export default function Contact() {
         </div>
 
         {/* Contact Form */}
-        <div className="lg:col-span-2">
+        {/* <div className="lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-primary">
@@ -274,7 +279,7 @@ export default function Contact() {
               </Form>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
 
       {/* Map */}
