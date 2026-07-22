@@ -406,13 +406,13 @@ export default function PublicationsAdmin() {
               </>
             )}
           </Button>
-          <Button
+          {/* <Button
             disabled={isFetchingPublications}
             onClick={() => setIsAddDialogOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Publication
-          </Button>
+          </Button> */}
         </div>
       </div>
 

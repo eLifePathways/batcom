@@ -152,20 +152,9 @@ To reorder team members:
 
 To add a new publication:
 
-1. Go to Admin → Publications
-2. Click "Add Publication"
-3. Fill out the form with:
-   - Title
-   - Authors
-   - Year
-   - Abstract
-   - Evidence quality
-   - Evidence type
-   - Virus category
-   - Region
-   - Publication date
-   - Link (optional)
-4. Click "Save" to add the publication
+1. Make sure you have setup "GraphQL API" under Admin settings
+2. Go to Admin → Publications
+3. Click "Refresh Publication"
 
 ### Managing Background Papers
 
