@@ -34,15 +34,15 @@ const Header = () => {
           <img
             src="/assets/logos/bloomberg-logo.svg"
             alt="Johns Hopkins Bloomberg School of Public Health"
-            className="h-24"
+            className="h-32"
           />
         </Link>
 
-        {/* <div className="flex items-center">
+        <div className="flex items-center gap-4">
+          <div className="hidden md:block font-heading font-bold text-lg text-right">
+            Bat Virus Spillover Research Compendium (Bat-Com)
+          </div>
           <img src="/assets/bats.png" alt="Bat-Com Logo" className="h-12" />
-        </div> */}
-        <div className="hidden md:block font-heading font-bold text-lg">
-          Bat Virus Spillover Evidence Consortium
         </div>
       </div>
 
