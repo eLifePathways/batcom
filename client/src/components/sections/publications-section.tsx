@@ -18,7 +18,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts'
 
 import { useSearchParams } from '@/hooks'
@@ -29,6 +28,7 @@ import {
   EvidenceInfection,
   EvidenceSpillover,
   GEOGRAPHIC_REGIONS,
+  QUALITY_COLOURS,
   Region,
 } from '@shared/constants'
 import { getQualityColour } from '@/lib/utils'
@@ -240,6 +240,51 @@ const PublicationsSection = () => {
 
   const chartData = prepareChartData()
 
+  // Shared quality-level legend (colour == quality, for both figures)
+  const qualityLegend: { key: keyof typeof QUALITY_COLOURS; label: string }[] =
+    [
+      { key: 'High', label: 'High' },
+      { key: 'Moderate', label: 'Moderate' },
+      { key: 'Low', label: 'Low' },
+      { key: 'Not_Investigated', label: 'Not investigated' },
+    ]
+
+  const renderEvidenceChart = (
+    title: string,
+    subtitle: string,
+    evidenceMap: Record<string, string>,
+  ) => (
+    <div>
+      <h3 className="font-heading font-semibold text-primary text-lg">
+        {title}
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">{subtitle}</p>
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            barCategoryGap="30%"
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="1 0" vertical={false} />
+            <XAxis dataKey="year" padding={{ left: 20, right: 20 }} />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            {Object.entries(evidenceMap).map(([key, label]) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                stackId="evidence"
+                name={label}
+                fill={getQualityColour(key)}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+
   const renderSkeleton = () => (
     <>
       {[...Array(2)].map((_, index) => (
@@ -287,84 +332,30 @@ const PublicationsSection = () => {
 
         {/* Data Visualization */}
         <div className="bg-card rounded-lg shadow-md p-6 mb-8">
-          <h3 className="font-heading font-semibold text-primary text-lg mb-4">
-            Publication Year of Papers Reviewed
-          </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                barCategoryGap="30%"
-                barGap={2}
-                data={chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="1 0" vertical={false} />
-                <XAxis dataKey="year" padding={{ left: 20, right: 20 }} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                {Object.entries(EVIDENCE_QUALITY_INFECTION).map(
-                  ([key, label]) => (
-                    <Bar
-                      key={key}
-                      dataKey={key}
-                      name={`Infection – ${label}`}
-                      fill={getQualityColour(key)}
-                    />
-                  ),
-                )}
-
-                {Object.entries(EVIDENCE_QUALITY_SPILLOVER).map(
-                  ([key, label]) => (
-                    <Bar
-                      key={`spillover-${key}`}
-                      dataKey={key}
-                      name={`Spillover – ${label}`}
-                      fill={getQualityColour(key)}
-                    />
-                  ),
-                )}
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6">
+            {qualityLegend.map(({ key, label }) => (
+              <div key={key} className="flex items-center">
+                <div
+                  className="w-4 h-4 rounded-sm border mr-2"
+                  style={{ backgroundColor: QUALITY_COLOURS[key] }}
+                ></div>
+                <span className="text-sm text-foreground">{label}</span>
+              </div>
+            ))}
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-sm bg-muted-foreground/40 border mr-2"></div>
-                <span className="text-sm text-foreground">
-                  Infection (left bars per year)
-                </span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-sm bg-muted-foreground border mr-2"></div>
-                <span className="text-sm text-foreground">
-                  Spillover (right bars per year)
-                </span>
-              </div>
-            </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center">
-                <div className="w-12 h-1 bg-success mr-2"></div>
-                <span className="text-sm text-foreground">High Quality</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-12 h-1 bg-warning mr-2"></div>
-                <span className="text-sm text-foreground">
-                  Moderate Quality
-                </span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-12 h-1 bg-destructive mr-2"></div>
-                <span className="text-sm text-foreground">Low Quality</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-12 h-1 bg-muted-foreground mr-2"></div>
-                <span className="text-sm text-foreground">
-                  Not Investigated
-                </span>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-8">
+            {renderEvidenceChart(
+              'Quality of evidence that a spillover infection occurred',
+              'Papers reviewed per year, counted once by their infection rating',
+              EVIDENCE_QUALITY_INFECTION,
+            )}
+
+            {renderEvidenceChart(
+              'Quality of evidence about how the spillover occurred',
+              'Papers reviewed per year, counted once by their spillover rating',
+              EVIDENCE_QUALITY_SPILLOVER,
+            )}
           </div>
         </div>
 
