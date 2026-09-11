@@ -36,13 +36,13 @@ export const createHeroSettingsTableAndAddDefaults = async () => {
       name: 'backgroundPapers',
       title: 'Background Papers',
       description:
-        'Our background papers provide comprehensive overviews of bat virus research, synthesizing key findings and highlighting important knowledge gaps. These papers are designed to be accessible to researchers, public health officials, and policymakers.',
+        'We review papers related to bat-virus spillovers. The papers below represent seminal work showing that bats are the reservoir hosts for the viruses we cover at Bat-Com.',
     },
     {
       name: 'contact',
       title: 'Contact Us',
       description:
-        'Have questions about our research or want to collaborate? Get in touch with the Bat-Com team. We welcome inquiries from researchers, public health officials, and other stakeholders.',
+        'Please reach out to us by email with any comments, questions or suggestions for papers to review.',
     },
     {
       name: 'home',

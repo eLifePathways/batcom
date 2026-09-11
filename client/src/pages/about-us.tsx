@@ -172,7 +172,7 @@ export default function AboutUs() {
     }
   }, [sections, activeTab])
 
-  const { description: whatWeDoDescription = '', title: whtWeDoTitle = '' } =
+  const { description: whatWeDoDescription = '', title: whatWeDoTitle = '' } =
     whatWeDoHeroSectionData ?? {}
 
   const { description = '', title = '' } = heroSectionData ?? {}
@@ -181,7 +181,7 @@ export default function AboutUs() {
     <main className="container mx-auto px-4 pb-8">
       <div className="container ">
         <HeroSection
-          title={whtWeDoTitle}
+          title={whatWeDoTitle}
           loading={whatWeDoHeroSectionLoading}
           description={whatWeDoDescription}
         />

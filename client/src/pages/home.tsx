@@ -12,9 +12,19 @@ const Home = () => {
       queryKey: ['/api/hero-section/home'],
     })
 
+  const {
+    data: whatWeDoHeroSectionData,
+    isLoading: whatWeDoHeroSectionLoading,
+  } = useQuery<HeroSectionSettings>({
+    queryKey: ['/api/hero-section/whatWeDo'],
+  })
+
   const { description = '', title = '' } = heroSectionData ?? {}
+
+  const { description: whatWeDoDescription = '', title: whatWeDoTitle = '' } =
+    whatWeDoHeroSectionData ?? {}
   return (
-    <main className="container mx-auto px-4">
+    <main className="container mx-auto px-4 flex flex-col gap-4">
       <HeroSection
         description={description}
         loading={heroSectionLoading}
@@ -22,9 +32,12 @@ const Home = () => {
       />
       <div className="border-b border-border mb-10"></div>
       <VirusCategoriesSection />
-      <TeamSection showAllMembers={false} />
+      <HeroSection
+        title={whatWeDoTitle}
+        loading={whatWeDoHeroSectionLoading}
+        description={whatWeDoDescription}
+      />
       <PublicationsSection />
-      <BackgroundPapersSection showAllPapers={false} />
     </main>
   )
 }
