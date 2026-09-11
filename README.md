@@ -26,7 +26,7 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 20+ and Yarn 4 (via Corepack)
 - PostgreSQL database
 
 ### Installation
@@ -41,7 +41,7 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
 2. Install dependencies
 
    ```bash
-   npm install
+   yarn install
    ```
 
 3. Set up environment variables
@@ -58,13 +58,13 @@ A cutting-edge research platform for Johns Hopkins Bloomberg School of Public He
 4. Initialize the database
 
    ```bash
-   npm run db:push
+   yarn db:push
    ```
 
 5. Start the development server
 
    ```bash
-   npm run dev
+   yarn dev
    ```
 
 6. Open your browser and navigate to `http://localhost:5120`

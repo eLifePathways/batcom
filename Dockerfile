@@ -2,17 +2,19 @@ FROM cokoapps/base:20
 
 WORKDIR /app
 
-COPY package*.json ./
+RUN corepack enable
 
-RUN npm ci
+COPY .yarnrc.yml package.json yarn.lock ./
+
+RUN yarn install --immutable
 
 COPY . .
 
-RUN npm rebuild esbuild
+RUN yarn rebuild esbuild
 
-RUN npm run build
+RUN yarn build
 
 ENV NODE_ENV=production
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 EXPOSE 5120
-CMD ["npm", "run", "start:prod"]
+CMD ["yarn", "start:prod"]

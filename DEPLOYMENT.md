@@ -19,7 +19,7 @@ This guide provides instructions for deploying the Bat-Com Research Platform to 
 Before deployment, ensure you have:
 
 - Node.js 18+ installed
-- npm 8+ installed
+- Yarn 4 (via Corepack)
 - PostgreSQL 14+ database access
 - Git for version control
 - Access to the deployment environment
@@ -73,7 +73,7 @@ For production environments, use environment-specific configuration systems:
 Run the following command to set up the database schema:
 
 ```bash
-npm run db:push
+yarn db:push
 ```
 
 This will:
@@ -89,18 +89,18 @@ This will:
 1. Install dependencies:
 
    ```bash
-   npm install
+   yarn install
    ```
 
 2. Build the frontend assets:
 
    ```bash
-   npm run build
+   yarn build
    ```
 
 3. Start the server:
    ```bash
-   npm start
+   yarn start
    ```
 
 ## Custom Server Deployment
@@ -117,7 +117,7 @@ This will:
 2. Install dependencies:
 
    ```bash
-   npm install
+   yarn install
    ```
 
 3. Create a `.env` file with environment variables
@@ -125,12 +125,12 @@ This will:
 4. Build the application:
 
    ```bash
-   npm run build
+   yarn build
    ```
 
 5. Start the server:
    ```bash
-   npm start
+   yarn start
    ```
 
 ### PM2 Process Manager (Recommended)
@@ -146,7 +146,7 @@ For production environments, use PM2 to manage the Node.js process:
 2. Start the application with PM2:
 
    ```bash
-   pm2 start npm --name "batcom" -- start
+   pm2 start yarn --name "batcom" -- start
    ```
 
 3. Set up PM2 to start on system boot:
@@ -230,7 +230,7 @@ volumes:
 
 3. Run database migrations:
    ```bash
-   docker-compose exec app npm run db:push
+   docker-compose exec app yarn db:push
    ```
 
 ### Kubernetes Deployment
@@ -353,13 +353,13 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --immutable
 
       - name: Build application
-        run: npm run build
+        run: yarn build
 
       - name: Run database migrations
-        run: npm run db:push
+        run: yarn db:push
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
 
@@ -372,8 +372,8 @@ jobs:
           script: |
             cd /path/to/deployment
             git pull
-            npm ci
-            npm run build
+            yarn install --immutable
+            yarn build
             pm2 restart batcom
 ```
 
@@ -398,7 +398,7 @@ curl -I https://your-domain.com
 curl https://your-domain.com/api/virus-categories
 
 # Check database connection
-npm run db:verify
+yarn db:verify
 ```
 
 ## Troubleshooting
@@ -421,7 +421,7 @@ If the application fails to start:
 1. Check the logs for error messages:
 
    ```bash
-   npm run logs
+   yarn logs
    # or if using PM2
    pm2 logs batcom
    ```

@@ -16,7 +16,7 @@ This guide provides detailed information for developers working on the Bat-Com R
 2. **Install dependencies**
 
    ```bash
-   npm install
+   yarn install
    ```
 
 3. **Set up environment variables**
@@ -34,12 +34,12 @@ This guide provides detailed information for developers working on the Bat-Com R
 4. **Initialize the database**
 
    ```bash
-   npm run db:push
+   yarn db:push
    ```
 
 5. **Start the development server**
    ```bash
-   npm run dev
+   yarn dev
    ```
 
 ## Architecture Overview
@@ -233,7 +233,7 @@ React Query is configured for optimal performance:
 Unit tests can be written using Jest and React Testing Library:
 
 ```bash
-npm test
+yarn test
 ```
 
 ### API Testing
@@ -258,7 +258,7 @@ If you encounter database connection issues:
 
 If you encounter TypeScript errors:
 
-1. Run `npm run build` to check for type errors
+1. Run `yarn build` to check for type errors
 2. Ensure that all imports are correctly typed
 3. Check that the schema definitions match the database structure
 
@@ -284,7 +284,7 @@ try {
 ### Production Deployment Checklist
 
 - [ ] Run database migrations
-- [ ] Build frontend assets (`npm run build`)
+- [ ] Build frontend assets (`yarn build`)
 - [ ] Set environment variables
 - [ ] Configure proper CORS settings
 - [ ] Enable production mode for Express
