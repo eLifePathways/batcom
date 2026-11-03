@@ -1,0 +1,1 @@
+ALTER TABLE "virus_categories" ADD COLUMN "is_complete" boolean DEFAULT false NOT NULL;

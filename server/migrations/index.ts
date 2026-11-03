@@ -1,7 +1,0 @@
-export { updateIssueCommentsSchema } from './1761500001-db-migration'
-export { addSortOrderToTeamMembers } from './1761500002-team-migration'
-export { addDefaultSettings } from './1761588154-default-settings-migration'
-export { addKotahiManuscriptIdColumn } from './1764663522-add-kotahi-manuscript-id-column'
-export { renameEvidenceColumns } from './1765193572-rename-evidence-quality-columns'
-export { pluraliseVirusCategoriesAndRegions } from './1765350503-virus-categories-and-regions'
-export { createHeroSettingsTableAndAddDefaults } from './1782992098-hero-settings-migration'

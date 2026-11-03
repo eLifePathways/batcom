@@ -7,15 +7,6 @@ import { storage } from './storage'
 import { DatabaseStorage } from './db-storage'
 import { analyticsMiddleware } from './analytics'
 import { spaMiddleware } from './spa-middleware'
-import {
-  addDefaultSettings,
-  addKotahiManuscriptIdColumn,
-  addSortOrderToTeamMembers,
-  createHeroSettingsTableAndAddDefaults,
-  pluraliseVirusCategoriesAndRegions,
-  renameEvidenceColumns,
-  updateIssueCommentsSchema,
-} from './migrations'
 import cookieParser from 'cookie-parser'
 
 const app = express()
@@ -62,20 +53,8 @@ app.use((req, res, next) => {
       console.log('Initializing database...')
       await initDatabase()
 
-      // Run migration scripts to update database schema
-      try {
-        console.log('Running database migrations...')
-        await updateIssueCommentsSchema()
-        await addSortOrderToTeamMembers()
-        await addDefaultSettings()
-        await addKotahiManuscriptIdColumn()
-        await renameEvidenceColumns()
-        await pluraliseVirusCategoriesAndRegions()
-        await createHeroSettingsTableAndAddDefaults()
-      } catch (migrationError) {
-        console.error('Error during database migration:', migrationError)
-        // Continue with server startup even if migrations fail
-      }
+      // Schema changes are applied via drizzle migrations (yarn db:migrate,
+      // run automatically by start:prod / dev). See server/migrate.ts.
 
       // If we're using PostgreSQL storage, initialize sample data
       if (storage instanceof DatabaseStorage) {

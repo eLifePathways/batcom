@@ -952,407 +952,460 @@ export class DatabaseStorage implements IStorage {
   async initializeDatabase(): Promise<void> {
     console.log('Initializing database with sample data...')
 
-    // Check if we already have data
-    const existingCategories = await this.getAllVirusCategories()
-    if (existingCategories.length > 0) {
-      console.log('Database already contains data, skipping initialization.')
-      return
-    }
-
     try {
-      // Add virus categories
-      const [coronaviridae] = await db
-        .insert(virusCategories)
-        .values({
-          name: 'Coronaviridae',
-          description:
-            'Family of enveloped, positive-sense, single-stranded RNA viruses.',
-          imageUrl: '/assets/viruses/coronavirus.svg',
-        })
-        .returning()
-
-      const [filoviridae] = await db
-        .insert(virusCategories)
-        .values({
-          name: 'Filoviridae',
-          description:
-            'Family of filamentous, enveloped, negative-sense RNA viruses.',
-          imageUrl: '/assets/viruses/filovirus.svg',
-        })
-        .returning()
-
-      const [paramyxoviridae] = await db
-        .insert(virusCategories)
-        .values({
-          name: 'Paramyxoviridae',
-          description:
-            'Family of negative-sense RNA viruses, including measles and mumps.',
-          imageUrl: '/assets/viruses/paramyxovirus.svg',
-        })
-        .returning()
-
-      //   const [sedoreoviridae] = await db
-      //     .insert(virusCategories)
-      //     .values({
-      //       name: 'Sedoreoviridae',
-      //       description: 'Subfamily of viruses within the family Reoviridae.',
-      //       imageUrl: '/assets/viruses/sedoreovirus.svg',
-      //     })
-      //     .returning()
-
-      const [rhabdoviridae] = await db
-        .insert(virusCategories)
-        .values({
-          name: 'Rhabdoviridae',
-          description:
-            'Family of negative-sense RNA viruses, including rabies virus.',
-          imageUrl: '/assets/viruses/rhabdovirus.svg',
-        })
-        .returning()
-
-      const [otherUnknown] = await db
-        .insert(virusCategories)
-        .values({
-          name: 'Other/Unknown',
-          description:
-            'Additional viral families and unclassified viruses under investigation.',
-          imageUrl: '/assets/viruses/unknown-virus.svg',
-        })
-        .returning()
-
-      // Add default admin
-      const rawPassword = process.env.ADMIN_PASSWORD || 'ADM!N_PASSW0RD'
-      const hashedPassword = await hashPassword(rawPassword)
-
-      await db.insert(users).values({
-        username: 'admin',
-        password: hashedPassword,
-      })
-
-      // Add team members
-      await db.insert(teamMembers).values({
-        name: 'Emily Gurley',
-        title: 'Professor of Epidemiology',
-        institution:
-          'Johns Hopkins University - Bloomberg School of Public Health',
-        description:
-          'Professor of Epidemiology specializing in zoonotic disease transmission and viral spillover events.',
-        imageUrl: '/assets/team/emily-gurley.png',
-        email: 'egurley@jhu.edu',
-        website: 'https://www.jhsph.edu/faculty/directory/profile/emily-gurley',
-        socialMedia: 'https://www.linkedin.com/in/emily-gurley',
-      })
-
-      await db.insert(teamMembers).values({
-        name: 'Clif McKee',
-        title: 'Research Scientist',
-        institution:
-          'Johns Hopkins University - Bloomberg School of Public Health',
-        description:
-          'Research Scientist focused on bat ecology and viral evolution in bat populations.',
-        imageUrl: '/assets/team/cliff-whitworth.png',
-        email: 'cmckee@jhu.edu',
-        website: 'https://www.jhsph.edu/faculty/directory/profile/clif-mckee',
-        socialMedia: 'https://twitter.com/clif_mckee',
-      })
-
-      // Add publications
-      await db.insert(publications).values({
-        title: 'Bat Coronaviruses in China',
-        authors: 'Li et al.',
-        year: 2018,
-        abstract:
-          'Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.',
-        evidenceInfection: 'infectionHigh',
-        evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryIds: [coronaviridae.id],
-        regions: ['western_pacific'],
-        publicationDate: '2018-03-15',
-        link: 'https://example.com/bat-coronaviruses-china',
-      })
-
-      await db.insert(publications).values({
-        title: 'Nipah Virus Emergence in Malaysia',
-        authors: 'Chua et al.',
-        year: 2000,
-        abstract:
-          'Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.',
-        evidenceInfection: 'infectionModerate',
-        evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryIds: [paramyxoviridae.id],
-        regions: ['southeast_asia'],
-        publicationDate: '2000-09-26',
-        link: 'https://example.com/nipah-virus-emergence',
-      })
-
-      await db.insert(publications).values({
-        title: 'Ebola Virus Antibodies in Fruit Bats',
-        authors: 'Leroy et al.',
-        year: 2005,
-        abstract:
-          'Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.',
-        evidenceInfection: 'infectionLow',
-        evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryIds: [filoviridae.id],
-        regions: ['africa'],
-        publicationDate: '2005-12-01',
-        link: 'https://example.com/ebola-antibodies-bats',
-      })
-
-      await db.insert(publications).values({
-        title: 'MERS-CoV in Saudi Arabian Camels',
-        authors: 'Azhar et al.',
-        year: 2014,
-        abstract:
-          'Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.',
-        evidenceInfection: 'infectionHigh',
-        evidenceSpillover: 'spilloverNot_Investigated',
-        virusCategoryIds: [coronaviridae.id],
-        regions: ['eastern_mediterranean'],
-        publicationDate: '2014-06-05',
-        link: 'https://example.com/mers-cov-camels',
-      })
-
-      // Add background papers
-      await db.insert(backgroundPapers).values({
-        title: 'Origin and evolution of pathogenic coronaviruses',
-        virusCategoryId: coronaviridae.id,
-        link: 'https://example.com/coronavirus-evolution',
-        imageUrl: '/assets/viruses/bat-hanging.png',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Bat coronaviruses in China: A comprehensive review',
-        virusCategoryId: coronaviridae.id,
-        link: 'https://example.com/bat-coronavirus-review',
-        imageUrl: '/assets/viruses/bat-flying.png',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'SARS-CoV-2: Zoonotic origins and wildlife reservoirs',
-        virusCategoryId: coronaviridae.id,
-        link: 'https://example.com/sars-cov-2-origins',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Fruit bats as reservoirs of Ebola virus',
-        virusCategoryId: filoviridae.id,
-        link: 'https://example.com/fruit-bats-ebola',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Marburg virus ecology in African bat populations',
-        virusCategoryId: filoviridae.id,
-        link: 'https://example.com/marburg-ecology',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Molecular characterization of filoviruses in bats',
-        virusCategoryId: filoviridae.id,
-        link: 'https://example.com/filovirus-characterization',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Nipah virus: Transmission dynamics and epidemiology',
-        virusCategoryId: paramyxoviridae.id,
-        link: 'https://example.com/nipah-transmission',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Hendra virus: Bat-horse-human transmission pathways',
-        virusCategoryId: paramyxoviridae.id,
-        link: 'https://example.com/hendra-pathways',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Evolutionary dynamics of bat paramyxoviruses',
-        virusCategoryId: paramyxoviridae.id,
-        link: 'https://example.com/paramyxovirus-evolution',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Bat lyssaviruses: Antigenic and genetic diversity',
-        virusCategoryId: rhabdoviridae.id,
-        link: 'https://example.com/bat-lyssaviruses',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Global patterns of rabies virus persistence in bat reservoirs',
-        virusCategoryId: rhabdoviridae.id,
-        link: 'https://example.com/rabies-persistence',
-      })
-
-      await db.insert(backgroundPapers).values({
-        title: 'Ecological factors influencing bat-associated rhabdoviruses',
-        virusCategoryId: rhabdoviridae.id,
-        link: 'https://example.com/rhabdovirus-ecology',
-      })
-
-      // Add "What We Do" sections
-      const [researchSection] = await db
-        .insert(whatWeDoSections)
-        .values({
-          title: 'Research Initiatives',
-          subtitle: 'Our Bat-CoV Research Initiatives',
-          description:
-            'We study bat-borne viruses with an emphasis on understanding viral ecology, host factors, and transmission dynamics.',
-          slug: 'research-initiatives',
-          imageUrl: '/assets/what-we-do/research.jpg',
-          sortOrder: 0,
-        })
-        .returning()
-
-      const [fieldSection] = await db
-        .insert(whatWeDoSections)
-        .values({
-          title: 'Field Work',
-          subtitle: 'Bat Population Sampling & Monitoring',
-          description:
-            'Our field teams collect samples from bat populations across multiple continents to track viral prevalence and diversity.',
-          slug: 'field-work',
-          imageUrl: '/assets/what-we-do/field-work.jpg',
-          sortOrder: 1,
-        })
-        .returning()
-
-      const [labSection] = await db
-        .insert(whatWeDoSections)
-        .values({
-          title: 'Laboratory Analysis',
-          subtitle: 'State-of-the-art Diagnostic Capabilities',
-          description:
-            'We employ cutting-edge molecular techniques to identify and characterize novel viruses.',
-          slug: 'laboratory-analysis',
-          imageUrl: '/assets/what-we-do/lab-analysis.jpg',
-          sortOrder: 2,
-        })
-        .returning()
-
-      const [modelingSection] = await db
-        .insert(whatWeDoSections)
-        .values({
-          title: 'Epidemic Modeling',
-          subtitle: 'Predicting Spillover Events',
-          description:
-            'We develop computational models to predict viral spillover events and identify high-risk areas.',
-          slug: 'epidemic-modeling',
-          imageUrl: '/assets/what-we-do/modeling.jpg',
-          sortOrder: 3,
-        })
-        .returning()
-
-      const [capacitySection] = await db
-        .insert(whatWeDoSections)
-        .values({
-          title: 'Capacity Building',
-          subtitle: 'Training the Next Generation',
-          description:
-            'We train researchers and public health professionals in low and middle-income countries to enhance global surveillance capacity.',
-          slug: 'capacity-building',
-          imageUrl: '/assets/what-we-do/capacity-building.jpg',
-          sortOrder: 4,
-        })
-        .returning()
-
-      // Add content for Research Initiatives section
-      await db.insert(whatWeDoContent).values({
-        sectionId: researchSection.id,
-        title: 'Viral Discovery Program',
-        contentType: 'text',
-        content:
-          'Our viral discovery program focuses on identifying novel coronaviruses and other bat-borne viruses with pandemic potential. Using metagenomic sequencing approaches, we have characterized dozens of previously unknown viral species.',
-        sortOrder: 0,
-      })
-
-      await db.insert(whatWeDoContent).values({
-        sectionId: researchSection.id,
-        title: 'Host-Pathogen Interactions',
-        contentType: 'text',
-        content:
-          'We study the molecular mechanisms that allow bats to harbor viruses without developing disease. Understanding these immune adaptations may provide insights for human therapeutics.',
-        sortOrder: 1,
-      })
-
-      await db.insert(whatWeDoContent).values({
-        sectionId: researchSection.id,
-        title: 'Ecological Monitoring',
-        contentType: 'image',
-        content: '/assets/what-we-do/ecological-monitoring.jpg',
-        metadata: JSON.stringify({
-          caption:
-            'Our team setting up acoustic monitors to track bat population movements in Southeast Asia.',
-          altText: 'Researchers installing bat acoustic monitoring equipment',
-        }),
-        sortOrder: 2,
-      })
-
-      // Add content for Field Work section
-      await db.insert(whatWeDoContent).values({
-        sectionId: fieldSection.id,
-        title: 'Global Study Sites',
-        contentType: 'text',
-        content:
-          'We operate field sites in over 20 countries across Asia, Africa, and Latin America. These sites represent diverse ecological settings where bat-human interfaces occur frequently.',
-        sortOrder: 0,
-      })
-
-      await db.insert(whatWeDoContent).values({
-        sectionId: fieldSection.id,
-        title: 'Sampling Methods',
-        contentType: 'image',
-        content: '/assets/what-we-do/bat-sampling.jpg',
-        metadata: JSON.stringify({
-          caption:
-            'Our team collecting samples from a cave-dwelling bat colony in Uganda.',
-          altText: 'Researchers in PPE collecting bat samples',
-        }),
-        sortOrder: 1,
-      })
-
-      await db.insert(whatWeDoContent).values({
-        sectionId: fieldSection.id,
-        title: 'Community Engagement',
-        contentType: 'text',
-        content:
-          'We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.',
-        sortOrder: 2,
-      })
-
-      // settings
-      await db.insert(settings).values({
-        purpose: 'general',
-        formData: {
-          website: {
-            siteName: 'Bat-Com Research Group',
-            siteDescription: 'Research on bat-borne virus spillover',
-            contactEmail: 'info@batcom.org',
-            allowRegistration: true,
-            maintenanceMode: false,
-            theme: 'default',
+      // Virus categories
+      if ((await this.getAllVirusCategories()).length === 0) {
+        console.log('Seeding virus categories...')
+        await db.insert(virusCategories).values([
+          {
+            name: 'Coronaviridae',
+            description:
+              'Family of enveloped, positive-sense, single-stranded RNA viruses.',
+            imageUrl: '/assets/viruses/coronavirus.svg',
           },
-          api: {
-            apiRateLimit: '100',
-            enablePublicAPI: true,
-            requireAPIKey: false,
+          {
+            name: 'Filoviridae',
+            description:
+              'Family of filamentous, enveloped, negative-sense RNA viruses.',
+            imageUrl: '/assets/viruses/filovirus.svg',
           },
-          security: {
-            adminLoginAttempts: '5',
-            sessionTimeout: '60',
-            enableTwoFactor: false,
+          {
+            name: 'Paramyxoviridae',
+            description:
+              'Family of negative-sense RNA viruses, including measles and mumps.',
+            imageUrl: '/assets/viruses/paramyxovirus.svg',
           },
+          {
+            name: 'Rhabdoviridae',
+            description:
+              'Family of negative-sense RNA viruses, including rabies virus.',
+            imageUrl: '/assets/viruses/rhabdovirus.svg',
+          },
+          {
+            name: 'Other/Unknown',
+            description:
+              'Additional viral families and unclassified viruses under investigation.',
+            imageUrl: '/assets/viruses/unknown-virus.svg',
+          },
+        ])
+      }
+
+      // Resolve category ids for dependent records, whether they were just
+      // seeded above or already existed.
+      const categoriesByName = new Map(
+        (await this.getAllVirusCategories()).map(category => [
+          category.name,
+          category,
+        ]),
+      )
+      const categoryId = (name: string) => categoriesByName.get(name)?.id
+
+      // Default admin user
+      if (!(await this.getAllUsers()).length) {
+        console.log('Seeding admin user...')
+        const rawPassword = process.env.ADMIN_PASSWORD || 'ADM!N_PASSW0RD'
+        await db.insert(users).values({
+          username: 'admin',
+          password: await hashPassword(rawPassword),
+        })
+      }
+
+      // Team members
+      if ((await this.getAllTeamMembers()).length === 0) {
+        console.log('Seeding team members...')
+        await db.insert(teamMembers).values([
+          {
+            name: 'Emily Gurley',
+            title: 'Professor of Epidemiology',
+            institution:
+              'Johns Hopkins University - Bloomberg School of Public Health',
+            description:
+              'Professor of Epidemiology specializing in zoonotic disease transmission and viral spillover events.',
+            imageUrl: '/assets/team/emily-gurley.png',
+            email: 'egurley@jhu.edu',
+            website:
+              'https://www.jhsph.edu/faculty/directory/profile/emily-gurley',
+            socialMedia: 'https://www.linkedin.com/in/emily-gurley',
+          },
+          {
+            name: 'Clif McKee',
+            title: 'Research Scientist',
+            institution:
+              'Johns Hopkins University - Bloomberg School of Public Health',
+            description:
+              'Research Scientist focused on bat ecology and viral evolution in bat populations.',
+            imageUrl: '/assets/team/cliff-whitworth.png',
+            email: 'cmckee@jhu.edu',
+            website:
+              'https://www.jhsph.edu/faculty/directory/profile/clif-mckee',
+            socialMedia: 'https://twitter.com/clif_mckee',
+          },
+        ])
+      }
+
+      // Publications
+      if ((await this.getAllPublications()).length === 0) {
+        console.log('Seeding publications...')
+        await db.insert(publications).values([
+          {
+            title: 'Bat Coronaviruses in China',
+            authors: 'Li et al.',
+            year: 2018,
+            abstract:
+              'Comprehensive study of SARSr-CoV prevalence and geographical distribution in Chinese bat populations, identifying novel coronaviruses with potential for human infection.',
+            evidenceInfection: 'infectionHigh',
+            evidenceSpillover: 'spilloverNot_Investigated',
+            virusCategoryIds: [categoryId('Coronaviridae')!],
+            regions: ['western_pacific'],
+            publicationDate: '2018-03-15',
+            link: 'https://example.com/bat-coronaviruses-china',
+          },
+          {
+            title: 'Nipah Virus Emergence in Malaysia',
+            authors: 'Chua et al.',
+            year: 2000,
+            abstract:
+              'Investigation of the 1998-1999 outbreak of encephalitis in humans and respiratory disease in pigs, identifying fruit bats as the natural reservoir of Nipah virus.',
+            evidenceInfection: 'infectionModerate',
+            evidenceSpillover: 'spilloverNot_Investigated',
+            virusCategoryIds: [categoryId('Paramyxoviridae')!],
+            regions: ['southeast_asia'],
+            publicationDate: '2000-09-26',
+            link: 'https://example.com/nipah-virus-emergence',
+          },
+          {
+            title: 'Ebola Virus Antibodies in Fruit Bats',
+            authors: 'Leroy et al.',
+            year: 2005,
+            abstract:
+              'Detection of Ebola virus antibodies in fruit bats from Central Africa, suggesting these species may be reservoir hosts for Ebola virus.',
+            evidenceInfection: 'infectionLow',
+            evidenceSpillover: 'spilloverNot_Investigated',
+            virusCategoryIds: [categoryId('Filoviridae')!],
+            regions: ['africa'],
+            publicationDate: '2005-12-01',
+            link: 'https://example.com/ebola-antibodies-bats',
+          },
+          {
+            title: 'MERS-CoV in Saudi Arabian Camels',
+            authors: 'Azhar et al.',
+            year: 2014,
+            abstract:
+              'Isolation of MERS-CoV from a camel and its infected owner, providing evidence for camel-to-human transmission, with bats as the likely ancestral reservoir.',
+            evidenceInfection: 'infectionHigh',
+            evidenceSpillover: 'spilloverNot_Investigated',
+            virusCategoryIds: [categoryId('Coronaviridae')!],
+            regions: ['eastern_mediterranean'],
+            publicationDate: '2014-06-05',
+            link: 'https://example.com/mers-cov-camels',
+          },
+        ])
+      }
+
+      // Background papers
+      if ((await this.getAllBackgroundPapers()).length === 0) {
+        console.log('Seeding background papers...')
+        await db.insert(backgroundPapers).values([
+          {
+            title: 'Origin and evolution of pathogenic coronaviruses',
+            virusCategoryId: categoryId('Coronaviridae')!,
+            link: 'https://example.com/coronavirus-evolution',
+            imageUrl: '/assets/viruses/bat-hanging.png',
+          },
+          {
+            title: 'Bat coronaviruses in China: A comprehensive review',
+            virusCategoryId: categoryId('Coronaviridae')!,
+            link: 'https://example.com/bat-coronavirus-review',
+            imageUrl: '/assets/viruses/bat-flying.png',
+          },
+          {
+            title: 'SARS-CoV-2: Zoonotic origins and wildlife reservoirs',
+            virusCategoryId: categoryId('Coronaviridae')!,
+            link: 'https://example.com/sars-cov-2-origins',
+          },
+          {
+            title: 'Fruit bats as reservoirs of Ebola virus',
+            virusCategoryId: categoryId('Filoviridae')!,
+            link: 'https://example.com/fruit-bats-ebola',
+          },
+          {
+            title: 'Marburg virus ecology in African bat populations',
+            virusCategoryId: categoryId('Filoviridae')!,
+            link: 'https://example.com/marburg-ecology',
+          },
+          {
+            title: 'Molecular characterization of filoviruses in bats',
+            virusCategoryId: categoryId('Filoviridae')!,
+            link: 'https://example.com/filovirus-characterization',
+          },
+          {
+            title: 'Nipah virus: Transmission dynamics and epidemiology',
+            virusCategoryId: categoryId('Paramyxoviridae')!,
+            link: 'https://example.com/nipah-transmission',
+          },
+          {
+            title: 'Hendra virus: Bat-horse-human transmission pathways',
+            virusCategoryId: categoryId('Paramyxoviridae')!,
+            link: 'https://example.com/hendra-pathways',
+          },
+          {
+            title: 'Evolutionary dynamics of bat paramyxoviruses',
+            virusCategoryId: categoryId('Paramyxoviridae')!,
+            link: 'https://example.com/paramyxovirus-evolution',
+          },
+          {
+            title: 'Bat lyssaviruses: Antigenic and genetic diversity',
+            virusCategoryId: categoryId('Rhabdoviridae')!,
+            link: 'https://example.com/bat-lyssaviruses',
+          },
+          {
+            title:
+              'Global patterns of rabies virus persistence in bat reservoirs',
+            virusCategoryId: categoryId('Rhabdoviridae')!,
+            link: 'https://example.com/rabies-persistence',
+          },
+          {
+            title:
+              'Ecological factors influencing bat-associated rhabdoviruses',
+            virusCategoryId: categoryId('Rhabdoviridae')!,
+            link: 'https://example.com/rhabdovirus-ecology',
+          },
+        ])
+      }
+
+      // "What We Do" sections
+      if ((await this.getAllWhatWeDoSections()).length === 0) {
+        console.log('Seeding what-we-do sections...')
+        await db.insert(whatWeDoSections).values([
+          {
+            title: 'Research Initiatives',
+            subtitle: 'Our Bat-CoV Research Initiatives',
+            description:
+              'We study bat-borne viruses with an emphasis on understanding viral ecology, host factors, and transmission dynamics.',
+            slug: 'research-initiatives',
+            imageUrl: '/assets/what-we-do/research.jpg',
+            sortOrder: 0,
+          },
+          {
+            title: 'Field Work',
+            subtitle: 'Bat Population Sampling & Monitoring',
+            description:
+              'Our field teams collect samples from bat populations across multiple continents to track viral prevalence and diversity.',
+            slug: 'field-work',
+            imageUrl: '/assets/what-we-do/field-work.jpg',
+            sortOrder: 1,
+          },
+          {
+            title: 'Laboratory Analysis',
+            subtitle: 'State-of-the-art Diagnostic Capabilities',
+            description:
+              'We employ cutting-edge molecular techniques to identify and characterize novel viruses.',
+            slug: 'laboratory-analysis',
+            imageUrl: '/assets/what-we-do/lab-analysis.jpg',
+            sortOrder: 2,
+          },
+          {
+            title: 'Epidemic Modeling',
+            subtitle: 'Predicting Spillover Events',
+            description:
+              'We develop computational models to predict viral spillover events and identify high-risk areas.',
+            slug: 'epidemic-modeling',
+            imageUrl: '/assets/what-we-do/modeling.jpg',
+            sortOrder: 3,
+          },
+          {
+            title: 'Capacity Building',
+            subtitle: 'Training the Next Generation',
+            description:
+              'We train researchers and public health professionals in low and middle-income countries to enhance global surveillance capacity.',
+            slug: 'capacity-building',
+            imageUrl: '/assets/what-we-do/capacity-building.jpg',
+            sortOrder: 4,
+          },
+        ])
+      }
+
+      // Resolve section ids for dependent content, whether just seeded or
+      // already present.
+      const sectionsBySlug = new Map(
+        (await this.getAllWhatWeDoSections()).map(section => [
+          section.slug,
+          section,
+        ]),
+      )
+      const researchSection = sectionsBySlug.get('research-initiatives')
+      const fieldSection = sectionsBySlug.get('field-work')
+
+      // "What We Do" content
+      const existingContent = await db.select().from(whatWeDoContent)
+      if (existingContent.length === 0 && researchSection && fieldSection) {
+        console.log('Seeding what-we-do content...')
+        await db.insert(whatWeDoContent).values([
+          {
+            sectionId: researchSection.id,
+            title: 'Viral Discovery Program',
+            contentType: 'text',
+            content:
+              'Our viral discovery program focuses on identifying novel coronaviruses and other bat-borne viruses with pandemic potential. Using metagenomic sequencing approaches, we have characterized dozens of previously unknown viral species.',
+            sortOrder: 0,
+          },
+          {
+            sectionId: researchSection.id,
+            title: 'Host-Pathogen Interactions',
+            contentType: 'text',
+            content:
+              'We study the molecular mechanisms that allow bats to harbor viruses without developing disease. Understanding these immune adaptations may provide insights for human therapeutics.',
+            sortOrder: 1,
+          },
+          {
+            sectionId: researchSection.id,
+            title: 'Ecological Monitoring',
+            contentType: 'image',
+            content: '/assets/what-we-do/ecological-monitoring.jpg',
+            metadata: JSON.stringify({
+              caption:
+                'Our team setting up acoustic monitors to track bat population movements in Southeast Asia.',
+              altText:
+                'Researchers installing bat acoustic monitoring equipment',
+            }),
+            sortOrder: 2,
+          },
+          {
+            sectionId: fieldSection.id,
+            title: 'Global Study Sites',
+            contentType: 'text',
+            content:
+              'We operate field sites in over 20 countries across Asia, Africa, and Latin America. These sites represent diverse ecological settings where bat-human interfaces occur frequently.',
+            sortOrder: 0,
+          },
+          {
+            sectionId: fieldSection.id,
+            title: 'Sampling Methods',
+            contentType: 'image',
+            content: '/assets/what-we-do/bat-sampling.jpg',
+            metadata: JSON.stringify({
+              caption:
+                'Our team collecting samples from a cave-dwelling bat colony in Uganda.',
+              altText: 'Researchers in PPE collecting bat samples',
+            }),
+            sortOrder: 1,
+          },
+          {
+            sectionId: fieldSection.id,
+            title: 'Community Engagement',
+            contentType: 'text',
+            content:
+              'We work closely with local communities to understand human-bat interactions and develop culturally appropriate risk reduction strategies. Community participation is essential for sustainable surveillance.',
+            sortOrder: 2,
+          },
+        ])
+      }
+
+      // Settings (guarded per purpose)
+      const existingPurposes = new Set(
+        (await this.getAllSettings()).map(setting => setting.purpose),
+      )
+
+      if (!existingPurposes.has('general')) {
+        console.log('Seeding general settings...')
+        await db.insert(settings).values({
+          purpose: 'general',
+          formData: {
+            website: {
+              siteName: 'Bat-Com Research Group',
+              siteDescription: 'Research on bat-borne virus spillover',
+              contactEmail: 'info@batcom.org',
+              allowRegistration: true,
+              maintenanceMode: false,
+              theme: 'default',
+            },
+            api: {
+              apiRateLimit: '100',
+              enablePublicAPI: true,
+              requireAPIKey: false,
+            },
+            security: {
+              adminLoginAttempts: '5',
+              sessionTimeout: '60',
+              enableTwoFactor: false,
+            },
+          },
+        })
+      }
+
+      if (!existingPurposes.has('kotahi')) {
+        console.log('Seeding kotahi settings...')
+        await db.insert(settings).values({
+          purpose: 'kotahi',
+          formData: {
+            endpoint: '',
+            groupId: null,
+            apiKey: null,
+          },
+        })
+      }
+
+      // Hero section defaults (guarded per name, so newly-added entries are
+      // seeded even when some already exist).
+      const heroDefaults: InsertHeroSettings[] = [
+        {
+          name: 'backgroundPapers',
+          title: 'Background Papers',
+          description:
+            'We review papers related to bat-virus spillovers. The papers below represent seminal work showing that bats are the reservoir hosts for the viruses we cover at Bat-Com.',
         },
-      })
-
-      await db.insert(settings).values({
-        purpose: 'kotahi',
-        formData: {
-          endpoint: '',
-          groupId: null,
-          apiKey: null,
+        {
+          name: 'contact',
+          title: 'Contact Us',
+          description:
+            'Please reach out to us by email with any comments, questions or suggestions for papers to review.',
         },
-      })
+        {
+          name: 'home',
+          title:
+            'Our teams curate and assess historical and emerging research on bat virus spillover events.',
+          description:
+            'We prioritize high-quality research on spillover events to shed light on viral reservoirs, intermediate hosts, recipient hosts, and possible spillover pathways.',
+        },
+        {
+          name: 'publications',
+          title: 'Most Recent Reviews',
+          description:
+            'Explore our curated collection of research on bat virus spillover events, categorized by virus family, evidence quality, and geographical region.',
+        },
+        {
+          name: 'search',
+          title: 'Search Our Reviews',
+          description:
+            'Find specific research papers and reviews on bat virus spillover events by searching our comprehensive database.',
+        },
+        {
+          name: 'team',
+          title: 'Our Research Team',
+          description:
+            'Meet the dedicated researchers behind our work on bat virus spillover events. Our interdisciplinary team combines expertise in virology, epidemiology, ecology, and public health.',
+        },
+        {
+          name: 'whatWeDo',
+          title: 'What We Do',
+          description:
+            'At Bat-Com, we systematically review and evaluate scientific evidence related to bat viruses and their potential to cause human disease. Our work focuses on providing high-quality, accessible information to researchers, public health officials, and policymakers.',
+        },
+      ]
 
-      console.log('Sample data successfully inserted.')
+      const existingHeroNames = new Set(
+        (await this.getAllHeroSettings()).map(hero => hero.name),
+      )
+      const missingHero = heroDefaults.filter(
+        hero => !existingHeroNames.has(hero.name),
+      )
+
+      if (missingHero.length > 0) {
+        console.log(`Seeding ${missingHero.length} hero section(s)...`)
+        await db.insert(heroSectionSettings).values(missingHero)
+      }
+
+      console.log('Sample data initialization complete.')
     } catch (error) {
       console.error('Error inserting sample data:', error)
       throw error

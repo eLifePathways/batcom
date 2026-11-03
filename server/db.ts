@@ -10,6 +10,9 @@ const caCert = process.env.POSTGRES_CA_CERT
 export const client = postgres(connectionString, {
   // ssl: caCert ? { rejectUnauthorized: false } : false,
   ssl: false,
+  // Suppress informational NOTICE logs (e.g. "IF NOT EXISTS ... skipping"
+  // emitted by migrations); they are not errors.
+  onnotice: () => {},
 })
 
 // Create Drizzle ORM instance

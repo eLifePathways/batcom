@@ -185,6 +185,7 @@ export const virusCategories = pgTable('virus_categories', {
   name: text('name').notNull(),
   description: text('description').notNull(),
   imageUrl: text('image_url'),
+  isComplete: boolean('is_complete').notNull().default(false),
 })
 
 export const teamMembers = pgTable('team_members', {
@@ -215,6 +216,7 @@ export const publications = pgTable('publications', {
   regions: geographicRegionEnum('regions').array().notNull(),
   publicationDate: date('publication_date').notNull(),
   link: text('link'),
+  manuscriptText: text('manuscript_text'),
 })
 
 export const reviews = pgTable('reviews', {
