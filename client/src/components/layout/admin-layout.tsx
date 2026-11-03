@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'wouter'
-import { clearToken, cn, getToken } from '@/lib/utils'
+import { clearToken, cn, isTokenValid } from '@/lib/utils'
 import {
   Home,
   Users,
@@ -160,17 +160,23 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [location, navigate] = useLocation()
-  const token = getToken()
+  const valid = isTokenValid()
 
-  // If we're at exactly /admin without trailing slash, redirect to /admin/
   React.useEffect(() => {
-    if (location === '/admin') {
-      // Make sure we're on the admin dashboard route
-      navigate('/admin/')
+    if (!valid) {
+      clearToken()
+      navigate('/login')
+      return
     }
 
-    if (!token) navigate('/login')
-  }, [location, navigate, token])
+    // If we're at exactly /admin without trailing slash, redirect to /admin/
+    if (location === '/admin') {
+      navigate('/admin/')
+    }
+  }, [location, navigate, valid])
+
+  // Never render the admin shell for an invalid or expired token.
+  if (!valid) return null
 
   return (
     <div className="flex h-screen bg-muted">

@@ -1,8 +1,21 @@
 import { QueryClient, QueryFunction, QueryKey } from '@tanstack/react-query'
-import { getToken } from './utils'
+import { clearToken, getToken } from './utils'
 
 // How long React Query treats fetched data as fresh before refetching.
 const STALE_TIME = 5 * 60 * 1000 // 5 minutes
+
+/**
+ * A 401 from a request that carried a token means the stored token is invalid
+ * or expired. Clear it and send the user to the login page. The login request
+ * is excluded because it legitimately returns 401 on bad credentials.
+ */
+function handleUnauthorized(url: string) {
+  if (url.includes('/api/login')) return
+  clearToken()
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
 
 /**
  * Helper for handling response errors with optimized performance
@@ -74,6 +87,11 @@ export async function apiRequest<T = any>(
     credentials: 'include',
   })
 
+  // An invalid or expired token should drop the session and redirect to login.
+  if (res.status === 401 && getToken()) {
+    handleUnauthorized(url)
+  }
+
   await throwIfResNotOk(res)
 
   // If status is 204 No Content, return empty object
@@ -123,6 +141,12 @@ export const getQueryFn: <T>(options: {
         Authorization: token ? `Bearer ${token}` : '',
       },
     })
+
+    // A token that the server rejects is invalid or expired: redirect to login.
+    // Anonymous visitors carry no token, so public pages are unaffected.
+    if (res.status === 401 && token) {
+      handleUnauthorized(url)
+    }
 
     // Handle unauthorized according to behavior
     if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
