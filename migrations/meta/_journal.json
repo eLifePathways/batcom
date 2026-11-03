@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789566880557,
+      "tag": "20260916135440_init",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789566890930,
+      "tag": "20260916135450_add_manuscript_text",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793046460079,
+      "tag": "20261026202740_flaky_senator_kelly",
+      "breakpoints": true
+    }
+  ]
+}

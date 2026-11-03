@@ -174,6 +174,16 @@ const PublicationsSection = () => {
     return category?.name || 'Unknown'
   }
 
+  // Virus families currently selected in the filter. A filter value may be a
+  // single id or a comma-joined list, so split before matching.
+  const selectedCategoryIds = filters.virusCategories
+    .flatMap(value => value.split(','))
+    .map(id => parseInt(id, 10))
+    .filter(id => !Number.isNaN(id))
+
+  const selectedCategories =
+    categories?.filter(cat => selectedCategoryIds.includes(cat.id)) ?? []
+
   // Filter publications based on selected filters
   const filteredPublications = publications?.filter(pub => {
     const infectionMatch =
@@ -330,7 +340,33 @@ const PublicationsSection = () => {
           />
         </div>
 
-        {/* Data Visualization */}
+        {/* Selected virus families (driven by the active filter) */}
+        {selectedCategories.length > 0 && (
+          <div className="mb-10 space-y-4">
+            {selectedCategories.map(category => (
+              <div
+                key={category.id}
+                className="bg-card rounded-lg shadow-md p-6"
+              >
+                <h3 className="text-xl md:text-2xl font-heading font-bold text-primary mb-1">
+                  {category.name}
+                </h3>
+                <p
+                  className={`text-sm font-medium mb-3 ${
+                    category.isComplete ? 'text-success' : 'text-warning'
+                  }`}
+                >
+                  {category.isComplete
+                    ? 'Reviews for this family are complete.'
+                    : 'Reviews for this family are ongoing.'}
+                </p>
+                <p className="text-foreground">{category.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Data Visualisation */}
         <div className="bg-card rounded-lg shadow-md p-6 mb-8">
           <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6">
             {qualityLegend.map(({ key, label }) => (

@@ -56,7 +56,8 @@ export default function Contact() {
                 Contact Information
               </CardTitle>
               <CardDescription>
-                Reach out to us through any of these channels
+                Please reach out to us by email with any comments, questions or
+                suggestions for papers to review.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -71,20 +72,6 @@ export default function Contact() {
                     >
                       batvirus@jh.edu
                     </a>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <MapPin className="h-5 w-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <h3 className="font-medium">Address</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Johns Hopkins Bloomberg School of Public Health
-                    <br />
-                    615 N. Wolfe Street
-                    <br />
-                    Baltimore, MD 21205
                   </p>
                 </div>
               </div>

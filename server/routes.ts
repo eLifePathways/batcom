@@ -23,6 +23,8 @@ import {
   stripUserPassword,
 } from './auth'
 import { requireAuth } from './middleware'
+import { imagesHandler } from './manuscript-images'
+import { makeSvgsFromLatex } from './manuscript-math'
 import { MANUSCRIPTS_PUBLISHED_SINCE_DATE } from '@shared/queries'
 import {
   getValidDate,
@@ -1336,7 +1338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/kotahi/sync', async (req: Request, res, Response) => {
     const settings = await storage.getSettings('kotahi')
 
-    console.log('syncing with kothi using', settings)
+    console.log('syncing with kotahi using', settings)
 
     if (!settings || !isKotahiSettingsFormData(settings.formData)) {
       return res.status(400).json({ message: 'Invalid Kotahi settings' })
@@ -1389,6 +1391,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const review = manuscript.reviews.find(r => !r.isDecision)
           const decision = manuscript.decisions.find(r => r.isDecision)
+          const manuscriptText = manuscript.meta?.source || ''
+
+          // Download any remote (signed, expiring) images referenced in the
+          // manuscript to local storage and rewrite their src to the local
+          // copy, mirroring flax's imagesHandler.
+          const localisedManuscriptText = await imagesHandler(
+            manuscriptText,
+            manuscript.id,
+          )
+
+          // Convert any LaTeX carried in Wax math nodes into inline SVG so the
+          // maths renders without client-side MathJax, mirroring flax's
+          // makeSvgsFromLatex.
+          const renderedManuscriptText = makeSvgsFromLatex(
+            localisedManuscriptText,
+          )
 
           let reviewContent: Array<KotahiReviewField> = []
 
@@ -1452,6 +1470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             regions,
             publicationDate: getValidDate(datePublished),
             link: $sourceUri,
+            manuscriptText: renderedManuscriptText,
           }
 
           const reviewPayload: Omit<InsertReview, 'publicationId'> = {

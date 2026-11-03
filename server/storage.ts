@@ -303,6 +303,7 @@ export class MemStorage implements IStorage {
       ...category,
       id,
       imageUrl: category.imageUrl ?? null,
+      isComplete: category.isComplete ?? false,
     }
     this.virusCategories.set(id, virusCategory)
     return virusCategory
@@ -417,6 +418,7 @@ export class MemStorage implements IStorage {
       kotahiManuscriptId: publication.kotahiManuscriptId ?? crypto.randomUUID(),
       id,
       link: publication.link ?? null,
+      manuscriptText: publication.manuscriptText ?? null,
     }
     this.publications.set(id, newPublication)
     return newPublication
