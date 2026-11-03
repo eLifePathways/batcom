@@ -12,6 +12,9 @@ export default defineConfig({
   schemaFilter: ['public'],
   strict: true,
   dialect: 'postgresql',
+  migrations: {
+    prefix: 'timestamp',
+  },
   dbCredentials: {
     url: process.env.POSTGRES_URL,
     ...(caCert
