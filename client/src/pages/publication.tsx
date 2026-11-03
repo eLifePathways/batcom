@@ -120,6 +120,7 @@ const PublicationPage = () => {
     title,
     virusCategoryIds,
     year,
+    manuscriptText,
   } = publication
 
   const review = reviews[0]
@@ -197,7 +198,9 @@ const PublicationPage = () => {
         </p>
       )}
 
-      {!reviews.length && <p className="text-muted-foreground">No reviews yet.</p>}
+      {!reviews.length && (
+        <p className="text-muted-foreground">No reviews yet.</p>
+      )}
 
       {review && (
         <div className="gap-4">
@@ -269,6 +272,7 @@ const PublicationPage = () => {
           />
         </div>
       )}
+      {manuscriptText && <SafeHtml html={manuscriptText} />}
     </section>
   )
 }

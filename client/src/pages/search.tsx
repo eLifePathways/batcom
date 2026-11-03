@@ -99,7 +99,7 @@ const Search = () => {
             </h2>
 
             {error && (
-              <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded">
+              <div className="bg-destructive/10 border border-destructive/30 text-destructive-text px-4 py-3 rounded">
                 An error occurred while searching. Please try again.
               </div>
             )}

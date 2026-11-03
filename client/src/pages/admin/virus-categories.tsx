@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Edit, Trash2, Image } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
@@ -33,6 +34,7 @@ type VirusCategory = {
   name: string
   description: string
   imageUrl: string
+  isComplete: boolean
 }
 
 export default function VirusCategoriesAdmin() {
@@ -49,6 +51,7 @@ export default function VirusCategoriesAdmin() {
     name: '',
     description: '',
     imageUrl: '',
+    isComplete: false,
   })
 
   const [selectedCategory, setSelectedCategory] =
@@ -63,6 +66,7 @@ export default function VirusCategoriesAdmin() {
       name: '',
       description: '',
       imageUrl: '',
+      isComplete: false,
     })
   }
 
@@ -72,6 +76,7 @@ export default function VirusCategoriesAdmin() {
       name: category.name,
       description: category.description,
       imageUrl: category.imageUrl,
+      isComplete: category.isComplete,
     })
   }
 
@@ -99,14 +104,18 @@ export default function VirusCategoriesAdmin() {
         body: JSON.stringify(categoryData),
       })
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: 'Success',
         description: 'Virus category created successfully!',
       })
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] })
       setAddDialogOpen(false)
       resetFormData()
+      // Refetch the list so the table (and a subsequent edit form) shows the
+      // latest values rather than a stale cache.
+      await queryClient.invalidateQueries({
+        queryKey: ['/api/virus-categories'],
+      })
     },
     onError: (error: any) => {
       toast({
@@ -131,15 +140,19 @@ export default function VirusCategoriesAdmin() {
         body: JSON.stringify(data),
       })
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: 'Success',
         description: 'Virus category updated successfully!',
       })
-      queryClient.invalidateQueries({ queryKey: ['/api/virus-categories'] })
       setEditDialogOpen(false)
       setSelectedCategory(null)
       resetFormData()
+      // Refetch the list so reopening the edit form shows the saved values
+      // rather than a stale cache.
+      await queryClient.invalidateQueries({
+        queryKey: ['/api/virus-categories'],
+      })
     },
     onError: (error: any) => {
       toast({
@@ -282,6 +295,22 @@ export default function VirusCategoriesAdmin() {
                 label="Category Image"
                 description="Upload an image for this virus category (PNG, JPG up to 10MB)"
               />
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isComplete"
+                  checked={!!formData.isComplete}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({
+                      ...prev,
+                      isComplete: checked === true,
+                    }))
+                  }
+                />
+                <Label htmlFor="isComplete" className="cursor-pointer">
+                  Reviews complete for this family
+                </Label>
+              </div>
             </div>
             <DialogFooter>
               <Button type="submit" disabled={createVirusCategory.isPending}>
@@ -351,8 +380,13 @@ export default function VirusCategoriesAdmin() {
                           onOpenChange={open => {
                             setEditDialogOpen(open)
                             if (open) {
-                              setSelectedCategory(category)
-                              loadCategoryData(category)
+                              // Read the latest from the cache in case the row
+                              // closure is stale.
+                              const fresh =
+                                categories?.find(c => c.id === category.id) ??
+                                category
+                              setSelectedCategory(fresh)
+                              loadCategoryData(fresh)
                             }
                           }}
                         >
@@ -403,6 +437,25 @@ export default function VirusCategoriesAdmin() {
                                   description="Upload an image for this virus category (PNG, JPG up to 10MB)"
                                 />
 
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id="edit-isComplete"
+                                    checked={!!formData.isComplete}
+                                    onCheckedChange={checked =>
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        isComplete: checked === true,
+                                      }))
+                                    }
+                                  />
+                                  <Label
+                                    htmlFor="edit-isComplete"
+                                    className="cursor-pointer"
+                                  >
+                                    Reviews complete for this family
+                                  </Label>
+                                </div>
+
                                 <DialogFooter>
                                   <Button
                                     type="submit"
@@ -435,7 +488,7 @@ export default function VirusCategoriesAdmin() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className="text-destructive hover:text-destructive"
+                              className="text-destructive-text hover:text-destructive-text"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

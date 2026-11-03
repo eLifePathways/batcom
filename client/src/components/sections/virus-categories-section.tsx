@@ -31,7 +31,7 @@ const VirusCategoriesSection = () => {
           
           {error && (
             <div className="col-span-full text-center py-8">
-              <p className="text-destructive">Error loading virus categories. Please try again later.</p>
+              <p className="text-destructive-text">Error loading virus categories. Please try again later.</p>
             </div>
           )}
           

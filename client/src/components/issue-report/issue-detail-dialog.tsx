@@ -294,7 +294,7 @@ export function IssueDetailDialog({ issue, open, onOpenChange, onCommentAdded }:
                     onClick={() => updateIssueMutation.mutate({ priority: 'high' })}
                     className="flex items-center"
                   >
-                    <Flag className="h-4 w-4 mr-2 text-destructive" />
+                    <Flag className="h-4 w-4 mr-2 text-destructive-text" />
                     <span>High Priority</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 

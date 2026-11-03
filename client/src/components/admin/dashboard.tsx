@@ -26,6 +26,7 @@ import {
   ExternalLink,
   Trash2,
   Image,
+  Pencil,
 } from 'lucide-react'
 import {
   Dialog,
@@ -51,7 +52,7 @@ import {
 import { ImageUpload } from '@/components/ui/image-upload'
 import { apiRequest } from '@/lib/queryClient'
 import { useToast } from '@/hooks/use-toast'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   EVIDENCE_QUALITY_INFECTION,
   EVIDENCE_QUALITY_SPILLOVER,
@@ -62,10 +63,12 @@ import { parseFormValue } from '@shared/utils'
 import { MultiSelect } from '@/components/ui/multi-select'
 import {
   BackgroundPaper,
+  HeroSectionSettings,
   Publication,
   TeamMember,
   VirusCategory,
 } from '@shared/schema'
+import HeroSection from '../sections/hero-section'
 
 export default function AdminDashboard() {
   const { toast } = useToast()
@@ -78,6 +81,7 @@ export default function AdminDashboard() {
     useState(false)
   const [addBackgroundPaperDialogOpen, setAddBackgroundPaperDialogOpen] =
     useState(false)
+  const [editingHeroSection, setEditingHeroSection] = useState(false)
 
   // Team member form state
   const [teamMemberFormData, setTeamMemberFormData] = useState({
@@ -114,12 +118,25 @@ export default function AdminDashboard() {
     description: '',
   })
 
+  const [heroSectionFormData, setHeroSectionFormData] = useState({
+    name: 'home',
+    title: '',
+    description: '',
+  })
+
   // Form change handlers
   const handleTeamMemberFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target
     setTeamMemberFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleHeroSectionFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target
+    setHeroSectionFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handlePublicationFormChange = (
@@ -157,6 +174,52 @@ export default function AdminDashboard() {
 
   const { data: virusCategories = [] } = useQuery<VirusCategory[]>({
     queryKey: ['/api/virus-categories'],
+  })
+
+  // Hero section for the dashboard page header
+  const { data: heroSection, isLoading: heroSectionLoading } =
+    useQuery<HeroSectionSettings>({
+      queryKey: ['/api/hero-section/home'],
+    })
+
+  // Keep the form (and live preview) in sync with the saved hero section
+  useEffect(() => {
+    if (heroSection) {
+      setHeroSectionFormData({
+        name: heroSection.name,
+        title: heroSection.title,
+        description: heroSection.description,
+      })
+    }
+  }, [heroSection])
+
+  // Update hero section mutation
+  const updateHeroSection = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest(`/api/hero-section/${heroSection?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/hero-section/home'],
+      })
+      toast({
+        title: 'Success',
+        description: 'Page header updated successfully',
+      })
+      setEditingHeroSection(false)
+    },
+    onError: error => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update page header',
+        variant: 'destructive',
+      })
+      console.error('Error updating hero section:', error)
+    },
   })
 
   // Add team member mutation
@@ -331,19 +394,38 @@ export default function AdminDashboard() {
     addBackgroundPaper.mutate(backgroundPaperFormData)
   }
 
+  const handleEditHeroDescription = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!heroSectionFormData.title || !heroSectionFormData.description) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      })
+
+      return
+    }
+
+    updateHeroSection.mutate(heroSectionFormData)
+  }
+
   // Prepare data for publications by year chart - using real database values
   const publicationsByYear =
     publications && Array.isArray(publications)
       ? Object.entries(
-          publications.reduce((acc: Record<string, number>, pub: any) => {
-            // Ensure we're working with numeric year values
-            const year =
-              typeof pub.year === 'number'
-                ? pub.year.toString()
-                : String(pub.year)
-            acc[year] = (acc[year] || 0) + 1
-            return acc
-          }, {} as Record<string, number>),
+          publications.reduce(
+            (acc: Record<string, number>, pub: any) => {
+              // Ensure we're working with numeric year values
+              const year =
+                typeof pub.year === 'number'
+                  ? pub.year.toString()
+                  : String(pub.year)
+              acc[year] = (acc[year] || 0) + 1
+              return acc
+            },
+            {} as Record<string, number>,
+          ),
         )
           .map(([year, count]) => ({
             year: year, // Keep year as string for display
@@ -371,8 +453,7 @@ export default function AdminDashboard() {
       description: 'Categorized virus families',
       icon: <Bug className="h-6 w-6" />,
       href: '/admin/virus-categories',
-      color:
-        'bg-primary/10 text-primary',
+      color: 'bg-primary/10 text-primary',
     },
     {
       title: 'Publications',
@@ -380,8 +461,7 @@ export default function AdminDashboard() {
       description: 'Research publications',
       icon: <BookOpen className="h-6 w-6" />,
       href: '/admin/publications',
-      color:
-        'bg-success/10 text-success',
+      color: 'bg-success/10 text-success',
     },
     {
       title: 'Background Papers',
@@ -389,8 +469,7 @@ export default function AdminDashboard() {
       description: 'Educational resources',
       icon: <FileText className="h-6 w-6" />,
       href: '/admin/background-papers',
-      color:
-        'bg-warning/10 text-warning',
+      color: 'bg-warning/10 text-warning',
     },
   ]
 
@@ -398,9 +477,16 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage and monitor your content in one place.
-        </p>
+
+        <HeroSection
+          description={heroSectionFormData.description}
+          loading={heroSectionLoading}
+          title={heroSectionFormData.title}
+        />
+        <Button onClick={() => setEditingHeroSection(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit Page Header
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -925,6 +1011,64 @@ export default function AdminDashboard() {
             <DialogFooter>
               <Button type="submit" disabled={addBackgroundPaper.isPending}>
                 {addBackgroundPaper.isPending ? 'Saving...' : 'Save Paper'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Page Header Dialog */}
+      <Dialog
+        open={editingHeroSection}
+        onOpenChange={open => {
+          setEditingHeroSection(open)
+          // Discard unsaved edits when closing without saving
+          if (!open && heroSection) {
+            setHeroSectionFormData({
+              name: heroSection.name,
+              title: heroSection.title,
+              description: heroSection.description,
+            })
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Edit Page Header</DialogTitle>
+            <DialogDescription>
+              Update the title and description shown at the top of the
+              dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditHeroDescription} className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="heroTitle">Title *</Label>
+              <Input
+                id="heroTitle"
+                name="title"
+                value={heroSectionFormData.title}
+                onChange={handleHeroSectionFormChange}
+                placeholder="Page header title"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="heroDescription">Description *</Label>
+              <Textarea
+                id="heroDescription"
+                name="description"
+                value={heroSectionFormData.description}
+                onChange={handleHeroSectionFormChange}
+                placeholder="Supporting text shown under the title"
+                rows={4}
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="submit" disabled={updateHeroSection.isPending}>
+                {updateHeroSection.isPending ? 'Saving...' : 'Save Header'}
               </Button>
             </DialogFooter>
           </form>

@@ -417,7 +417,7 @@ export default function UsersAdmin() {
                         }}
                       >
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="icon" className="text-destructive hover:text-destructive">
+                          <Button variant="outline" size="icon" className="text-destructive-text hover:text-destructive-text">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>

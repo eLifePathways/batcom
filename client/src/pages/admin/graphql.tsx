@@ -727,7 +727,7 @@ export default function GraphQLAdmin() {
               </CardHeader>
               <CardContent>
                 {error && (
-                  <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded mb-4 whitespace-pre-wrap font-mono text-sm">
+                  <div className="bg-destructive/10 border border-destructive/30 text-destructive-text p-4 rounded mb-4 whitespace-pre-wrap font-mono text-sm">
                     {error}
                   </div>
                 )}

@@ -697,7 +697,7 @@ export default function BackgroundPapersAdmin() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="text-destructive hover:text-destructive"
+                                className="text-destructive-text hover:text-destructive-text"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

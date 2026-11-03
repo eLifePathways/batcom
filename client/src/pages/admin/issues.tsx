@@ -219,7 +219,7 @@ export default function IssuesAdmin() {
   const getPriorityBadge = (priority: Issue['priority']) => {
     switch (priority) {
       case 'high':
-        return <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">High</Badge>;
+        return <Badge variant="outline" className="bg-destructive/10 text-destructive-text border-destructive/30">High</Badge>;
       case 'medium':
         return <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">Medium</Badge>;
       case 'low':
@@ -449,7 +449,7 @@ export default function IssuesAdmin() {
                           
                           <DropdownMenuItem 
                             onClick={() => handleDeleteClick(issue)}
-                            className="text-destructive"
+                            className="text-destructive-text"
                           >
                             Delete Issue
                           </DropdownMenuItem>

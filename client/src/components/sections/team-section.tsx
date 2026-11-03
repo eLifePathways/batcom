@@ -78,7 +78,7 @@ const TeamSection = ({
           {isLoading && renderSkeleton()}
           {error && (
             <div className="col-span-full text-center py-8">
-              <p className="text-destructive">
+              <p className="text-destructive-text">
                 Error loading team members. Please try again later.
               </p>
             </div>

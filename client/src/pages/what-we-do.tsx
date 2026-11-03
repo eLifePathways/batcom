@@ -130,7 +130,7 @@ const SectionContent = ({ sectionId }: { sectionId: number }) => {
   }
 
   if (error) {
-    return <p className="text-destructive">Error loading content</p>
+    return <p className="text-destructive-text">Error loading content</p>
   }
 
   return (
@@ -183,7 +183,7 @@ export default function WhatWeDo() {
       ) : error ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
+            <CardTitle className="text-destructive-text">Error</CardTitle>
             <CardDescription>
               There was a problem loading the content. Please try again later.
             </CardDescription>
@@ -197,7 +197,18 @@ export default function WhatWeDo() {
             className="w-full"
           >
             <TabsList
-              className={`grid grid-cols-2 md:grid-cols-${Math.min(sections.length, 5)} w-full`}
+              className={`grid h-auto w-full grid-cols-2 gap-1 ${
+                // Full literal class strings so Tailwind keeps them (a
+                // `md:grid-cols-${n}` template would be purged at build time).
+                [
+                  '',
+                  'md:grid-cols-1',
+                  'md:grid-cols-2',
+                  'md:grid-cols-3',
+                  'md:grid-cols-4',
+                  'md:grid-cols-5',
+                ][Math.min(sections.length, 5)]
+              }`}
             >
               {sections.map((section: WhatWeDoSection) => (
                 <TabsTrigger key={section.id} value={section.slug}>

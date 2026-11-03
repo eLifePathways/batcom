@@ -475,7 +475,7 @@ export default function PublicationsAdmin() {
                                 ? 'bg-warning/10 text-warning'
                                 : publication.evidenceInfection ===
                                     'infectionLow'
-                                  ? 'bg-destructive/10 text-destructive'
+                                  ? 'bg-destructive/10 text-destructive-text'
                                   : 'bg-muted text-foreground'
                           }`}
                         >
@@ -509,7 +509,7 @@ export default function PublicationsAdmin() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                                className="text-destructive-text border-destructive/30 hover:bg-destructive/10"
                                 onClick={() => {
                                   setSelectedPublication(publication)
                                   setIsDeleteDialogOpen(true)

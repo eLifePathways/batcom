@@ -47,10 +47,11 @@
        (white text fails AA on them); Dark Red & Forest Green take white. */
     --destructive: 351.1 73.8% 37.5%; /* Dark Red, PMS 187 C, #A6192E */
     --destructive-foreground: 210 40% 98%;
+    --destructive-text: 351.1 73.8% 37.5%; /* Dark Red for text on light surfaces (7.5:1 on white) */
     --success: 144 41.4% 26.1%; /* Forest Green, PMS 7734 C, #275E3D */
     --success-foreground: 0 0% 100%;
-    --warning: 34.5 100% 55.3%; /* Orange, PMS 1375 C, #FF9E1B */
-    --warning-foreground: 28 74% 12%;
+    --warning: 34.5 90% 32%; /* Amber #9B5D08, darkened from PMS 1375 C (#FF9E1B) for WCAG AA text contrast (5.3:1 on white) */
+    --warning-foreground: 0 0% 100%;
     --info: 267.3 17.3% 62.5%; /* Lavender, PMS 666 C, #9E8FB0 */
     --info-foreground: 267 40% 12%;
 
@@ -116,6 +117,7 @@
     /* Status / feedback — brand hues lifted for dark surfaces */
     --destructive: 351 70% 50%; /* Dark Red, lifted */
     --destructive-foreground: 0 0% 100%;
+    --destructive-text: 351 90% 60%; /* Lighter red for text on dark surfaces (5.4:1 on card) — solid --destructive stays for buttons */
     --success: 144 55% 42%; /* Forest Green, lifted */
     --success-foreground: 144 70% 8%;
     --warning: 34.5 95% 55%; /* Orange */
